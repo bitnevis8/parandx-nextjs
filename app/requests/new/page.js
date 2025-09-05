@@ -20,7 +20,7 @@ export default function NewRequestPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:3000/category');
+        const response = await fetch(API_ENDPOINTS.categories.getAll);
         if (response.ok) {
           const result = await response.json();
           setCategories(result.data || []);

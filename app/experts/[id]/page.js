@@ -18,7 +18,7 @@ export default function ExpertDetailPage({ params }) {
   useEffect(() => {
     const fetchExpertData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/expert/${expertId}`);
+        const response = await fetch(API_ENDPOINTS.experts.getById(expertId));
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -26,7 +26,7 @@ export default function ExpertDetailPage({ params }) {
         setExpert(result.data);
         
         // دریافت نظرات متخصص
-        const reviewsResponse = await fetch(`http://localhost:3000/review?expertId=${expertId}`);
+        const reviewsResponse = await fetch(`${API_ENDPOINTS.reviews.getAll}?expertId=${expertId}`);
         if (reviewsResponse.ok) {
           const reviewsResult = await reviewsResponse.json();
           setReviews(reviewsResult.data || []);

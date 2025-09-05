@@ -116,6 +116,7 @@ export const API_ENDPOINTS = {
     base: `${API_BASE_URL}/category`,
     getAll: `${API_BASE_URL}/category`,
     getById: (id) => `${API_BASE_URL}/category/${id}`,
+    getBySlug: (slug) => `${API_BASE_URL}/category/slug/${slug}`,
     create: `${API_BASE_URL}/category`,
     update: (id) => `${API_BASE_URL}/category/${id}`,
     delete: (id) => `${API_BASE_URL}/category/${id}`,
