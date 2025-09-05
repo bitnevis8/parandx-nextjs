@@ -14,7 +14,7 @@ export const metadata = {
   openGraph: {
     title: 'پرندیکس - پلتفرم خدمات شهری',
     description: 'پلتفرم پرندیکس برای اتصال مشتریان به متخصصان خدمات در شهر پرند',
-    url: 'https://parandx.ir',
+    url: 'https://parandx.com',
     siteName: 'پرندیکس',
     locale: 'fa_IR',
     type: 'website',

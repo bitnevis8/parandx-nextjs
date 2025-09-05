@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { API_ENDPOINTS } from "../../../../../config/api";
+import { API_ENDPOINTS } from "../../../config/api";
 
 const EditUserPage = () => {
   const router = useRouter();

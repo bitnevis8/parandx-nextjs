@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "../../../../../config/api";
+import { API_ENDPOINTS } from "../../../config/api";
 
 export default function CreateRole() {
   const router = useRouter();

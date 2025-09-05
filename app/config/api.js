@@ -2,14 +2,15 @@
 const isDevelopment = process.env.NODE_ENV === 'development';
 console.log('Current environment:', process.env.NODE_ENV); // برای دیباگ
 
-// در حالت production، حتماً باید NEXT_PUBLIC_API_URL ست شده باشد. اگر نبود، به صورت پیش‌فرض روی api.taganeh.ir قرار می‌گیرد.
+// در حالت production، حتماً باید NEXT_PUBLIC_API_URL ست شده باشد. اگر نبود، به صورت پیش‌فرض روی api.parandx.com قرار می‌گیرد.
 let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_BASE_URL) {
   if (!isDevelopment) {
     // هشدار برای لاگ سرور
-    console.warn('⚠️ NEXT_PUBLIC_API_URL is not set! Defaulting to https://api.taganeh.ir');
-    API_BASE_URL = 'https://api.taganeh.ir';
+    console.warn('⚠️ NEXT_PUBLIC_API_URL is not set! Defaulting to https://api.parandx.com');
+    API_BASE_URL = 'https://api.parandx.com';
   } else {
+    // در development از پورت 3000 استفاده می‌کنیم
     API_BASE_URL = 'http://localhost:3000';
   }
 }

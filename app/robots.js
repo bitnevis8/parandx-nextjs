@@ -5,6 +5,6 @@ export default function robots() {
       allow: '/',
       disallow: ['/api/', '/admin/', '/dashboard/'],
     },
-    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://taganeh.ir'}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://parandx.com'}/sitemap.xml`,
   };
 } 

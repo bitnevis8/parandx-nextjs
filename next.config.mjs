@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['api.taganeh.ir', 'localhost', 'taganeh.ir'],
+    domains: ['api.parandx.com', 'localhost', 'parandx.com'],
     formats: ['image/webp', 'image/avif'],
     unoptimized: true, // برای تصاویر خارجی
   },
@@ -19,6 +19,12 @@ const nextConfig = {
   },
   // غیرفعال کردن کش در webpack
   webpack: (config, { dev, isServer }) => {
+    // اضافه کردن alias برای مسیر config
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@config': require('path').resolve(__dirname, 'app/config'),
+    };
+    
     if (!dev && !isServer) {
       config.optimization.splitChunks.cacheGroups = {
         ...config.optimization.splitChunks.cacheGroups,

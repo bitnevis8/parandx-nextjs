@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://taganeh.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://parandx.com';
   
   const categoryUrls = [];
 
