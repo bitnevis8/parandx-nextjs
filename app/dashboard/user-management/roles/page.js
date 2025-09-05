@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "../../config/api";
+import { API_ENDPOINTS } from "@config/api";
 
 export default function RolesList() {
   const router = useRouter();

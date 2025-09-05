@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { API_ENDPOINTS } from '../config/api';
 
 export default function ExpertsPage() {
@@ -60,12 +61,12 @@ export default function ExpertsPage() {
           </p>
           {selectedCategory && (
             <div className="mt-4">
-              <a 
+              <Link 
                 href="/experts" 
                 className="inline-block bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-200 transition-colors"
               >
                 ← مشاهده همه متخصصان
-              </a>
+              </Link>
             </div>
           )}
         </div>

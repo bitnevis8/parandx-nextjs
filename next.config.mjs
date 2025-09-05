@@ -1,3 +1,9 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -22,7 +28,7 @@ const nextConfig = {
     // اضافه کردن alias برای مسیر config
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@config': require('path').resolve(__dirname, 'app/config'),
+      '@config': path.resolve(__dirname, 'app/config'),
     };
     
     if (!dev && !isServer) {
