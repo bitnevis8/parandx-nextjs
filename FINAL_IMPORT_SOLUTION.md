@@ -97,3 +97,5 @@ npm run test-build
 2. مسیرهای نسبی را بررسی کنید
 3. Cache را پاک کنید: `rm -rf .next`
 4. دوباره build کنید: `npm run build`
+
+

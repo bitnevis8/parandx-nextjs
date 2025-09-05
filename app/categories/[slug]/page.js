@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { API_ENDPOINTS } from '../../config/api';
 
 export default function CategoryDetailPage({ params }) {
   const [category, setCategory] = useState(null);
