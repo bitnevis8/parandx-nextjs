@@ -55,12 +55,11 @@
 }
 
 body {
-  background: var(--background);
+  background: #ffffff;
   color: var(--foreground);
   font-family: 'IRANSans', sans-serif;
   direction: rtl;
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-end-rgb));
 }
 
 @tailwind base;
@@ -199,4 +198,13 @@ body {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Hide scrollbar but keep scroll (e.g. horizontal nav on mobile) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

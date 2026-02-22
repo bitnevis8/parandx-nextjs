@@ -94,7 +94,7 @@ export default function UserViewPage({ params }) {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-6 bg-gray-100 min-h-screen flex items-center justify-center">
+      <div className="p-4 md:p-6 bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">در حال بارگذاری اطلاعات کاربر...</p>
@@ -105,7 +105,7 @@ export default function UserViewPage({ params }) {
 
   if (error) {
     return (
-      <div className="p-4 md:p-6 bg-gray-100 min-h-screen flex items-center justify-center">
+      <div className="p-4 md:p-6 bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-md">
             <span className="block">{error}</span>
@@ -123,7 +123,7 @@ export default function UserViewPage({ params }) {
 
   if (!user) {
     return (
-      <div className="p-4 md:p-6 bg-gray-100 min-h-screen flex items-center justify-center">
+      <div className="p-4 md:p-6 bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">کاربر یافت نشد</p>
           <button
@@ -138,7 +138,7 @@ export default function UserViewPage({ params }) {
   }
 
   return (
-    <div className="p-4 md:p-6 bg-gray-100 min-h-screen">
+    <div className="p-4 md:p-6 bg-white min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white shadow-lg rounded-lg p-6 mb-6">

@@ -19,19 +19,17 @@ export function AuthProvider({ children }) {
       const data = await response.json();
 
       if (data.success && data.data) {
-        console.log("User data received from API:", data.data);
-        console.log("User roles:", data.data.userRoles);
         setUser(data.data);
-        if (typeof window !== 'undefined') localStorage.setItem('user', JSON.stringify(data.data));
+        if (typeof window !== "undefined")
+          localStorage.setItem("user", JSON.stringify(data.data));
       } else {
-        console.log("No user data received:", data);
         setUser(null);
-        if (typeof window !== 'undefined') localStorage.removeItem('user');
+        if (typeof window !== "undefined") localStorage.removeItem("user");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
       setUser(null);
-      if (typeof window !== 'undefined') localStorage.removeItem('user');
+      if (typeof window !== "undefined") localStorage.removeItem("user");
     } finally {
       setLoading(false);
     }

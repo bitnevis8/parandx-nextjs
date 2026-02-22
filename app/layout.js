@@ -39,11 +39,11 @@ export default function RootLayout({ children }) {
         <meta charSet="utf-8" />
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className="font-iransans">
+      <body className="font-iransans bg-white overflow-x-hidden">
         <AuthProvider>
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
             <Header />
-            <main className="flex-grow">
+            <main className="flex-grow w-full overflow-x-hidden pb-20 md:pb-0">
               {children}
             </main>
             <Footer />

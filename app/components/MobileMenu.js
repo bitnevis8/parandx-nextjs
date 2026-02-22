@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useContext } from 'react';
+import { useContext } from 'react';
 import Link from 'next/link';
 import { AuthContext } from '../context/AuthContext';
 import UserDropdown from './ui/UserDropdown';
@@ -57,7 +57,7 @@ export default function MobileMenu({ isOpen, onClose }) {
               onClick={onClose}
               prefetch={true}
             >
-              دسته‌بندی خدمات
+              خدمات پرندیکس
             </Link>
             <Link
               href="/experts"
@@ -66,7 +66,7 @@ export default function MobileMenu({ isOpen, onClose }) {
               onClick={onClose}
               prefetch={true}
             >
-              متخصصان
+              لیست کارشناسان
             </Link>
             <Link
               href="/requests/new"
@@ -75,7 +75,7 @@ export default function MobileMenu({ isOpen, onClose }) {
               onClick={onClose}
               prefetch={true}
             >
-              ثبت درخواست
+              ایجاد پروژه جدید
             </Link>
             {isAuthenticated && (
               <Link

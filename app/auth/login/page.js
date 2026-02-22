@@ -58,9 +58,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">ورود به حساب کاربری</h2>
+    <div className="min-h-screen flex items-center justify-center bg-white p-3 sm:p-4 w-full max-w-[100vw] overflow-x-hidden box-border">
+      <div className="bg-white p-5 sm:p-6 md:p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-gray-800 mb-5 sm:mb-6">ورود به حساب کاربری</h2>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">

@@ -94,7 +94,7 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
+    <div className="flex flex-col md:flex-row min-h-screen bg-white w-full max-w-[100vw] overflow-x-hidden">
       {/* Mobile Sidebar Toggle Button */}
       <button
         className="md:hidden fixed top-4 right-4 z-50 p-2 rounded-md bg-gray-800 text-white"
@@ -129,13 +129,13 @@ export default function DashboardLayout({ children }) {
       </aside>
       
       {/* Main content */}
-      <main className={`flex-1 bg-gray-50 p-2 md:p-4 transition-all duration-300 ease-in-out
+      <main className={`flex-1 min-w-0 bg-gray-50 p-3 sm:p-4 md:p-4 transition-all duration-300 ease-in-out
         ${isSidebarOpen ? 'md:mr-64' : 'md:mr-0'}`}
       >
         {user && user.email && !user.isEmailVerified && (
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 sm:p-4 mb-4 sm:mb-6 rounded-r text-sm sm:text-base" role="alert">
             <p className="font-bold">ایمیل شما تایید نشده است!</p>
-            <p className="text-sm">لطفا کد تایید ارسال شده به ایمیل خود ({user.email}) را وارد کنید تا حساب کاربری شما فعال شود.</p>
+            <p className="text-xs sm:text-sm mt-1 break-words">لطفا کد تایید ارسال شده به ایمیل خود ({user.email}) را وارد کنید تا حساب کاربری شما فعال شود.</p>
             
             {verificationError && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-3">

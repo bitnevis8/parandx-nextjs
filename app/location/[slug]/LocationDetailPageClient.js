@@ -87,7 +87,7 @@ export default function LocationDetailPageClient({ locationData, breadcrumb }) {
 
   if (!locationData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">مکان یافت نشد</h1>
           <Link href="/location" className="text-blue-600 hover:text-blue-800">
@@ -112,7 +112,7 @@ export default function LocationDetailPageClient({ locationData, breadcrumb }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Header */}
       <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         {/* Background Pattern */}

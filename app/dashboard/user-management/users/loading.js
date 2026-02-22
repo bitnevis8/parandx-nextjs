@@ -1,6 +1,6 @@
 export default function UserManagementLoading() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Loading */}
         <div className="mb-8">
@@ -29,7 +29,7 @@ export default function UserManagementLoading() {
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-white">
                 <tr>
                   {[...Array(6)].map((_, index) => (
                     <th key={index} className="px-6 py-3">

@@ -4,7 +4,6 @@ export async function GET(request) {
   try {
     // Forward cookies to the backend (important for JWT token)
     const cookies = request.headers.get('cookie');
-    console.log("Cookies received in /api/auth/me proxy:", cookies);
 
     const backendResponse = await fetch(API_ENDPOINTS.auth.me, {
       method: 'GET',
@@ -14,29 +13,33 @@ export async function GET(request) {
       },
     });
 
-    // Check if response is ok
+    // 401 = کاربر لاگین نیست؛ با 200 برمی‌گردانیم تا در کنسول خطای قرمز نیاید
+    if (backendResponse.status === 401) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: "احراز هویت انجام نشده است",
+        data: null,
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     if (!backendResponse.ok) {
       console.error("Backend response not ok:", backendResponse.status, backendResponse.statusText);
-      
-      // Try to get error text first
       let errorText;
       try {
         errorText = await backendResponse.text();
       } catch (e) {
         errorText = "Unknown error";
       }
-      
-      console.error("Backend error response:", errorText);
-      
-      return new Response(JSON.stringify({ 
-        success: false, 
-        message: `Backend error: ${backendResponse.status} ${backendResponse.statusText}`,
-        error: errorText
+      return new Response(JSON.stringify({
+        success: false,
+        message: `Backend error: ${backendResponse.status}`,
+        error: errorText,
       }), {
         status: backendResponse.status,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
