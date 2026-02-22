@@ -70,11 +70,11 @@ export default function MainNavBar() {
 
   return (
     <>
-      {/* دسکتاپ: نوار زیر هدر */}
+      {/* دسکتاپ: نوار زیر هدر (بدون سلول ورود) */}
       <nav className="hidden md:block bg-gradient-to-l from-teal-600 to-cyan-600 border-b border-teal-500/50 shadow-lg overflow-x-auto overflow-y-hidden">
         <div className="container mx-auto px-3 sm:px-4 min-w-0">
           <div className="flex items-center justify-center gap-2 md:gap-3 py-2.5 sm:py-3.5 overflow-x-auto scrollbar-hide flex-nowrap md:flex-wrap">
-            {navItems.map((item) => {
+            {navItems.filter((item) => item.href !== '/auth/login').map((item) => {
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname === item.href || pathname?.startsWith(item.href + '/');
