@@ -2,6 +2,7 @@
 
 import Sidebar from '../components/ui/Sidebar';
 import DashboardHeader from '../components/ui/DashboardHeader';
+import DashboardBottomBar from '../components/ui/DashboardBottomBar';
 import { useState, useEffect } from "react";
 import { API_ENDPOINTS } from "../config/api";
 import { useAuth } from "../context/AuthContext";
@@ -94,7 +95,7 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-white w-full max-w-[100vw] overflow-x-hidden">
+    <div className="flex flex-col md:flex-row min-h-screen bg-white w-full max-w-[100vw] overflow-x-hidden min-w-0">
       {/* Mobile Sidebar Toggle Button */}
       <button
         className="md:hidden fixed top-4 right-4 z-50 p-2 rounded-md bg-gray-800 text-white"
@@ -129,7 +130,7 @@ export default function DashboardLayout({ children }) {
       </aside>
       
       {/* Main content */}
-      <main className={`flex-1 min-w-0 bg-gray-50 p-3 sm:p-4 md:p-4 transition-all duration-300 ease-in-out
+      <main className={`flex-1 min-w-0 bg-gray-50 p-3 sm:p-4 md:p-4 pb-20 md:pb-4 transition-all duration-300 ease-in-out
         ${isSidebarOpen ? 'md:mr-64' : 'md:mr-0'}`}
       >
         {user && user.email && !user.isEmailVerified && (
@@ -175,6 +176,9 @@ export default function DashboardLayout({ children }) {
         <DashboardHeader />
         {children}
       </main>
+
+      {/* موبایل: نوار ناوبری پایین */}
+      <DashboardBottomBar onOpenMenu={() => setIsSidebarOpen(true)} />
     </div>
   );
 }

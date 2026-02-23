@@ -73,20 +73,20 @@ export default function ExpertsPage() {
 
         {experts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {experts.map((expert) => (
+            {experts.map((expert) => {
+              const avatarSrc = expert.user?.avatar || (expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png');
+              return (
               <div key={expert.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 p-4 sm:p-6 min-w-0">
                 <div className="text-center mb-3 sm:mb-4">
-                  {expert.avatar ? (
-                    <img 
-                      src={expert.avatar} 
-                      alt={`${expert.user?.firstName} ${expert.user?.lastName}` || 'متخصص'} 
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 object-cover"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-100 mx-auto mb-2 sm:mb-3 flex items-center justify-center">
-                      <span className="text-xl sm:text-2xl">👤</span>
-                    </div>
-                  )}
+                  <img
+                    src={avatarSrc}
+                    alt={`${expert.user?.firstName} ${expert.user?.lastName}` || 'متخصص'}
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 object-cover border-2 border-gray-100"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png';
+                    }}
+                  />
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate px-1">
                     {expert.user?.firstName} {expert.user?.lastName}
                   </h3>
@@ -158,7 +158,8 @@ export default function ExpertsPage() {
                   </Link>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-8 sm:py-12 px-4">

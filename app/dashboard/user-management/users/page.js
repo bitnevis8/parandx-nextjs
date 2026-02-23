@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "@config/api";
+import { API_ENDPOINTS } from "../../../config/api";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 
 function UserManagementPage() {
@@ -79,8 +79,8 @@ function UserManagementPage() {
 
   return (
     <ProtectedRoute requiredRoles={['admin', 'moderator']}>
-      <div className="p-4 md:p-6 bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-4 md:p-6">
+      <div className="p-3 sm:p-4 md:p-6 bg-white min-h-screen w-full max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-3 sm:p-4 md:p-6">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">مدیریت کاربران</h1>
 
         <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0 md:space-x-4 rtl:space-x-reverse">
@@ -113,38 +113,38 @@ function UserManagementPage() {
           </div>
         )}
 
-        <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+        <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 -mx-2 sm:mx-0">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort("firstName")}
                 >
                   نام {getSortIcon("firstName")}
                 </th>
                 <th
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort("lastName")}
                 >
                   نام خانوادگی {getSortIcon("lastName")}
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ایمیل
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   نام کاربری
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   نقش‌ها
                 </th>
                 <th
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort("createdAt")}
                 >
                   تاریخ ایجاد {getSortIcon("createdAt")}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   عملیات
                 </th>
               </tr>
@@ -165,11 +165,11 @@ function UserManagementPage() {
               ) : (
                 users.map((user, index) => (
                   <tr key={user.id} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-gray-100 transition duration-150 ease-in-out`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{user.firstName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{user.lastName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{user.username}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{user.firstName}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{user.lastName}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800 max-w-[120px] sm:max-w-none truncate">{user.email}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{user.username}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800">
                       {user.userRoles && user.userRoles.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {user.userRoles.map((role, index) => {
@@ -223,10 +223,10 @@ function UserManagementPage() {
                         "-"
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">
                       {new Date(user.createdAt).toLocaleDateString("fa-IR")}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 rtl:space-x-reverse">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium flex flex-col sm:flex-row items-start sm:items-center gap-2">
                       <button 
                         onClick={() => router.push(`/dashboard/user-management/users/${user.id}/view`)}
                         className="bg-green-100 text-green-700 px-3 py-1.5 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out shadow-sm w-full sm:w-auto"

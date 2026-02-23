@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { API_ENDPOINTS } from "@config/api";
+import { API_ENDPOINTS } from "../../../../../config/api";
 
 const EditUserPage = () => {
   const router = useRouter();
@@ -17,6 +17,8 @@ const EditUserPage = () => {
     email: "",
     mobile: "",
     phone: "",
+    avatar: "",
+    gender: "",
     businessName: "",
     businessContactInfo: "",
     roleIds: [],
@@ -44,6 +46,8 @@ const EditUserPage = () => {
             email: userData.data.email || "",
             mobile: userData.data.mobile || "",
             phone: userData.data.phone || "",
+            avatar: userData.data.avatar || "",
+            gender: userData.data.gender || "",
             businessName: userData.data.businessName || "",
             businessContactInfo: userData.data.businessContactInfo || "",
             roleIds: userData.data.userRoles ? userData.data.userRoles.map(role => role.id) : [],
@@ -271,6 +275,32 @@ const EditUserPage = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">جنسیت:</label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="">مشخص نشده</option>
+                  <option value="male">آقا</option>
+                  <option value="female">خانم</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="avatar" className="block text-sm font-medium text-gray-700 mb-1">آواتار (URL):</label>
+                <input
+                  type="url"
+                  id="avatar"
+                  name="avatar"
+                  value={formData.avatar}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="آدرس تصویر پروفایل"
                 />
               </div>
               <div>

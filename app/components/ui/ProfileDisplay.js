@@ -48,6 +48,12 @@ export default function ProfileDisplay({ onEditClick }) {
           <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">{user.username}</p>
         </div>
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">جنسیت</label>
+          <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
+            {user.gender === 'male' ? 'آقا' : user.gender === 'female' ? 'خانم' : 'مشخص نشده'}
+          </p>
+        </div>
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">وضعیت</label>
           <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">
             {user.isActive ? 'فعال' : 'غیرفعال'}

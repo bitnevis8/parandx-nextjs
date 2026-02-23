@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "@config/api";
+import { API_ENDPOINTS } from "../../../config/api";
 
 export default function CreateUser() {
   const router = useRouter();
@@ -17,6 +17,8 @@ export default function CreateUser() {
     phone: "",
     username: "",
     password: "",
+    gender: "",
+    avatar: "",
     roleIds: [],
   });
 
@@ -174,6 +176,36 @@ export default function CreateUser() {
                 value={formData.username}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                جنسیت
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">مشخص نشده</option>
+                <option value="male">آقا</option>
+                <option value="female">خانم</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                آواتار (URL تصویر)
+              </label>
+              <input
+                type="url"
+                name="avatar"
+                value={formData.avatar}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="اختیاری"
               />
             </div>
 

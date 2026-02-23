@@ -18,7 +18,12 @@ const getMenuItems = (userRole) => {
       title: 'داشبورد',
       path: '/dashboard',
       icon: '🏠',
-    }
+    },
+    {
+      title: 'پیام‌ها',
+      path: '/dashboard/messages',
+      icon: '💬',
+    },
   ];
 
   // منوهای پروفایل کاربر (برای همه کاربران)
@@ -106,7 +111,7 @@ export default function Sidebar({ onLinkClick }) {
   };
 
   return (
-    <aside className="w-64 h-screen bg-white text-gray-800 p-4 shadow-xl border-l border-gray-200">
+    <aside className="w-64 h-full min-h-screen max-h-screen flex flex-col bg-white text-gray-800 p-4 shadow-xl border-l border-gray-200 overflow-y-auto">
       {/* داشبورد در بالای سایدبار */}
       <div className="mb-6">
         <Link

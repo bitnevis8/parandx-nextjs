@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "@config/api";
+import { API_ENDPOINTS } from "../../../config/api";
 
 export default function RolesList() {
   const router = useRouter();
@@ -55,11 +55,11 @@ export default function RolesList() {
   };
 
   return (
-    <div className="p-4 md:p-6 bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-4 md:p-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">مدیریت نقش‌ها</h1>
+    <div className="p-3 sm:p-4 md:p-6 bg-white min-h-screen w-full max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-3 sm:p-4 md:p-6">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">مدیریت نقش‌ها</h1>
 
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-4 sm:mb-6">
           <button
             onClick={() => router.push("/dashboard/user-management/roles/create")}
             className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out"
@@ -74,25 +74,15 @@ export default function RolesList() {
           </div>
         )}
 
-        <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+        <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 -mx-2 sm:mx-0">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  نام نقش
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  نام انگلیسی
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  نام فارسی
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  تعداد کاربران
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  عملیات
-                </th>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نام نقش</th>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نام انگلیسی</th>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نام فارسی</th>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تعداد کاربران</th>
+                <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -111,11 +101,11 @@ export default function RolesList() {
               ) : (
                 roles.map((role, index) => (
                   <tr key={role.id} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-gray-100 transition duration-150 ease-in-out`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{role.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{role.nameEn}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{role.nameFa}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{role.userCount !== undefined ? role.userCount : '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 rtl:space-x-reverse">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{role.name}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{role.nameEn}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{role.nameFa}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{role.userCount !== undefined ? role.userCount : '-'}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium flex flex-col sm:flex-row items-start sm:items-center gap-2">
                       <button 
                         onClick={() => router.push(`/dashboard/user-management/roles/${role.id}/view`)}
                         className="bg-green-100 text-green-700 px-3 py-1.5 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out shadow-sm w-full sm:w-auto"

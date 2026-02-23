@@ -2,7 +2,8 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "@config/api";
+import { API_ENDPOINTS } from "../../../../config/api";
+import UserAvatar from "../../../../components/ui/UserAvatar";
 
 export default function UserViewPage({ params }) {
   const router = useRouter();
@@ -160,19 +161,7 @@ export default function UserViewPage({ params }) {
           <div className="flex items-start space-x-6 rtl:space-x-reverse">
             {/* Avatar */}
             <div className="flex-shrink-0">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={`${user.firstName} ${user.lastName}`}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center border-4 border-gray-200">
-                  <span className="text-3xl text-blue-600 font-bold">
-                    {user.firstName?.charAt(0) || '?'}
-                  </span>
-                </div>
-              )}
+              <UserAvatar user={user} size="sm" className="rounded-full border-4 border-gray-200" />
             </div>
 
             {/* User Info */}
@@ -200,6 +189,10 @@ export default function UserViewPage({ params }) {
 
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">جنسیت:</label>
+                  <p className="text-gray-900">{user.gender === 'male' ? 'آقا' : user.gender === 'female' ? 'خانم' : 'مشخص نشده'}</p>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">نام کاربری:</label>
                   <p className="text-gray-900">{user.username || '-'}</p>

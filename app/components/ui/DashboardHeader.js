@@ -57,21 +57,21 @@ export default function DashboardHeader() {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 w-full max-w-full overflow-hidden">
       {/* Header Section */}
-      <div className="bg-white rounded-lg shadow-lg p-4">
-        <div className="flex items-center">
+      <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-0">
           {/* User Avatar */}
-          <div className="ml-4">
+          <div className="sm:ml-4 flex-shrink-0">
             <UserAvatar user={user} size="md" />
           </div>
           
           {/* User Info */}
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <div className="flex-1 min-w-0 w-full text-center sm:text-right">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 truncate">
               {user.firstName} {user.lastName}
             </h1>
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-3 sm:mb-4 justify-center sm:justify-start">
               {userRoles.map((role, index) => (
                 <span
                   key={index}
@@ -87,36 +87,36 @@ export default function DashboardHeader() {
                 </span>
               ))}
             </div>
-            <div className="text-sm text-gray-600 mb-4">
+            <div className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 break-words">
               <span>منطقه زندگی: {user.location || 'نامشخص'}</span>
               <span className="mx-2">•</span>
               <span>موبایل: {user.mobile || 'نامشخص'}</span>
             </div>
             
             {/* Stats Cards - Small squares under location */}
-            <div className="flex gap-6">
-              <div className="border border-gray-300 rounded-lg p-3 w-24 h-24 flex flex-col items-center justify-center">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2">
-                  <span className="text-sm">📊</span>
+            <div className="flex gap-3 sm:gap-6 justify-center sm:justify-start flex-wrap">
+              <div className="border border-gray-300 rounded-lg p-2 sm:p-3 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 sm:mb-2">
+                  <span className="text-xs sm:text-sm">📊</span>
                 </div>
-                <p className="text-xs text-gray-600 text-center">پروژه‌ها</p>
-                <p className="text-sm font-bold text-gray-800">12</p>
+                <p className="text-[10px] sm:text-xs text-gray-600 text-center">پروژه‌ها</p>
+                <p className="text-xs sm:text-sm font-bold text-gray-800">12</p>
               </div>
 
-              <div className="border border-gray-300 rounded-lg p-3 w-24 h-24 flex flex-col items-center justify-center">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2">
-                  <span className="text-sm">💰</span>
+              <div className="border border-gray-300 rounded-lg p-2 sm:p-3 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 sm:mb-2">
+                  <span className="text-xs sm:text-sm">💰</span>
                 </div>
-                <p className="text-xs text-gray-600 text-center">درآمد</p>
-                <p className="text-sm font-bold text-gray-800">2.5M</p>
+                <p className="text-[10px] sm:text-xs text-gray-600 text-center">درآمد</p>
+                <p className="text-xs sm:text-sm font-bold text-gray-800">2.5M</p>
               </div>
 
-              <div className="border border-gray-300 rounded-lg p-3 w-24 h-24 flex flex-col items-center justify-center">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2">
-                  <span className="text-sm">⭐</span>
+              <div className="border border-gray-300 rounded-lg p-2 sm:p-3 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 sm:mb-2">
+                  <span className="text-xs sm:text-sm">⭐</span>
                 </div>
-                <p className="text-xs text-gray-600 text-center">امتیاز</p>
-                <p className="text-sm font-bold text-gray-800">4.8</p>
+                <p className="text-[10px] sm:text-xs text-gray-600 text-center">امتیاز</p>
+                <p className="text-xs sm:text-sm font-bold text-gray-800">4.8</p>
               </div>
             </div>
           </div>
@@ -125,11 +125,11 @@ export default function DashboardHeader() {
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-lg">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-6 px-6">
+        <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
+          <nav className="flex space-x-4 sm:space-x-6 px-3 sm:px-6 min-w-0 flex-nowrap">
             <button
               onClick={() => handleTabChange('profile-display')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'profile-display'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -139,7 +139,7 @@ export default function DashboardHeader() {
             </button>
             <button
               onClick={() => handleTabChange('expert-display')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'expert-display'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -149,7 +149,7 @@ export default function DashboardHeader() {
             </button>
             <button
               onClick={() => handleTabChange('specializations')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'specializations'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'

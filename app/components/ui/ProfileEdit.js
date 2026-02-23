@@ -14,7 +14,8 @@ export default function ProfileEdit() {
     lastName: '',
     email: '',
     mobile: '',
-    avatar: ''
+    avatar: '',
+    gender: ''
   });
   const userRole = useRole();
 
@@ -38,7 +39,8 @@ export default function ProfileEdit() {
             lastName: result.data.lastName || '',
             email: result.data.email || '',
             mobile: result.data.mobile || '',
-            avatar: result.data.avatar || ''
+            avatar: result.data.avatar || '',
+            gender: result.data.gender || ''
           });
         }
       } else if (response.status === 404) {
@@ -165,6 +167,22 @@ export default function ProfileEdit() {
               placeholder="شماره موبایل (11 رقم)"
               pattern="[0-9]{11}"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              جنسیت
+            </label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">مشخص نشده</option>
+              <option value="male">آقا</option>
+              <option value="female">خانم</option>
+            </select>
           </div>
           
           <div className="md:col-span-2">

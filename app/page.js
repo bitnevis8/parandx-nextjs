@@ -1,10 +1,22 @@
 "use client";
 import Image from 'next/image';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { PhoneIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { PhoneIcon, DevicePhoneMobileIcon, MagnifyingGlassIcon, UserCircleIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 import { API_ENDPOINTS } from './config/api';
+
+function normalizeForSearch(text) {
+  if (text == null) return '';
+  return String(text).trim().replace(/\s+/g, ' ');
+}
+function matchesQuery(text, q) {
+  const a = normalizeForSearch(text);
+  const b = normalizeForSearch(q);
+  if (!b) return true;
+  return a.includes(b) || a.replace(/\s/g, '').includes(b.replace(/\s/g, ''));
+}
 
 const TYPEWRITER_TEXT = 'چه دنبال کارشناس باشی ، چه دنبال کارفرما، اینجا براحتی به هم می‌رسید.';
 /** فاصلهٔ هر حرف هنگام تایپ (میلی‌ثانیه) — عدد کمتر = تایپ سریع‌تر. مثلاً 80 یا 150 */
@@ -14,13 +26,59 @@ const PAUSE_AFTER_TYPING = 60000;
 /** مدت مکث قبل از شروع دوبارهٔ تایپ (میلی‌ثانیه) */
 const PAUSE_BEFORE_RESTART = 80;
 
+const SUGGESTION_CATEGORY_LIMIT = 6;
+const SUGGESTION_EXPERT_LIMIT = 5;
+
 export default function Home() {
+  const router = useRouter();
+  const searchWrapRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [experts, setExperts] = useState([]);
+  const [searchCategoriesAll, setSearchCategoriesAll] = useState([]); // دسته + زیردسته برای پیشنهاد
+  const [searchExpertsAll, setSearchExpertsAll] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [typewriterIndex, setTypewriterIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPausing, setIsPausing] = useState(false);
+
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    const q = searchQuery?.trim();
+    setSuggestionsOpen(false);
+    if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
+    else router.push('/categories');
+  };
+
+  const suggestions = useMemo(() => {
+    const q = normalizeForSearch(searchQuery);
+    if (!q || q.length < 1) return { categories: [], experts: [] };
+    const catMatches = searchCategoriesAll.filter(
+      (c) => matchesQuery(c.title, q) || matchesQuery(c.slug, q)
+    ).slice(0, SUGGESTION_CATEGORY_LIMIT);
+    const expMatches = searchExpertsAll.filter(
+      (e) =>
+        matchesQuery(e.user?.firstName, q) ||
+        matchesQuery(e.user?.lastName, q) ||
+        matchesQuery(e.bio, q) ||
+        matchesQuery([e.user?.firstName, e.user?.lastName].filter(Boolean).join(' '), q)
+    ).slice(0, SUGGESTION_EXPERT_LIMIT);
+    return { categories: catMatches, experts: expMatches };
+  }, [searchQuery, searchCategoriesAll, searchExpertsAll]);
+
+  const hasSuggestions = suggestions.categories.length > 0 || suggestions.experts.length > 0;
+  const showDropdown = suggestionsOpen && (searchQuery.trim().length >= 1);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(event.target)) {
+        setSuggestionsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -63,17 +121,29 @@ export default function Home() {
       try {
         const catRes = await fetch(API_ENDPOINTS.categories.getAll);
         const catData = catRes.ok ? await catRes.json() : { data: [] };
-        const mainCats = Array.isArray(catData.data) ? catData.data.filter(c => !c.parentId) : [];
+        const allCats = Array.isArray(catData.data) ? catData.data : [];
+        const mainCats = allCats.filter((c) => !c.parentId);
         setCategories(mainCats);
+        const flatForSearch = [];
+        mainCats.forEach((main) => {
+          flatForSearch.push({ type: 'main', id: main.id, title: main.title, slug: main.slug, icon: main.icon });
+          (main.subcategories || []).forEach((sub) => {
+            flatForSearch.push({ type: 'sub', id: sub.id, title: sub.title, slug: sub.slug, parentSlug: main.slug, icon: sub.icon });
+          });
+        });
+        setSearchCategoriesAll(flatForSearch);
 
-        const expRes = await fetch(API_ENDPOINTS.experts.getAll);
+        const expRes = await fetch(API_ENDPOINTS.experts.getAllWithLimit(50));
         const expData = expRes.ok ? await expRes.json() : { data: [] };
         const list = Array.isArray(expData.data) ? expData.data : [];
         setExperts(list.slice(0, 8));
+        setSearchExpertsAll(list);
       } catch (err) {
         console.error('Error fetching data for homepage:', err);
         setCategories([]);
         setExperts([]);
+        setSearchCategoriesAll([]);
+        setSearchExpertsAll([]);
       } finally {
         setLoading(false);
       }
@@ -116,6 +186,116 @@ export default function Home() {
               unoptimized
             />
           </div>
+
+          {/* جستجوی حرفه‌ای با پیشنهاد */}
+          <div ref={searchWrapRef} className="w-full max-w-2xl mx-auto mb-6 sm:mb-8 px-2 relative">
+            <form onSubmit={handleSearch}>
+              <div className="relative flex items-center bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 hover:ring-teal-300 focus-within:ring-2 focus-within:ring-teal-500 focus-within:ring-offset-2 transition-all duration-200 overflow-visible">
+                <label htmlFor="hero-search" className="sr-only">جستجو در خدمات و متخصصان</label>
+                <input
+                  id="hero-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setSuggestionsOpen(true)}
+                  placeholder="جستجو در خدمات و متخصصان..."
+                  className="w-full py-3.5 sm:py-4 pl-20 sm:pl-24 pr-12 sm:pr-14 text-base sm:text-lg text-gray-800 placeholder-gray-400 bg-transparent border-0 focus:outline-none focus:ring-0 rounded-2xl"
+                  dir="rtl"
+                  autoComplete="off"
+                  aria-label="جستجو در خدمات و متخصصان"
+                  aria-expanded={showDropdown}
+                  aria-autocomplete="list"
+                />
+                <div className="absolute right-3 sm:right-4 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-500 text-white pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} aria-hidden />
+                </div>
+                <button
+                  type="submit"
+                  className="absolute left-2 sm:left-3 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors"
+                >
+                  جستجو
+                </button>
+              </div>
+            </form>
+
+            {/* دراپ‌داون پیشنهادها */}
+            {showDropdown && (
+              <div
+                className="absolute top-full left-2 right-2 mt-1 z-50 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
+                role="listbox"
+              >
+                {hasSuggestions ? (
+                  <>
+                    {suggestions.categories.length > 0 && (
+                      <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
+                        <span className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                          <Squares2X2Icon className="w-4 h-4" /> دسته‌ها و خدمات
+                        </span>
+                      </div>
+                    )}
+                    {suggestions.categories.map((c) => (
+                      <Link
+                        key={c.type === 'sub' ? `sub-${c.id}` : `cat-${c.id}`}
+                        href={c.parentSlug ? `/categories/${c.parentSlug}` : `/categories/${c.slug || c.id}`}
+                        onClick={() => { setSuggestionsOpen(false); setSearchQuery(''); }}
+                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-teal-50 transition-colors text-right border-b border-gray-50 last:border-0"
+                        role="option"
+                      >
+                        <span className="text-lg shrink-0">{c.icon || '📂'}</span>
+                        <span className="text-gray-800 font-medium">{c.title}</span>
+                        {c.type === 'sub' && c.parentSlug && (
+                          <span className="text-xs text-gray-400 truncate">در دستهٔ والد</span>
+                        )}
+                      </Link>
+                    ))}
+                    {suggestions.experts.length > 0 && (
+                      <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
+                        <span className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                          <UserCircleIcon className="w-4 h-4" /> متخصصان
+                        </span>
+                      </div>
+                    )}
+                    {suggestions.experts.map((expert) => {
+                      const avatarSrc = expert.user?.avatar || (expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png');
+                      return (
+                      <Link
+                        key={expert.id}
+                        href={`/experts/${expert.id}`}
+                        onClick={() => { setSuggestionsOpen(false); setSearchQuery(''); }}
+                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-teal-50 transition-colors text-right border-b border-gray-50 last:border-0"
+                        role="option"
+                      >
+                        <img
+                          src={avatarSrc}
+                          alt=""
+                          className="w-8 h-8 rounded-full object-cover shrink-0"
+                          onError={(e) => { e.target.onerror = null; e.target.src = expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png'; }}
+                        />
+                        <span className="text-gray-800 font-medium">
+                          {expert.user?.firstName} {expert.user?.lastName}
+                        </span>
+                      </Link>
+                      );
+                    })}
+                    <div className="px-4 py-2 bg-teal-50 border-t border-teal-100">
+                      <button
+                        type="button"
+                        onClick={handleSearch}
+                        className="text-sm font-medium text-teal-700 hover:text-teal-800 w-full text-center"
+                      >
+                        مشاهده همه نتایج برای «{searchQuery.trim()}»
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="px-4 py-4 text-center text-gray-500 text-sm">
+                    نتیجه‌ای یافت نشد. Enter بزنید تا جستجوی کامل انجام شود.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* شماره‌های تماس زیر لوگو */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center px-2">
             <a
@@ -176,14 +356,20 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-              {experts.map((expert) => (
+              {experts.map((expert) => {
+                const avatarSrc = expert.user?.avatar || (expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png');
+                return (
                 <Link key={expert.id} href={`/experts/${expert.id}`} scroll={false} className="group">
                   <div className="bg-gray-50 rounded-xl p-3 sm:p-6 text-center hover:shadow-lg transition-all duration-300">
-                    <div className="w-12 h-12 sm:w-20 sm:h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4">
-                      <span className="text-white text-lg sm:text-2xl font-bold">
-                        {expert.user?.firstName?.charAt(0) || 'م'}
-                      </span>
-                    </div>
+                    <img
+                      src={avatarSrc}
+                      alt=""
+                      className="w-12 h-12 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-4 object-cover border-2 border-white shadow"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png';
+                      }}
+                    />
                     <h3 className="text-sm sm:text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors truncate">
                       {expert.user?.firstName} {expert.user?.lastName}
                     </h3>
@@ -191,7 +377,8 @@ export default function Home() {
                     <p className="text-xs sm:text-sm text-blue-600 mt-1 sm:mt-2 truncate">{expert.location || '—'}</p>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
 
             <div className="text-center">
@@ -202,46 +389,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      {/* Features Section */}
-      <div className="container mx-auto px-3 sm:px-4 py-10 sm:py-16 max-w-[100vw]">
-        <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">چرا پرندیکس؟</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-          <div className="text-center px-2">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-base sm:text-xl font-semibold text-gray-800 mb-1 sm:mb-2">متخصصان تایید شده</h3>
-            <p className="text-sm sm:text-base text-gray-600">همه متخصصان ما بررسی و تایید شده‌اند</p>
-          </div>
-
-          <div className="text-center px-2">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="text-base sm:text-xl font-semibold text-gray-800 mb-1 sm:mb-2">سریع و آسان</h3>
-            <p className="text-sm sm:text-base text-gray-600">در کمترین زمان بهترین متخصص را پیدا کنید</p>
-          </div>
-
-          <div className="text-center px-2">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <h3 className="text-base sm:text-xl font-semibold text-gray-800 mb-1 sm:mb-2">محلی و نزدیک</h3>
-            <p className="text-sm sm:text-base text-gray-600">متخصصان محلی شهر پرند</p>
-          </div>
-        </div>
-      </div>
 
       {/* CTA Section */}
       <div className="bg-blue-600 py-10 sm:py-16 px-3 sm:px-4">

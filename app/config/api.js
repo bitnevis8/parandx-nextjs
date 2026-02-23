@@ -121,9 +121,11 @@ export const API_ENDPOINTS = {
     update: (id) => `${API_BASE_URL}/category/${id}`,
     delete: (id) => `${API_BASE_URL}/category/${id}`,
   },
+  search: (q) => `${API_BASE_URL}/search?q=${encodeURIComponent(q)}`,
   experts: {
     base: `${API_BASE_URL}/expert`,
     getAll: `${API_BASE_URL}/expert`,
+    getAllWithLimit: (limit) => `${API_BASE_URL}/expert?limit=${limit}`,
     getById: (id) => `${API_BASE_URL}/expert/${id}`,
     create: `${API_BASE_URL}/expert`,
     update: (id) => `${API_BASE_URL}/expert/${id}`,
@@ -160,6 +162,14 @@ export const API_ENDPOINTS = {
     create: `${API_BASE_URL}/review`,
     update: (id) => `${API_BASE_URL}/review/${id}`,
     delete: (id) => `${API_BASE_URL}/review/${id}`,
+  },
+  messages: {
+    base: `${API_BASE_URL}/message`,
+    conversations: `${API_BASE_URL}/message/conversations`,
+    unreadCount: `${API_BASE_URL}/message/unread-count`,
+    conversation: (userId) => `${API_BASE_URL}/message/conversation/${userId}`,
+    send: `${API_BASE_URL}/message/send`,
+    markRead: (id) => `${API_BASE_URL}/message/${id}/read`,
   },
   // کلاس‌ها - حذف شده
   classes: {

@@ -213,7 +213,7 @@ export default function UserDropdown({ isMobile = false }) {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-48 sm:w-52 bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-[10000] border border-gray-200">
+        <div className="absolute left-0 mt-2 w-48 sm:w-52 bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-[99999] border border-gray-200">
           <div className="py-2">
             <button
               onClick={() => handleMenuClick('dashboard')}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { API_ENDPOINTS } from '../../config/api';
 
 export default function ExpertDetailPage({ params }) {
@@ -62,19 +63,15 @@ export default function ExpertDetailPage({ params }) {
               {/* Avatar Section */}
               <div className="relative">
                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-1 shadow-xl">
-                  {expert.user?.avatar ? (
-                    <img 
-                      src={expert.user.avatar} 
-                      alt={`${expert.user?.firstName} ${expert.user?.lastName}` || 'متخصص'} 
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                      <span className="text-2xl sm:text-4xl font-bold text-gray-600">
-                        {expert.user?.firstName?.charAt(0) || 'م'}
-                      </span>
-                    </div>
-                  )}
+                  <img
+                    src={expert.user?.avatar || (expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png')}
+                    alt={`${expert.user?.firstName} ${expert.user?.lastName}` || 'متخصص'}
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = expert.user?.gender === 'female' ? '/images/default/female.png' : '/images/default/male.png';
+                    }}
+                  />
                 </div>
                 {/* Status Badge */}
                 <div className="absolute -bottom-2 -right-2">
@@ -105,6 +102,15 @@ export default function ExpertDetailPage({ params }) {
                     <span className="text-purple-600 font-semibold truncate block">📍 {expert.location}</span>
                   </div>
                 </div>
+                {expert.user?.id && (
+                  <Link
+                    href={`/dashboard/messages/${expert.user.id}`}
+                    className="inline-flex items-center gap-2 mt-4 sm:mt-6 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl shadow-md transition-colors"
+                  >
+                    <span>💬</span>
+                    <span>ارسال پیام</span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -212,44 +218,6 @@ export default function ExpertDetailPage({ params }) {
                   </div>
                   <h3 className="font-bold text-gray-800 text-lg mb-2">موقعیت</h3>
                   <p className="text-sm text-blue-600 font-medium">{expert.location}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* اطلاعات تماس */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 mb-5 sm:mb-8">
-          <div className="text-center mb-5 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              📞 اطلاعات تماس
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600">راه‌های ارتباط با این متخصص</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div className="group">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 hover:shadow-xl sm:hover:scale-105 transition-all duration-300">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <span className="text-2xl">📧</span>
-                  </div>
-                  <div className="mr-4">
-                    <p className="text-sm text-gray-600 font-medium">ایمیل</p>
-                    <p className="font-bold text-gray-800">{expert.user?.email}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="group">
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-100 hover:shadow-xl sm:hover:scale-105 transition-all duration-300">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <span className="text-2xl">📱</span>
-                  </div>
-                  <div className="mr-4">
-                    <p className="text-sm text-gray-600 font-medium">موبایل</p>
-                    <p className="font-bold text-gray-800">{expert.user?.mobile}</p>
-                  </div>
                 </div>
               </div>
             </div>
