@@ -37,6 +37,7 @@ export default function RootLayout({ children }) {
     <html lang="fa" dir="rtl">
       <head>
         <meta charSet="utf-8" />
+        <meta name="enamad" content="70429060" />
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="font-iransans bg-white overflow-x-hidden">

@@ -296,11 +296,11 @@ export default function Home() {
             )}
           </div>
 
-          {/* شماره‌های تماس زیر لوگو */}
+          {/* شماره‌های تماس زیر سرچ باکس — موبایل: فقط موبایل؛ دسکتاپ: ثابت + موبایل */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center px-2">
             <a
               href="tel:02156956691"
-              className="inline-flex items-center justify-center gap-2 sm:gap-3 bg-blue-600 text-white px-4 py-3 sm:px-6 sm:py-3 rounded-xl font-semibold text-sm sm:text-base hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg w-full sm:w-auto"
+              className="hidden sm:inline-flex items-center justify-center gap-2 sm:gap-3 bg-blue-600 text-white px-4 py-3 sm:px-6 sm:py-3 rounded-xl font-semibold text-sm sm:text-base hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg w-full sm:w-auto"
             >
               <span dir="ltr">۰۲۱-۵۶۹۵۶۶۹۱</span>
               <PhoneIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" aria-hidden />

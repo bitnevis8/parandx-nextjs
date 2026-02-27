@@ -45,10 +45,10 @@ export default function Header() {
   return (
     <header className="bg-white shadow-md sticky top-0 z-[9999] w-full overflow-visible">
       {/* ردیف اول: لوگو، لینک‌های اصلی، احراز هویت — relative z-10 تا منوی کاربر بالای ناوبر رسم شود */}
-      <div className="relative z-10 container mx-auto px-3 sm:px-4 max-w-[100vw]">
+      <div className="relative z-10 container mx-auto pl-1 pr-3 sm:px-4 max-w-[100vw]">
         <div className="flex items-center justify-between h-14 sm:h-16 min-h-[3.5rem]">
           {/* سمت راست - لوگو (عکس شامل لوگو و متن پرندیکس) */}
-          <div className="flex items-center min-w-0 flex-1 justify-end md:flex-initial md:justify-start">
+          <div className="flex items-center min-w-0 flex-1 justify-start md:flex-initial md:justify-start">
             <Link href="/" scroll={false} className="block max-w-[45vw] sm:max-w-[200px]">
               <img
                 src="/images/logo_text.jpg"
@@ -63,10 +63,12 @@ export default function Header() {
           {/* وسط - خالی در دسکتاپ (منوی کاربر و داشبورد در نوار ناوبری زیر هدر است) */}
           <div className="hidden md:block flex-1 min-w-0" aria-hidden="true" />
 
-          {/* سمت چپ - دکمه‌های ورود/ثبت‌نام یا نام کاربر + آیکون پیام + منو */}
+          {/* سمت چپ - دکمه‌های ورود/ثبت‌نام (فقط دسکتاپ) یا نام کاربر + آیکون پیام + منو */}
           <div className="flex items-center gap-2 min-w-0 flex-1 justify-start md:flex-initial md:justify-end">
             {!isAuthenticated ? (
-              <AuthButtons />
+              <div className="hidden md:flex items-center gap-2 sm:gap-3">
+                <AuthButtons />
+              </div>
             ) : (
               <>
                 <Link
@@ -103,7 +105,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* نوار ناوبری اصلی زیر هدر: خدمات پرندیکس، لیست کارشناسان، ایجاد پروژه جدید */}
+      {/* نوار ناوبری اصلی زیر هدر: خدمات، کارشناسان، ایجاد پروژه جدید */}
       <MainNavBar />
 
       {/* منوی موبایل */}

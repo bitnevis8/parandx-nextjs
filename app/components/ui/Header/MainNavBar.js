@@ -2,11 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useContext } from 'react';
+import { AuthContext } from '../../../context/AuthContext';
 import {
   HomeIcon,
   Squares2X2Icon,
   UserGroupIcon,
   PlusCircleIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
@@ -25,14 +28,14 @@ const navItems = [
   },
   {
     href: '/categories',
-    label: 'خدمات پرندیکس',
+    label: 'خدمات',
     Icon: Squares2X2Icon,
     IconActive: Squares2X2IconSolid,
     exact: false,
   },
   {
     href: '/experts',
-    label: 'لیست کارشناسان',
+    label: 'کارشناسان',
     Icon: UserGroupIcon,
     IconActive: UserGroupIconSolid,
     exact: false,
@@ -48,6 +51,7 @@ const navItems = [
 
 export default function MainNavBar() {
   const pathname = usePathname();
+  const { isAuthenticated } = useContext(AuthContext);
 
   const linkContent = (item, isActive, Icon) => (
     <>
@@ -96,7 +100,7 @@ export default function MainNavBar() {
         </div>
       </nav>
 
-      {/* موبایل: Bottom Bar ثابت — آیکون بالا، عنوان پایین */}
+      {/* موبایل: Bottom Bar ثابت — آیکون بالا، عنوان پایین؛ برای مهمان‌ها دکمه ورود */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] bg-gradient-to-l from-teal-600 to-cyan-600 border-t border-teal-500/50 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
@@ -122,13 +126,30 @@ export default function MainNavBar() {
                   }
                 `}
               >
-                <span className="inline-flex shrink-0 items-center justify-center w-6 h-6" style={{ width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', minHeight: '1.5rem', maxWidth: '1.5rem', maxHeight: '1.5rem' }} aria-hidden>
+                <span className="icon-wrap inline-flex shrink-0 items-center justify-center w-6 h-6" aria-hidden>
                   <Icon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={isActive ? 2.5 : 2} />
                 </span>
                 <span className="leading-tight text-center line-clamp-1">{item.label}</span>
               </Link>
             );
           })}
+          {!isAuthenticated && (
+            <Link
+              href="/auth/login"
+              scroll={false}
+              className={`
+                flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-2 px-1
+                font-medium text-[10px] sm:text-xs transition-colors
+                active:bg-white/15
+                ${pathname === '/auth/login' ? 'text-white bg-white/25' : 'text-white/90'}
+              `}
+            >
+              <span className="icon-wrap inline-flex shrink-0 items-center justify-center w-6 h-6" aria-hidden>
+                <ArrowRightOnRectangleIcon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={2} />
+              </span>
+              <span className="leading-tight text-center line-clamp-1">ورود</span>
+            </Link>
+          )}
         </div>
       </nav>
     </>

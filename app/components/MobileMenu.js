@@ -57,7 +57,7 @@ export default function MobileMenu({ isOpen, onClose }) {
               onClick={onClose}
               prefetch={true}
             >
-              خدمات پرندیکس
+              خدمات
             </Link>
             <Link
               href="/experts"
@@ -66,7 +66,7 @@ export default function MobileMenu({ isOpen, onClose }) {
               onClick={onClose}
               prefetch={true}
             >
-              لیست کارشناسان
+              کارشناسان
             </Link>
             <Link
               href="/requests/new"
