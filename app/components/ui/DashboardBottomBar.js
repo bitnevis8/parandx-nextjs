@@ -88,7 +88,9 @@ export default function DashboardBottomBar({ onOpenMenu }) {
                 ${active ? "text-cyan-300 bg-white/10" : "text-slate-300"}
               `}
             >
-              <Icon className="w-6 h-6 flex-shrink-0" strokeWidth={active ? 2.5 : 2} />
+              <span className="inline-flex shrink-0 items-center justify-center w-6 h-6" style={{ width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', minHeight: '1.5rem', maxWidth: '1.5rem', maxHeight: '1.5rem' }} aria-hidden>
+                <Icon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={active ? 2.5 : 2} />
+              </span>
               <span className="leading-tight text-center line-clamp-1">{item.label}</span>
             </Link>
           );
@@ -98,7 +100,9 @@ export default function DashboardBottomBar({ onOpenMenu }) {
           onClick={onOpenMenu}
           className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-2 px-1 font-medium text-[10px] sm:text-xs text-slate-300 active:bg-white/10"
         >
-          <Bars3Icon className="w-6 h-6 flex-shrink-0" strokeWidth={2} />
+          <span className="inline-flex shrink-0 items-center justify-center w-6 h-6" style={{ width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', minHeight: '1.5rem', maxWidth: '1.5rem', maxHeight: '1.5rem' }} aria-hidden>
+            <Bars3Icon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={2} />
+          </span>
           <span className="leading-tight text-center line-clamp-1">منو</span>
         </button>
       </div>

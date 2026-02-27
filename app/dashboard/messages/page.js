@@ -34,6 +34,9 @@ export default function MessagesPage() {
       if (convData.success) setConversations(convData.data || []);
       if (unreadData.success) setUnreadTotal(unreadData.data?.count ?? 0);
       if (!convData.success) setError(convData.message || "خطا در بارگذاری مکالمات");
+      if (typeof window !== "undefined" && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent("refresh-unread-count"));
+      }
     } catch (e) {
       setError("خطا در ارتباط با سرور");
       setConversations([]);

@@ -208,3 +208,60 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ===== Cross-browser icon fix =====
+   Prevents SVG icons from appearing huge or broken in some Chrome/browser versions.
+   SVGs without explicit dimensions can inherit wrong sizes in flex/grid. */
+/* Wrapper for nav/dashboard icons - prevents stretch in flex */
+.icon-wrap {
+  max-width: 1.5rem;
+  max-height: 1.5rem;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+}
+svg {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+/* Force consistent size when Tailwind w-* h-* are used (fallback for older engines) */
+svg.w-4, svg.h-4 {
+  width: 1rem !important;
+  height: 1rem !important;
+  min-width: 1rem;
+  min-height: 1rem;
+  max-width: 1rem;
+  max-height: 1rem;
+}
+svg.w-5, svg.h-5 {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  max-width: 1.25rem;
+  max-height: 1.25rem;
+}
+svg.w-6, svg.h-6 {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  max-width: 1.5rem;
+  max-height: 1.5rem;
+}
+svg.w-8, svg.h-8 {
+  width: 2rem !important;
+  height: 2rem !important;
+  min-width: 2rem;
+  min-height: 2rem;
+  max-width: 2rem;
+  max-height: 2rem;
+}
+/* Responsive: sm */
+@media (min-width: 640px) {
+  svg.sm\:w-5, svg.sm\:h-5 { width: 1.25rem !important; height: 1.25rem !important; min-width: 1.25rem; min-height: 1.25rem; max-width: 1.25rem; max-height: 1.25rem; }
+  svg.sm\:w-6, svg.sm\:h-6 { width: 1.5rem !important; height: 1.5rem !important; min-width: 1.5rem; min-height: 1.5rem; max-width: 1.5rem; max-height: 1.5rem; }
+}
+@media (min-width: 768px) {
+  svg.md\:w-6, svg.md\:h-6 { width: 1.5rem !important; height: 1.5rem !important; min-width: 1.5rem; min-height: 1.5rem; max-width: 1.5rem; max-height: 1.5rem; }
+}

@@ -15,6 +15,7 @@ if (!API_BASE_URL) {
   }
 }
 
+export { API_BASE_URL };
 export const API_ENDPOINTS = {
   // تمام بخش‌های مربوط به aryafoulad حذف شود (unit-locations, mission-orders, rate-settings, warehouse-module و ...)
   // ... existing code ...

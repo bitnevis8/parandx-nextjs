@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { API_ENDPOINTS } from "../../../config/api";
+import { io } from "socket.io-client";
+import { API_ENDPOINTS, API_BASE_URL } from "../../../config/api";
 import UserAvatar from "../../../components/ui/UserAvatar";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -49,6 +50,9 @@ export default function ChatRoomPage() {
         setOtherUser(data.data.otherUser);
         setMessages(data.data.messages || []);
         setTotal(data.data.total ?? 0);
+        if (typeof window !== "undefined" && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent("refresh-unread-count"));
+        }
       } else {
         setError(data.message || "خطا در بارگذاری پیام‌ها");
         if (res.status === 404) setOtherUser(null);
@@ -60,9 +64,53 @@ export default function ChatRoomPage() {
     }
   };
 
+  const auth = useAuth();
+  const meId = auth?.user?.id ?? auth?.user?.userId;
+
   useEffect(() => {
     fetchConversation();
   }, [userId]);
+
+  // WebSocket: اتصال واقع‌زمان برای دریافت پیام‌های جدید (بدون فشار polling به سرور)
+  useEffect(() => {
+    if (!userId || !meId) return;
+    const otherId = Number(userId);
+    const socket = io(API_BASE_URL, {
+      path: "/socket.io",
+      withCredentials: true,
+      transports: ["websocket", "polling"],
+    });
+    socket.on("connect", () => {});
+    socket.on("new_message", (msg) => {
+      const forThisChat =
+        (msg.senderId === otherId && msg.receiverId === meId) ||
+        (msg.senderId === meId && msg.receiverId === otherId);
+      if (!forThisChat) return;
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+      requestAnimationFrame(() => scrollToBottom());
+    });
+    socket.on("messages_read", (payload) => {
+      if (payload.readerUserId !== otherId) return;
+      const ids = payload.messageIds || [];
+      const readAt = payload.readAt ? new Date(payload.readAt) : new Date();
+      setMessages((prev) =>
+        prev.map((m) => (ids.includes(m.id) ? { ...m, readAt } : m))
+      );
+    });
+    socket.on("unread_count", (payload) => {
+      if (typeof window !== "undefined" && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent("refresh-unread-count"));
+      }
+    });
+    socket.on("connect_error", () => {});
+    return () => {
+      socket.removeAllListeners();
+      socket.disconnect();
+    };
+  }, [userId, meId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -73,6 +121,7 @@ export default function ChatRoomPage() {
     const text = input.trim();
     if (!text || sending || !userId) return;
     setSending(true);
+    setError(null);
     try {
       const res = await fetch(API_ENDPOINTS.messages.send, {
         method: "POST",
@@ -82,9 +131,19 @@ export default function ChatRoomPage() {
       });
       const data = await res.json();
       if (data.success && data.data) {
-        setMessages((prev) => [...prev, data.data]);
+        const raw = data.data;
+        const newMsg = {
+          id: raw.id,
+          senderId: raw.senderId,
+          receiverId: raw.receiverId,
+          body: raw.body ?? text,
+          readAt: raw.readAt ?? null,
+          createdAt: raw.createdAt ?? new Date().toISOString(),
+          requestId: raw.requestId ?? null,
+        };
+        setMessages((prev) => [...prev, newMsg]);
         setInput("");
-        scrollToBottom();
+        requestAnimationFrame(() => scrollToBottom());
       } else {
         setError(data.message || "ارسال پیام ناموفق بود");
       }
@@ -105,9 +164,6 @@ export default function ChatRoomPage() {
       </div>
     );
   }
-
-  const auth = useAuth();
-  const meId = auth?.user?.id ?? auth?.user?.userId;
 
   if (loading && !otherUser) {
     return (

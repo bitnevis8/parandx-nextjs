@@ -2,8 +2,8 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "../../../../config/api";
-import UserAvatar from "../../../../components/ui/UserAvatar";
+import { API_ENDPOINTS } from "../../../../../config/api";
+import UserAvatar from "../../../../../components/ui/UserAvatar";
 
 export default function UserViewPage({ params }) {
   const router = useRouter();

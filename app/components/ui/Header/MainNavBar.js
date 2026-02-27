@@ -51,10 +51,13 @@ export default function MainNavBar() {
 
   const linkContent = (item, isActive, Icon) => (
     <>
-      <Icon
-        className="w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6 flex-shrink-0"
-        strokeWidth={isActive ? 2.5 : 2}
-      />
+      <span className="icon-wrap inline-flex shrink-0 items-center justify-center w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6" aria-hidden>
+        <Icon
+          className="w-full h-full"
+          style={{ width: '100%', height: '100%' }}
+          strokeWidth={isActive ? 2.5 : 2}
+        />
+      </span>
       <span className="whitespace-nowrap">{item.label}</span>
     </>
   );
@@ -119,10 +122,9 @@ export default function MainNavBar() {
                   }
                 `}
               >
-                <Icon
-                  className="w-6 h-6 flex-shrink-0"
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
+                <span className="inline-flex shrink-0 items-center justify-center w-6 h-6" style={{ width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', minHeight: '1.5rem', maxWidth: '1.5rem', maxHeight: '1.5rem' }} aria-hidden>
+                  <Icon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={isActive ? 2.5 : 2} />
+                </span>
                 <span className="leading-tight text-center line-clamp-1">{item.label}</span>
               </Link>
             );
