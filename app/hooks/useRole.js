@@ -1,58 +1,64 @@
 "use client";
 
-import { useAuth } from '../context/AuthContext';
+import { useCallback, useMemo } from "react";
+import { useAuth } from "../context/AuthContext";
+
+const EXPERT_ROLES = ["admin", "moderator", "expert"];
+const MERCHANT_ROLES = ["admin", "moderator", "merchant"];
+const ADMIN_ROLES = ["admin", "moderator"];
+const CUSTOMER_ROLES = ["admin", "moderator", "expert", "merchant", "customer"];
+const ROLE_PRIORITY = ["admin", "moderator", "expert", "merchant", "customer", "guest"];
 
 export function useRole() {
   const { user } = useAuth();
 
-  // Debug log
-  console.log("useRole - User object:", user);
-  console.log("useRole - User roles:", user?.userRoles);
+  const roleNames = useMemo(() => {
+    if (!user?.userRoles?.length) return [];
+    return user.userRoles.map((role) => role.name);
+  }, [user?.userRoles]);
 
-  const hasRole = (roleName) => {
-    if (!user || !user.userRoles) {
-      console.log(`hasRole(${roleName}): No user or userRoles`);
-      return false;
+  const hasRole = useCallback(
+    (roleName) => roleNames.includes(roleName),
+    [roleNames]
+  );
+
+  const hasAnyRole = useCallback(
+    (names) => names.some((name) => roleNames.includes(name)),
+    [roleNames]
+  );
+
+  const isAdmin = useCallback(() => hasRole("admin"), [hasRole]);
+  const isModerator = useCallback(() => hasRole("moderator"), [hasRole]);
+  const isExpert = useCallback(() => hasRole("expert"), [hasRole]);
+  const isMerchant = useCallback(() => hasRole("merchant"), [hasRole]);
+  const isCustomer = useCallback(() => hasRole("customer"), [hasRole]);
+  const isGuest = useCallback(() => hasRole("guest"), [hasRole]);
+
+  const canAccessAdmin = useCallback(
+    () => hasAnyRole(ADMIN_ROLES),
+    [hasAnyRole]
+  );
+  const canAccessExpert = useCallback(
+    () => hasAnyRole(EXPERT_ROLES),
+    [hasAnyRole]
+  );
+  const canAccessMerchant = useCallback(
+    () => hasAnyRole(MERCHANT_ROLES),
+    [hasAnyRole]
+  );
+  const canAccessCustomer = useCallback(
+    () => hasAnyRole(CUSTOMER_ROLES),
+    [hasAnyRole]
+  );
+
+  const getUserRoles = useCallback(() => [...roleNames], [roleNames]);
+
+  const getPrimaryRole = useCallback(() => {
+    for (const role of ROLE_PRIORITY) {
+      if (roleNames.includes(role)) return role;
     }
-    const result = user.userRoles.some(role => role.name === roleName);
-    console.log(`hasRole(${roleName}):`, result);
-    return result;
-  };
-
-  const hasAnyRole = (roleNames) => {
-    if (!user || !user.userRoles) return false;
-    return user.userRoles.some(role => roleNames.includes(role.name));
-  };
-
-  const isAdmin = () => hasRole('admin');
-  const isModerator = () => hasRole('moderator');
-  const isExpert = () => hasRole('expert');
-  const isCustomer = () => hasRole('customer');
-  const isGuest = () => hasRole('guest');
-
-  const canAccessAdmin = () => hasAnyRole(['admin', 'moderator']);
-  const canAccessExpert = () => hasAnyRole(['admin', 'moderator', 'expert']);
-  const canAccessCustomer = () => hasAnyRole(['admin', 'moderator', 'expert', 'customer']);
-
-  const getUserRoles = () => {
-    if (!user || !user.userRoles) return [];
-    return user.userRoles.map(role => role.name);
-  };
-
-  const getPrimaryRole = () => {
-    if (!user || !user.userRoles) return 'guest';
-    
-    // اولویت نقش‌ها
-    const rolePriority = ['admin', 'moderator', 'expert', 'customer', 'guest'];
-    
-    for (const role of rolePriority) {
-      if (hasRole(role)) {
-        return role;
-      }
-    }
-    
-    return 'guest';
-  };
+    return "guest";
+  }, [roleNames]);
 
   return {
     user,
@@ -61,12 +67,14 @@ export function useRole() {
     isAdmin,
     isModerator,
     isExpert,
+    isMerchant,
     isCustomer,
     isGuest,
     canAccessAdmin,
     canAccessExpert,
+    canAccessMerchant,
     canAccessCustomer,
     getUserRoles,
-    getPrimaryRole
+    getPrimaryRole,
   };
 }

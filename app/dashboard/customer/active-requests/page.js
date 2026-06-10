@@ -1,140 +1,233 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
-import { useRole } from '../../../hooks/useRole';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import {
+  ClipboardDocumentListIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+} from '@heroicons/react/24/outline';
+import { API_ENDPOINTS } from '../../../config/api';
+import RequestListCard from '../../../components/requests/RequestListCard';
+import {
+  cardClass,
+  DashboardLoading,
+  primaryBtnClass,
+} from '../../../components/ui/dashboard/DashboardUi';
+import {
+  ACTIVE_REQUEST_STATUSES,
+  countPendingBids,
+  fetchAuth,
+  REQUEST_STATUS_LABELS,
+} from '../../../utils/requestFormat';
+
+const FILTERS = [
+  { id: 'active', label: 'فعال' },
+  { id: 'open', label: REQUEST_STATUS_LABELS.open },
+  { id: 'in_progress', label: REQUEST_STATUS_LABELS.in_progress },
+  { id: 'with_bids', label: 'دارای پیشنهاد' },
+  { id: 'all', label: 'همه' },
+];
+
+function filterRequests(requests, filter, query) {
+  let list = [...requests];
+
+  if (filter === 'active') {
+    list = list.filter((r) => ACTIVE_REQUEST_STATUSES.includes(r.status));
+  } else if (filter === 'open' || filter === 'in_progress') {
+    list = list.filter((r) => r.status === filter);
+  } else if (filter === 'with_bids') {
+    list = list.filter((r) => (r.bids?.length || 0) > 0);
+  }
+
+  const q = query.trim().toLowerCase();
+  if (q) {
+    list = list.filter((r) => {
+      const haystack = [
+        r.title,
+        r.description,
+        r.location,
+        r.category?.title,
+        r.subCategory?.title,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }
+
+  return list;
+}
 
 export default function ActiveRequestsPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const userRole = useRole();
+  const [error, setError] = useState('');
+  const [filter, setFilter] = useState('active');
+  const [query, setQuery] = useState('');
 
-  useEffect(() => {
-    // TODO: Fetch active requests from API
-    setLoading(false);
+  const loadRequests = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(API_ENDPOINTS.requests.mine, fetchAuth);
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.message || 'خطا در بارگذاری درخواست‌ها');
+        setRequests([]);
+        return;
+      }
+      setRequests(data.data || []);
+    } catch {
+      setError('خطا در ارتباط با سرور');
+      setRequests([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const filteredRequests = requests.filter(request => {
-    if (filter === 'all') return true;
-    return request.status === filter;
-  });
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
+
+  const filteredRequests = useMemo(
+    () => filterRequests(requests, filter, query),
+    [requests, filter, query]
+  );
+
+  const stats = useMemo(() => {
+    const active = requests.filter((r) => ACTIVE_REQUEST_STATUSES.includes(r.status));
+    const open = requests.filter((r) => r.status === 'open');
+    const withBids = requests.filter((r) => (r.bids?.length || 0) > 0);
+    const pendingBids = requests.reduce((sum, r) => sum + countPendingBids(r), 0);
+    return { active: active.length, open: open.length, withBids: withBids.length, pendingBids };
+  }, [requests]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <DashboardLoading />;
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden">
-      <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">درخواست‌های فعال</h1>
-          
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                filter === 'all' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              همه
-            </button>
-            <button
-              onClick={() => setFilter('pending')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                filter === 'pending' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              در انتظار
-            </button>
-            <button
-              onClick={() => setFilter('accepted')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                filter === 'accepted' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              پذیرفته شده
-            </button>
-            <button
-              onClick={() => setFilter('in_progress')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                filter === 'in_progress' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              در حال انجام
-            </button>
+    <div className="mx-auto w-full max-w-4xl space-y-5 pb-6">
+      <div className={`${cardClass} overflow-hidden`}>
+        <div className="border-b border-teal-100 bg-gradient-to-bl from-teal-50/70 to-white px-4 py-5 sm:px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-medium text-teal-700">پنل مشتری</p>
+              <h1 className="mt-1 text-xl font-bold text-gray-900 sm:text-2xl">درخواست‌های فعال</h1>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-600">
+                درخواست‌های ثبت‌شده، وضعیتشون و پیشنهادهایی که از متخصص‌ها می‌رسه رو اینجا
+                {' '}
+                پیگیری کنید.
+              </p>
+            </div>
+            <Link href="/requests/new" className={`${primaryBtnClass} shrink-0`}>
+              <PlusIcon className="h-4 w-4" aria-hidden />
+              ثبت کار جدید
+            </Link>
           </div>
         </div>
-        
-        <div className="space-y-4">
-          {filteredRequests.length > 0 ? (
-            filteredRequests.map((request) => (
-              <div key={request.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{request.title}</h3>
-                    <p className="text-sm text-gray-600">{request.category}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    request.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                    request.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {request.status === 'pending' ? 'در انتظار' :
-                     request.status === 'accepted' ? 'پذیرفته شده' :
-                     request.status === 'in_progress' ? 'در حال انجام' : request.status}
-                  </span>
-                </div>
-                
-                <p className="text-gray-700 mb-3">{request.description}</p>
-                
-                <div className="flex justify-between items-center">
-                  <div className="flex space-x-4 text-sm text-gray-600">
-                    <span>📅 {request.date}</span>
-                    <span>📍 {request.location}</span>
-                    <span>💰 {request.budget} تومان</span>
-                    {request.expertName && <span>👨‍🔧 {request.expertName}</span>}
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
-                      مشاهده جزئیات
-                    </button>
-                    {request.status === 'accepted' && (
-                      <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors">
-                        شروع کار
-                      </button>
-                    )}
-                    {request.status === 'in_progress' && (
-                      <button className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700 transition-colors">
-                        تکمیل کار
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-12">
-              <span className="text-6xl mb-4 block">📋</span>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">درخواست فعالی ندارید</h3>
-              <p className="text-gray-600">هنوز درخواستی ثبت نکرده‌اید یا تمام درخواست‌هایتان تکمیل شده‌اند.</p>
+
+        <div className="grid grid-cols-2 gap-3 border-b border-gray-100 p-4 sm:grid-cols-4 sm:p-5">
+          <StatCard label="فعال" value={stats.active} />
+          <StatCard label="باز" value={stats.open} />
+          <StatCard label="دارای پیشنهاد" value={stats.withBids} />
+          <StatCard label="پیشنهاد جدید" value={stats.pendingBids} accent />
+        </div>
+
+        <div className="space-y-4 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative min-w-0 flex-1 sm:max-w-xs">
+              <MagnifyingGlassIcon
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                aria-hidden
+              />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="جستجو در عنوان یا توضیحات..."
+                className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-9 pl-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              />
             </div>
-          )}
+            <div className="flex flex-wrap gap-2">
+              {FILTERS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setFilter(item.id)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                    filter === item.id
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+              <button
+                type="button"
+                onClick={loadRequests}
+                className="mr-2 font-medium underline"
+              >
+                تلاش مجدد
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
+
+      {filteredRequests.length > 0 ? (
+        <div className="space-y-4">
+          {filteredRequests.map((request) => (
+            <RequestListCard key={request.id} request={request} />
+          ))}
+        </div>
+      ) : (
+        <div className={`${cardClass} px-4 py-12 text-center sm:px-6`}>
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+            <ClipboardDocumentListIcon className="h-7 w-7" aria-hidden />
+          </span>
+          <h2 className="mt-4 text-lg font-bold text-gray-900">
+            {requests.length === 0 ? 'هنوز درخواستی ثبت نکرده‌اید' : 'موردی با این فیلتر یافت نشد'}
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-600">
+            {requests.length === 0
+              ? 'با اولین درخواست، متخصص‌های مرتبط خبرشون می‌شه و می‌تونن پیشنهاد بدن.'
+              : 'فیلتر یا عبارت جستجو را تغییر دهید.'}
+          </p>
+          {requests.length === 0 ? (
+            <Link href="/requests/new" className={`${primaryBtnClass} mt-5 inline-flex`}>
+              <PlusIcon className="h-4 w-4" aria-hidden />
+              ثبت اولین درخواست
+            </Link>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent = false }) {
+  return (
+    <div
+      className={`rounded-xl border px-3 py-3 ${
+        accent
+          ? 'border-teal-200 bg-teal-50/60'
+          : 'border-gray-100 bg-gray-50/60'
+      }`}
+    >
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className={`mt-1 text-xl font-bold ${accent ? 'text-teal-700' : 'text-gray-900'}`}>
+        {value.toLocaleString('fa-IR')}
+      </p>
     </div>
   );
 }

@@ -1,44 +1,56 @@
 'use client';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
-        {/* Backdrop */}
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-25 transition-opacity"
+const Modal = ({ isOpen, onClose, title, children }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[10002] overflow-y-auto" role="dialog" aria-modal="true">
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/40 transition-opacity"
           onClick={onClose}
+          aria-hidden
         />
-        
-        {/* Modal Content */}
-        <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {title}
-            </h3>
+
+        <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
             <button
               type="button"
-              className="text-gray-400 hover:text-gray-500"
+              className="rounded-lg p-1 text-gray-400 transition hover:bg-slate-100 hover:text-gray-600"
               onClick={onClose}
+              aria-label="بستن"
             >
-              <span className="sr-only">Close</span>
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-          
-          {/* Body */}
-          <div className="mt-2">
-            {children}
-          </div>
+
+          <div>{children}</div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
-export default Modal; 
+export default Modal;

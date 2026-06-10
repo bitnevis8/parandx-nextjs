@@ -174,8 +174,8 @@ export default function ExpertDashboardPage() {
             className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors text-center"
           >
             <div className="text-2xl mb-2">✏️</div>
-            <h3 className="font-semibold">ویرایش پروفایل</h3>
-            <p className="text-sm opacity-90">مدیریت اطلاعات شخصی</p>
+            <h3 className="font-semibold">ویرایش پروفایل تخصصی</h3>
+            <p className="text-sm opacity-90">مدیریت اطلاعات تخصصی</p>
           </Link>
 
           <Link 
@@ -183,12 +183,12 @@ export default function ExpertDashboardPage() {
             className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors text-center"
           >
             <div className="text-2xl mb-2">👁️</div>
-            <h3 className="font-semibold">مشاهده پروفایل</h3>
-            <p className="text-sm opacity-90">نمایش پروفایل عمومی</p>
+            <h3 className="font-semibold">مشاهده پروفایل تخصصی</h3>
+            <p className="text-sm opacity-90">نمایش اطلاعات تخصصی</p>
           </Link>
 
           <Link 
-            href={targetUserId ? `/dashboard?tab=specializations&userId=${targetUserId}` : '/dashboard?tab=specializations'}
+            href={targetUserId ? `/dashboard?tab=expert-edit&userId=${targetUserId}` : '/dashboard?tab=expert-edit'}
             className="bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700 transition-colors text-center"
           >
             <div className="text-2xl mb-2">🎯</div>
@@ -218,7 +218,6 @@ export default function ExpertDashboardPage() {
                 <p><strong>نام:</strong> {profile.user?.firstName} {profile.user?.lastName}</p>
                 <p><strong>ایمیل:</strong> {profile.user?.email}</p>
                 <p><strong>تجربه:</strong> {profile.experience || 'ثبت نشده'}</p>
-                <p><strong>قیمت پایه:</strong> {profile.basePrice ? `${profile.basePrice.toLocaleString()} تومان` : 'تعیین نشده'}</p>
               </div>
             </div>
             <div>
@@ -250,15 +249,15 @@ export default function ExpertDashboardPage() {
           <div className="flex items-center">
             <div className="text-4xl ml-4">⚠️</div>
             <div>
-              <h3 className="text-lg font-semibold text-yellow-900 mb-2">پروفایل متخصص ایجاد نشده</h3>
+              <h3 className="text-lg font-semibold text-yellow-900 mb-2">پروفایل تخصصی ایجاد نشده</h3>
               <p className="text-yellow-800 mb-4">
-                برای شروع کار به عنوان متخصص، ابتدا پروفایل خود را تکمیل کنید.
+                برای شروع کار به عنوان متخصص، ابتدا پروفایل تخصصی خود را تکمیل کنید.
               </p>
               <Link 
                 href={targetUserId ? `/dashboard?tab=expert-edit&userId=${targetUserId}` : '/dashboard?tab=expert-edit'}
                 className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
               >
-                ایجاد پروفایل متخصص
+                ایجاد پروفایل تخصصی
               </Link>
             </div>
           </div>

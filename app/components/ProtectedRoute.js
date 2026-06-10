@@ -18,7 +18,7 @@ export default function ProtectedRoute({
     if (!loading) {
       if (!user) {
         // اگر کاربر وارد نشده، به صفحه ورود هدایت کن
-        router.push('/auth/login');
+        router.push('/auth');
         return;
       }
 
@@ -57,7 +57,7 @@ export default function ProtectedRoute({
           <h1 className="text-2xl font-bold text-gray-800 mb-2">دسترسی غیرمجاز</h1>
           <p className="text-gray-600 mb-4">لطفا ابتدا وارد شوید</p>
           <button
-            onClick={() => router.push('/auth/login')}
+            onClick={() => router.push('/auth')}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
           >
             ورود

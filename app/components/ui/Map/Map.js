@@ -1,64 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import 'leaflet/dist/leaflet.css';
+import { isValidMapCenter } from '../../../utils/cityMapConfig';
 
-// Dynamic imports for Leaflet components
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-);
-
-// کامپوننت برای به‌روزرسانی مرکز نقشه
-const ChangeView = dynamic(
-  () => import('react-leaflet').then((mod) => {
-    const { useMap } = mod;
-    return function ChangeView({ center, zoom }) {
-      const map = useMap();
-      useEffect(() => {
-        if (map) {
-          map.setView(center, zoom);
-        }
-      }, [center, zoom, map]);
-      return null;
-    };
-  }),
-  { ssr: false }
-);
-
-// کامپوننت برای هندل کردن رویداد کلیک روی نقشه
-const MapEvents = dynamic(
-  () => import('react-leaflet').then((mod) => {
-    const { useMapEvents } = mod;
-    return function MapEvents({ onMapClick }) {
-      useMapEvents({
-        click(e) {
-          if (onMapClick) {
-            onMapClick({ latitude: e.latlng.lat, longitude: e.latlng.lng });
-          }
-        },
-      });
-      return null;
-    };
-  }),
-  { ssr: false }
-);
+const MapLibreMap = dynamic(() => import('../../map/MapLibreMap'), { ssr: false });
 
 const Map = ({
-  center = [35.7219, 51.3347], // تهران به عنوان مرکز پیش‌فرض
+  center = [35.7219, 51.3347],
   zoom = 13,
   markers = [],
   onMarkerClick,
@@ -68,72 +17,84 @@ const Map = ({
   className = '',
   showControls = true,
   draggable = true,
+  scrollWheelZoom = false,
+  doubleClickZoom = false,
+  touchZoom = false,
+  boxZoom = false,
+  keyboard = false,
 }) => {
   const [selectedPosition, setSelectedPosition] = useState(null);
 
-  useEffect(() => {
-    // رفع مشکل آیکون‌های پیش‌فرض Leaflet
-    const L = require('leaflet');
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    });
-  }, []);
+  const safeCenter = useMemo(
+    () => (isValidMapCenter(center) ? center : [35.7219, 51.3347]),
+    [center]
+  );
+  const safeZoom = Number.isFinite(Number(zoom)) ? Number(zoom) : 13;
 
-  const handleMapClick = ({ latitude, longitude }) => {
-    setSelectedPosition([latitude, longitude]);
-    if (onMapClick) {
-      onMapClick({ latitude, longitude });
+  const expertMarkers = useMemo(() => {
+    const items = markers
+      .filter(
+        (marker) =>
+          Number.isFinite(Number(marker.latitude)) && Number.isFinite(Number(marker.longitude))
+      )
+      .map((marker, index) => ({
+        expertId: marker.id ?? `marker-${index}`,
+        lat: Number(marker.latitude),
+        lng: Number(marker.longitude),
+        name: marker.name || `موقعیت ${index + 1}`,
+        href: '#',
+        raw: marker,
+      }));
+
+    if (selectedPosition) {
+      items.push({
+        expertId: 'selected-position',
+        lat: selectedPosition[0],
+        lng: selectedPosition[1],
+        name: 'موقعیت انتخاب شده',
+        href: '#',
+      });
     }
-  };
+
+    return items;
+  }, [markers, selectedPosition]);
+
+  const gesturesEnabled =
+    draggable || scrollWheelZoom || doubleClickZoom || touchZoom || boxZoom || keyboard;
+
+  const handleMapClick = onMapClick
+    ? (lat, lng) => {
+        setSelectedPosition([lat, lng]);
+        onMapClick({ latitude: lat, longitude: lng });
+      }
+    : undefined;
+
+  if (!isValidMapCenter(center)) {
+    return (
+      <div
+        style={{ height, width }}
+        className={`rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-sm text-gray-500 ${className}`}
+      >
+        مختصات نقشه برای این شهر تنظیم نشده است.
+      </div>
+    );
+  }
 
   return (
-    <div 
-      style={{ height, width }} 
-      className={`rounded-lg overflow-hidden ${className}`}
-    >
-      <MapContainer
-        center={center}
-        zoom={zoom}
-        style={{ height: '100%', width: '100%', zIndex: 0 }}
-        zoomControl={showControls}
-        attributionControl={showControls}
-      >
-        <ChangeView center={center} zoom={zoom} />
-        <MapEvents onMapClick={handleMapClick} />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        {/* نمایش نشانگرهای موجود */}
-        {markers.map((marker, index) => (
-          <Marker
-            key={index}
-            position={[marker.latitude, marker.longitude]}
-            eventHandlers={{
-              click: () => onMarkerClick?.(marker)
-            }}
-          >
-            <Popup>
-              {marker.name || `موقعیت ${index + 1}`}
-            </Popup>
-          </Marker>
-        ))}
-        
-        {/* نمایش موقعیت انتخاب شده */}
-        {selectedPosition && (
-          <Marker position={selectedPosition}>
-            <Popup>
-              موقعیت انتخاب شده
-            </Popup>
-          </Marker>
-        )}
-      </MapContainer>
+    <div style={{ height, width }} className={`rounded-lg overflow-hidden ${className}`}>
+      <MapLibreMap
+        center={safeCenter}
+        zoom={safeZoom}
+        show3D={false}
+        showBoundaries={false}
+        expertMarkers={expertMarkers}
+        gesturesEnabled={gesturesEnabled}
+        mapClickEnabled={Boolean(handleMapClick)}
+        onMapClick={handleMapClick}
+        showNavigationControl={showControls}
+      />
     </div>
   );
 };
 
-export default Map; 
+export default Map;

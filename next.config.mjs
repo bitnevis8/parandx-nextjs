@@ -6,6 +6,27 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    const apiOrigin =
+      process.env.API_INTERNAL_URL?.replace(/\/$/, '') || 'http://127.0.0.1:3000';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${apiOrigin}/:path*`,
+      },
+    ];
+  },
+  // دسترسی از IP شبکه محلی در حالت dev (مثلاً موبایل روی همان Wi‑Fi)
+  allowedDevOrigins: [
+    'localhost',
+    '127.0.0.1',
+    '10.168.155.250',
+    '10.34.252.250',
+    '*.local',
+  ],
+  turbopack: {
+    root: __dirname,
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'api.parandx.com', pathname: '/**' },
@@ -16,7 +37,7 @@ const nextConfig = {
     unoptimized: true, // برای تصاویر خارجی
   },
   experimental: {
-    optimizePackageImports: ['@heroicons/react', 'react-leaflet'],
+    optimizePackageImports: ['@heroicons/react'],
   },
   generateEtags: false,
   poweredByHeader: false,

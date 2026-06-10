@@ -69,10 +69,11 @@ export default function DashboardBottomBar({ onOpenMenu }) {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] bg-gradient-to-l from-slate-700 to-slate-800 border-t border-slate-600/50 shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] bg-white border-t border-gray-200 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
       style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 0px)" }}
+      aria-label="ناوبری داشبورد"
     >
-      <div className="flex items-stretch justify-around h-16">
+      <div className="flex items-stretch justify-around h-16 max-w-lg mx-auto">
         {items.map((item) => {
           const active = isActive(item.href, item.exact);
           const Icon = active ? item.IconActive : item.Icon;
@@ -84,13 +85,10 @@ export default function DashboardBottomBar({ onOpenMenu }) {
               className={`
                 flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-2 px-1
                 font-medium text-[10px] sm:text-xs transition-colors
-                active:bg-white/10
-                ${active ? "text-cyan-300 bg-white/10" : "text-slate-300"}
+                ${active ? "text-teal-600" : "text-gray-500 hover:text-gray-700"}
               `}
             >
-              <span className="inline-flex shrink-0 items-center justify-center w-6 h-6" style={{ width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', minHeight: '1.5rem', maxWidth: '1.5rem', maxHeight: '1.5rem' }} aria-hidden>
-                <Icon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={active ? 2.5 : 2} />
-              </span>
+              <Icon className="h-6 w-6 shrink-0" strokeWidth={active ? 2.25 : 1.75} aria-hidden />
               <span className="leading-tight text-center line-clamp-1">{item.label}</span>
             </Link>
           );
@@ -98,11 +96,9 @@ export default function DashboardBottomBar({ onOpenMenu }) {
         <button
           type="button"
           onClick={onOpenMenu}
-          className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-2 px-1 font-medium text-[10px] sm:text-xs text-slate-300 active:bg-white/10"
+          className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-2 px-1 font-medium text-[10px] sm:text-xs text-gray-500 hover:text-gray-700"
         >
-          <span className="inline-flex shrink-0 items-center justify-center w-6 h-6" style={{ width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', minHeight: '1.5rem', maxWidth: '1.5rem', maxHeight: '1.5rem' }} aria-hidden>
-            <Bars3Icon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={2} />
-          </span>
+          <Bars3Icon className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
           <span className="leading-tight text-center line-clamp-1">منو</span>
         </button>
       </div>

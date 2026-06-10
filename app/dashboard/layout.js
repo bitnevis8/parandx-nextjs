@@ -1,40 +1,78 @@
 "use client";
 
-import Sidebar from '../components/ui/Sidebar';
+import Sidebar, {
+  SIDEBAR_WIDTH_COLLAPSED,
+  SIDEBAR_WIDTH_EXPANDED,
+} from '../components/ui/Sidebar';
 import DashboardHeader from '../components/ui/DashboardHeader';
-import DashboardBottomBar from '../components/ui/DashboardBottomBar';
-import { useState, useEffect } from "react";
-import { API_ENDPOINTS } from "../config/api";
-import { useAuth } from "../context/AuthContext";
+import DashboardMobileNav from '../components/ui/DashboardMobileNav';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+
+const SIDEBAR_COLLAPSED_KEY = 'parandx-dashboard-sidebar-collapsed';
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 768px)');
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  return isDesktop;
+}
 
 export default function DashboardLayout({ children }) {
-  const [emailVerificationCode, setEmailVerificationCode] = useState("");
+  const [emailVerificationCode, setEmailVerificationCode] = useState('');
   const [verificationError, setVerificationError] = useState(null);
   const [verificationSuccess, setVerificationSuccess] = useState(null);
   const [resendLoading, setResendLoading] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const auth = useAuth();
   const { user, loading, setUser } = auth || { user: null, loading: false, setUser: undefined };
+  const isDesktop = useIsDesktop();
 
+  useEffect(() => {
+    try {
+      setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true');
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   const handleVerifyEmail = async () => {
     setVerificationError(null);
     setVerificationSuccess(null);
     if (!user || !user.email) {
-      setVerificationError("اطلاعات کاربر یا ایمیل در دسترس نیست.");
+      setVerificationError('اطلاعات کاربر یا ایمیل در دسترس نیست.');
       return;
     }
     if (!emailVerificationCode) {
-      setVerificationError("لطفا کد تایید را وارد کنید.");
+      setVerificationError('لطفا کد تایید را وارد کنید.');
       return;
     }
 
     try {
-      const response = await fetch("/api/auth/verify-email", {
-        method: "POST",
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: user.email, code: emailVerificationCode }),
       });
@@ -43,11 +81,11 @@ export default function DashboardLayout({ children }) {
         setVerificationSuccess(data.message);
         if (setUser) setUser({ ...user, isEmailVerified: true });
       } else {
-        setVerificationError(data.message || "خطا در تایید ایمیل.");
+        setVerificationError(data.message || 'خطا در تایید ایمیل.');
       }
     } catch (error) {
-      console.error("Error verifying email:", error);
-      setVerificationError("خطا در ارتباط با سرور.");
+      console.error('Error verifying email:', error);
+      setVerificationError('خطا در ارتباط با سرور.');
     } finally {
       setResendLoading(false);
     }
@@ -58,16 +96,16 @@ export default function DashboardLayout({ children }) {
     setVerificationError(null);
     setVerificationSuccess(null);
     if (!user || !user.email) {
-      setVerificationError("اطلاعات کاربر یا ایمیل در دسترس نیست.");
+      setVerificationError('اطلاعات کاربر یا ایمیل در دسترس نیست.');
       setResendLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("/api/auth/resend-email-code", {
-        method: "POST",
+      const response = await fetch('/api/auth/resend-email-code', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: user.email }),
       });
@@ -75,110 +113,98 @@ export default function DashboardLayout({ children }) {
       if (data.success) {
         setVerificationSuccess(data.message);
       } else {
-        setVerificationError(data.message || "خطا در ارسال مجدد کد.");
+        setVerificationError(data.message || 'خطا در ارسال مجدد کد.');
       }
     } catch (error) {
-      console.error("Error resending code:", error);
-      setVerificationError("خطا در ارتباط با سرور.");
+      console.error('Error resending code:', error);
+      setVerificationError('خطا در ارتباط با سرور.');
     } finally {
       setResendLoading(false);
     }
   };
 
-
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-teal-600" />
       </div>
     );
   }
 
+  const sidebarCollapsedEffective = isDesktop && sidebarCollapsed;
+  const sidebarWidth = sidebarCollapsedEffective ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
+
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-white w-full max-w-[100vw] overflow-x-hidden min-w-0">
-      {/* Mobile Sidebar Toggle Button */}
-      <button
-        className="md:hidden fixed top-4 right-4 z-50 p-2 rounded-md bg-gray-800 text-white"
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-      >
-        {isSidebarOpen ? (
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        )}
-      </button>
-
-      {/* Overlay for mobile sidebar */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
-      )}
-
-      {/* Sidebar */}
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gray-50">
       <aside
-        className={`transform transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'} 
-          fixed top-0 right-0 h-full w-64 bg-gray-800 text-white z-50 md:relative md:translate-x-0 md:w-64 md:flex-shrink-0`}
+        style={{ width: sidebarWidth }}
+        className="fixed inset-y-0 right-0 z-50 hidden flex-col border-l border-gray-200 bg-white shadow-sm transition-[width] duration-300 ease-in-out md:flex"
       >
-        <Sidebar onLinkClick={() => setIsSidebarOpen(false)} />
+        <Sidebar
+          collapsed={sidebarCollapsedEffective}
+          onToggleCollapse={toggleSidebarCollapsed}
+          showCollapseToggle
+        />
       </aside>
-      
-      {/* Main content */}
-      <main className={`flex-1 min-w-0 bg-gray-50 p-3 sm:p-4 md:p-4 pb-20 md:pb-4 transition-all duration-300 ease-in-out
-        ${isSidebarOpen ? 'md:mr-64' : 'md:mr-0'}`}
+
+      <div
+        className="flex min-h-screen flex-col transition-[margin] duration-300 ease-in-out max-md:mr-0 md:mr-[var(--sidebar-width)]"
+        style={{ '--sidebar-width': sidebarWidth }}
       >
-        {user && user.email && !user.isEmailVerified && (
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 sm:p-4 mb-4 sm:mb-6 rounded-r text-sm sm:text-base" role="alert">
-            <p className="font-bold">ایمیل شما تایید نشده است!</p>
-            <p className="text-xs sm:text-sm mt-1 break-words">لطفا کد تایید ارسال شده به ایمیل خود ({user.email}) را وارد کنید تا حساب کاربری شما فعال شود.</p>
-            
-            {verificationError && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-3">
-                {verificationError}
-              </div>
-            )}
-            {verificationSuccess && (
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mt-3">
-                {verificationSuccess}
-              </div>
-            )}
+        <DashboardMobileNav />
 
-            <div className="mt-4 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 rtl:space-x-reverse">
-              <input
-                type="text"
-                placeholder="کد تایید را وارد کنید"
-                className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                value={emailVerificationCode || ""}
-                onChange={(e) => setEmailVerificationCode(e.target.value)}
-              />
-              <button
-                onClick={handleVerifyEmail}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out"
-              >
-                تایید ایمیل
-              </button>
-              <button
-                onClick={handleResendCode}
-                disabled={resendLoading}
-                className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out"
-              >
-                {resendLoading ? "در حال ارسال..." : "ارسال مجدد کد"}
-              </button>
+        <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 sm:py-4 md:pb-6 md:pl-5 md:pr-6">
+          {user && user.email && !user.isEmailVerified ? (
+            <div
+              className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:mb-6 sm:p-5"
+              role="alert"
+            >
+              <p className="font-semibold text-amber-900">ایمیل شما تأیید نشده است</p>
+              <p className="mt-1 break-words text-sm text-amber-800">
+                کد تأیید ارسال‌شده به {user.email} را وارد کنید.
+              </p>
+
+              {verificationError ? (
+                <div className="relative mt-3 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+                  {verificationError}
+                </div>
+              ) : null}
+              {verificationSuccess ? (
+                <div className="relative mt-3 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">
+                  {verificationSuccess}
+                </div>
+              ) : null}
+
+              <div className="mt-4 flex flex-col items-center space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0 rtl:space-x-reverse">
+                <input
+                  type="text"
+                  placeholder="کد تایید را وارد کنید"
+                  className="flex-1 rounded-xl border border-amber-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  value={emailVerificationCode || ''}
+                  onChange={(e) => setEmailVerificationCode(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyEmail}
+                  className="rounded-xl bg-amber-500 px-4 py-2 font-medium text-white shadow-sm hover:bg-amber-600"
+                >
+                  تایید ایمیل
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={resendLoading}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2 font-medium text-gray-700 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-50"
+                >
+                  {resendLoading ? 'در حال ارسال...' : 'ارسال مجدد کد'}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-        <DashboardHeader />
-        {children}
-      </main>
-
-      {/* موبایل: نوار ناوبری پایین */}
-      <DashboardBottomBar onOpenMenu={() => setIsSidebarOpen(true)} />
+          ) : null}
+          <DashboardHeader />
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

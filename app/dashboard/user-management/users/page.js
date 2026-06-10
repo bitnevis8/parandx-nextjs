@@ -1,261 +1,334 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "../../../config/api";
-import ProtectedRoute from "../../../components/ProtectedRoute";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '../../../components/ProtectedRoute';
+import { API_ENDPOINTS } from '../../../config/api';
+import {
+  FETCH_OPTS,
+  buildUsersListUrl,
+  formatMobile,
+  formatUserEmail,
+  hasRole,
+  normalizeUsersListResponse,
+  userFullName,
+  getRoleBadgeClass,
+  expertDashboardUrl,
+  personalDashboardUrl,
+} from '../../../components/user-management/userManagementUtils';
+import {
+  UserMgmtPageHeader,
+  UserMgmtAlert,
+} from '../../../components/user-management/UserMgmtShell';
+import {
+  DashboardLoading,
+  ghostBtnClass,
+  primaryBtnClass,
+  inputClass,
+} from '../../../components/ui/dashboard/DashboardUi';
 
-function UserManagementPage() {
+function VerificationDots({ user }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <span
+        className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+          user.isMobileVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
+        }`}
+      >
+        موبایل {user.isMobileVerified ? '✓' : '—'}
+      </span>
+      <span
+        className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+          user.email
+            ? user.isEmailVerified
+              ? 'bg-emerald-100 text-emerald-700'
+              : 'bg-amber-100 text-amber-700'
+            : 'bg-gray-100 text-gray-500'
+        }`}
+      >
+        ایمیل {user.email ? (user.isEmailVerified ? '✓' : '؟') : 'ندارد'}
+      </span>
+    </div>
+  );
+}
+
+function UserRowActions({ user, onDelete }) {
+  const isExpert = hasRole(user, 'expert');
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Link
+        href={`/dashboard/user-management/users/${user.id}/view`}
+        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+      >
+        مشاهده
+      </Link>
+      <Link
+        href={personalDashboardUrl('profile-edit', user.id)}
+        className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-medium text-teal-800 hover:bg-teal-100"
+      >
+        پروفایل شخصی
+      </Link>
+      {isExpert ? (
+        <Link
+          href={expertDashboardUrl('expert-edit', user.id)}
+          className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-800 hover:bg-violet-100"
+        >
+          پروفایل متخصص
+        </Link>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => onDelete(user.id)}
+        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+      >
+        حذف
+      </button>
+    </div>
+  );
+}
+
+function UsersListContent() {
   const router = useRouter();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   const fetchUsers = useCallback(async (query = '', sort = sortBy, order = sortOrder) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_ENDPOINTS.users.getAll}?q=${query}&sortBy=${sort}&sortOrder=${order}`);
+      const url = buildUsersListUrl({ q: query, sortBy: sort, sortOrder: order });
+      const response = await fetch(url, FETCH_OPTS);
       const data = await response.json();
-      if (data.success) {
-        setUsers(data.data);
-      } else {
-        throw new Error(data.message || "خطا در دریافت لیست کاربران");
+      setUsers(normalizeUsersListResponse(data));
+      if (!data.success) {
+        throw new Error(data.message || 'خطا در دریافت لیست کاربران');
       }
     } catch (err) {
-      setError(err.message || "خطا در ارتباط با سرور");
-      console.error("Error fetching users:", err);
+      setError(err.message || 'خطا در ارتباط با سرور');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
   }, [sortBy, sortOrder]);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchUsers(appliedQuery, sortBy, sortOrder);
+  }, [fetchUsers, appliedQuery, sortBy, sortOrder]);
 
-  const handleSearch = () => {
-    fetchUsers(searchTerm, sortBy, sortOrder);
+  const stats = useMemo(() => {
+    const experts = users.filter((u) => hasRole(u, 'expert')).length;
+    const noEmail = users.filter((u) => !u.email).length;
+    return { total: users.length, experts, noEmail };
+  }, [users]);
+
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    setAppliedQuery(searchTerm.trim());
   };
 
   const handleSort = (column) => {
-    const newSortOrder = sortBy === column && sortOrder === "asc" ? "desc" : "asc";
+    const newOrder = sortBy === column && sortOrder === 'asc' ? 'desc' : 'asc';
     setSortBy(column);
-    setSortOrder(newSortOrder);
-    fetchUsers(searchTerm, column, newSortOrder);
+    setSortOrder(newOrder);
   };
 
   const handleDelete = async (userId) => {
-    if (!confirm("آیا از حذف این کاربر اطمینان دارید؟")) {
-      return;
-    }
+    if (!confirm('آیا از حذف این کاربر اطمینان دارید؟ این عمل قابل بازگشت نیست.')) return;
     try {
       const response = await fetch(API_ENDPOINTS.users.delete(userId), {
-        method: "DELETE",
+        method: 'DELETE',
+        ...FETCH_OPTS,
       });
       const data = await response.json();
-      if (data.success) {
-        alert("کاربر با موفقیت حذف شد.");
-        fetchUsers(searchTerm, sortBy, sortOrder); // Refresh list
-      } else {
-        throw new Error(data.message || "خطا در حذف کاربر");
-      }
+      if (!data.success) throw new Error(data.message || 'خطا در حذف کاربر');
+      fetchUsers(appliedQuery, sortBy, sortOrder);
     } catch (err) {
-      alert(err.message || "خطا در ارتباط با سرور");
-      console.error("Error deleting user:", err);
+      alert(err.message || 'خطا در حذف');
     }
   };
 
-  const getSortIcon = (column) => {
-    if (sortBy === column) {
-      return sortOrder === "asc" ? "▲" : "▼";
-    }
-    return "";
-  };
+  const sortIcon = (col) => (sortBy === col ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : '');
 
   return (
-    <ProtectedRoute requiredRoles={['admin', 'moderator']}>
-      <div className="p-3 sm:p-4 md:p-6 bg-white min-h-screen w-full max-w-full overflow-x-hidden">
-      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg p-3 sm:p-4 md:p-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">مدیریت کاربران</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 sm:p-6">
+      <div className="mx-auto max-w-7xl">
+        <UserMgmtPageHeader
+          title="مدیریت کاربران"
+          description="جستجو، مشاهده و ویرایش حساب‌ها. ورود اکثر کاربران فقط با موبایل است؛ ایمیل اختیاری است."
+          backHref="/dashboard"
+          backLabel="بازگشت به داشبورد"
+          actions={
+            <button type="button" className={primaryBtnClass} onClick={() => router.push('/dashboard/user-management/users/create')}>
+              + کاربر جدید
+            </button>
+          }
+        />
 
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0 md:space-x-4 rtl:space-x-reverse">
-          <div className="w-full md:w-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 rtl:space-x-reverse">
-            <input
-              type="text"
-              placeholder="جستجو بر اساس نام، ایمیل، نام کاربری..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-            />
-            <button
-              onClick={handleSearch}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out"
-            >
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <p className="text-xs text-gray-500">کل کاربران</p>
+            <p className="mt-1 text-2xl font-bold text-gray-900">{stats.total}</p>
+          </div>
+          <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4 shadow-sm">
+            <p className="text-xs text-teal-700">متخصص</p>
+            <p className="mt-1 text-2xl font-bold text-teal-900">{stats.experts}</p>
+          </div>
+          <div className="col-span-2 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:col-span-1">
+            <p className="text-xs text-gray-500">بدون ایمیل</p>
+            <p className="mt-1 text-2xl font-bold text-gray-900">{stats.noEmail}</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSearch} className="mb-6 flex flex-col gap-3 sm:flex-row">
+          <input
+            type="search"
+            placeholder="نام، موبایل، ایمیل، نام کاربری..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`${inputClass} flex-1`}
+          />
+          <div className="flex gap-2">
+            <button type="submit" className={primaryBtnClass}>
               جستجو
             </button>
+            {appliedQuery ? (
+              <button
+                type="button"
+                className={ghostBtnClass}
+                onClick={() => {
+                  setSearchTerm('');
+                  setAppliedQuery('');
+                }}
+              >
+                پاک کردن
+              </button>
+            ) : null}
           </div>
-          <button
-            onClick={() => router.push("/dashboard/user-management/users/create")}
-            className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out"
-          >
-            افزودن کاربر جدید
-          </button>
-        </div>
+        </form>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            <span className="block sm:inline">{error}</span>
+        {error ? <UserMgmtAlert>{error}</UserMgmtAlert> : null}
+
+        {loading ? (
+          <DashboardLoading />
+        ) : users.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center">
+            <p className="text-gray-600">کاربری یافت نشد.</p>
+            <button type="button" className={`${primaryBtnClass} mt-4`} onClick={() => router.push('/dashboard/user-management/users/create')}>
+              افزودن اولین کاربر
+            </button>
           </div>
-        )}
-
-        <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 -mx-2 sm:mx-0">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("firstName")}
-                >
-                  نام {getSortIcon("firstName")}
-                </th>
-                <th
-                  className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("lastName")}
-                >
-                  نام خانوادگی {getSortIcon("lastName")}
-                </th>
-                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ایمیل
-                </th>
-                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  نام کاربری
-                </th>
-                <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  نقش‌ها
-                </th>
-                <th
-                  className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("createdAt")}
-                >
-                  تاریخ ایجاد {getSortIcon("createdAt")}
-                </th>
-                <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  عملیات
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td colSpan="7" className="text-center py-4 text-gray-500">
-                    در حال بارگذاری...
-                  </td>
-                </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="text-center py-4 text-gray-500">
-                    کاربری یافت نشد.
-                  </td>
-                </tr>
-              ) : (
-                users.map((user, index) => (
-                  <tr key={user.id} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-gray-100 transition duration-150 ease-in-out`}>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{user.firstName}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{user.lastName}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800 max-w-[120px] sm:max-w-none truncate">{user.email}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">{user.username}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-800">
-                      {user.userRoles && user.userRoles.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {user.userRoles.map((role, index) => {
-                            const roleName = role.name;
-                            const roleNameFa = role.nameFa;
-                            
-                            const getRoleBadgeColor = (roleName) => {
-                              switch (roleName) {
-                                case 'admin':
-                                  return 'bg-red-100 text-red-800 border-red-200';
-                                case 'moderator':
-                                  return 'bg-orange-100 text-orange-800 border-orange-200';
-                                case 'expert':
-                                  return 'bg-blue-100 text-blue-800 border-blue-200';
-                                case 'customer':
-                                  return 'bg-green-100 text-green-800 border-green-200';
-                                case 'guest':
-                                  return 'bg-gray-100 text-gray-800 border-gray-200';
-                                default:
-                                  return 'bg-gray-100 text-gray-800 border-gray-200';
-                              }
-                            };
-                            const getRoleIcon = (roleName) => {
-                              switch (roleName) {
-                                case 'admin':
-                                  return '👑';
-                                case 'moderator':
-                                  return '👮';
-                                case 'expert':
-                                  return '🔧';
-                                case 'customer':
-                                  return '👤';
-                                case 'guest':
-                                  return '👥';
-                                default:
-                                  return '❓';
-                              }
-                            };
-                            return (
-                              <span
-                                key={index}
-                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getRoleBadgeColor(roleName)}`}
-                              >
-                                <span className="mr-1">{getRoleIcon(roleName)}</span>
-                                {roleNameFa || roleName}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-800">
-                      {new Date(user.createdAt).toLocaleDateString("fa-IR")}
-                    </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                      <button 
-                        onClick={() => router.push(`/dashboard/user-management/users/${user.id}/view`)}
-                        className="bg-green-100 text-green-700 px-3 py-1.5 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out shadow-sm w-full sm:w-auto"
-                      >
-                        مشاهده
-                      </button>
-                      <button 
-                        onClick={() => router.push(`/dashboard/user-management/users/${user.id}/edit`)}
-                        className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out shadow-sm w-full sm:w-auto"
-                      >
-                        ویرایش
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(user.id)}
-                        className="bg-red-100 text-red-700 px-3 py-1.5 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out shadow-sm w-full sm:w-auto"
-                      >
-                        حذف
-                      </button>
-                    </td>
+        ) : (
+          <>
+            <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:block">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="cursor-pointer px-4 py-3 text-right font-medium text-gray-600" onClick={() => handleSort('firstName')}>
+                      کاربر{sortIcon('firstName')}
+                    </th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-600">موبایل</th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-600">ایمیل</th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-600">نقش‌ها</th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-600">وضعیت</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">عملیات</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {users.map((user) => {
+                    const emailInfo = formatUserEmail(user.email);
+                    return (
+                      <tr key={user.id} className="hover:bg-gray-50/80">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-gray-900">{userFullName(user)}</p>
+                          <p className="text-xs text-gray-500">@{user.username || '—'}</p>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs text-gray-800" dir="ltr">
+                          {formatMobile(user.mobile)}
+                        </td>
+                        <td className={`px-4 py-3 text-xs ${emailInfo.muted ? 'text-gray-400' : 'text-gray-800'}`}>
+                          {emailInfo.text}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {user.userRoles?.map((role) => (
+                              <span
+                                key={role.id}
+                                className={`rounded-full px-2 py-0.5 text-xs ring-1 ring-inset ${getRoleBadgeClass(role.name)}`}
+                              >
+                                {role.nameFa || role.name}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <VerificationDots user={user} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <UserRowActions user={user} onDelete={handleDelete} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="space-y-3 md:hidden">
+              {users.map((user) => {
+                const emailInfo = formatUserEmail(user.email);
+                return (
+                  <article key={user.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <div className="mb-3 flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{userFullName(user)}</h3>
+                        <p className="font-mono text-xs text-gray-600" dir="ltr">
+                          {formatMobile(user.mobile)}
+                        </p>
+                        <p className={`mt-1 text-xs ${emailInfo.muted ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {emailInfo.text}
+                        </p>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
+                          user.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {user.isActive ? 'فعال' : 'غیرفعال'}
+                      </span>
+                    </div>
+                    <div className="mb-3 flex flex-wrap gap-1">
+                      {user.userRoles?.map((role) => (
+                        <span
+                          key={role.id}
+                          className={`rounded-full px-2 py-0.5 text-xs ring-1 ring-inset ${getRoleBadgeClass(role.name)}`}
+                        >
+                          {role.nameFa || role.name}
+                        </span>
+                      ))}
+                    </div>
+                    <UserRowActions user={user} onDelete={handleDelete} />
+                  </article>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
-    </ProtectedRoute>
   );
 }
 
-export default UserManagementPage; 
+export default function UserManagementPage() {
+  return (
+    <ProtectedRoute requiredRoles={['admin', 'moderator']}>
+      <UsersListContent />
+    </ProtectedRoute>
+  );
+}

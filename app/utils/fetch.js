@@ -1,6 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { getApiBaseUrl } from '../config/getApiBaseUrl';
 
 export const fetchWithCredentials = async (endpoint, options = {}) => {
+  const API_BASE_URL = getApiBaseUrl();
   const defaultOptions = {
     credentials: 'include',
     headers: {
@@ -32,4 +33,4 @@ export const fetchWithCredentials = async (endpoint, options = {}) => {
   }
 
   return response.json();
-}; 
+};

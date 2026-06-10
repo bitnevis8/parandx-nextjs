@@ -1,34 +1,22 @@
-// بررسی محیط اجرا
-const isDevelopment = process.env.NODE_ENV === 'development';
-console.log('Current environment:', process.env.NODE_ENV); // برای دیباگ
+import { getApiBaseUrl } from './getApiBaseUrl';
 
-// در حالت production، حتماً باید NEXT_PUBLIC_API_URL ست شده باشد. اگر نبود، به صورت پیش‌فرض روی api.parandx.com قرار می‌گیرد.
-let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_BASE_URL) {
-  if (!isDevelopment) {
-    // هشدار برای لاگ سرور
-    console.warn('⚠️ NEXT_PUBLIC_API_URL is not set! Defaulting to https://api.parandx.com');
-    API_BASE_URL = 'https://api.parandx.com';
-  } else {
-    // در development از پورت 3000 استفاده می‌کنیم
-    API_BASE_URL = 'http://localhost:3000';
-  }
-}
-
-export { API_BASE_URL };
-export const API_ENDPOINTS = {
+function createApiEndpoints(API_BASE_URL) {
+  return {
   // تمام بخش‌های مربوط به aryafoulad حذف شود (unit-locations, mission-orders, rate-settings, warehouse-module و ...)
   // ... existing code ...
   users: {
     base: `${API_BASE_URL}/user/user`,
     getAll: `${API_BASE_URL}/user/user/getAll`,
     getById: (id) => `${API_BASE_URL}/user/user/getOne/${id}`,
+    getOne: (id) => `${API_BASE_URL}/user/user/getOne/${id}`,
     create: `${API_BASE_URL}/user/user/create`,
     update: (id) => `${API_BASE_URL}/user/user/update/${id}`,
     delete: (id) => `${API_BASE_URL}/user/user/delete/${id}`,
     search: `${API_BASE_URL}/user/user/search`,
     getCurrentProfile: `${API_BASE_URL}/user/user/profile/current`,
     updateCurrentProfile: `${API_BASE_URL}/user/user/profile/current`,
+    profileById: (id) => `${API_BASE_URL}/user/user/profile/${id}`,
+    updateProfileById: (id) => `${API_BASE_URL}/user/user/profile/${id}`,
   },
   roles: {
     base: `${API_BASE_URL}/user/role`,
@@ -73,10 +61,19 @@ export const API_ENDPOINTS = {
     delete: (id) => `${API_BASE_URL}/aryafoulad/warehouse-module/item-assignment/delete/${id}`,
   },
   auth: {
+    checkIdentifier: `${API_BASE_URL}/user/auth/check-identifier`,
+    sendLoginOtp: `${API_BASE_URL}/user/auth/send-login-otp`,
+    verifyLoginOtp: `${API_BASE_URL}/user/auth/verify-login-otp`,
     registerEmail: `${API_BASE_URL}/user/auth/register/email`,
+    registerMobile: `${API_BASE_URL}/user/auth/register/mobile`,
     login: `${API_BASE_URL}/user/auth/login`,
     verifyEmail: `${API_BASE_URL}/user/auth/verify/email`,
     resendEmailCode: `${API_BASE_URL}/user/auth/resend-code/email`,
+    resendMobileCode: `${API_BASE_URL}/user/auth/resend-code/mobile`,
+    verifyMobile: `${API_BASE_URL}/user/auth/verify/mobile`,
+    forgotPasswordOptions: `${API_BASE_URL}/user/auth/forgot-password/options`,
+    forgotPasswordSend: `${API_BASE_URL}/user/auth/forgot-password/send`,
+    forgotPasswordReset: `${API_BASE_URL}/user/auth/forgot-password/reset`,
     me: `${API_BASE_URL}/user/auth/me`,
     logout: `${API_BASE_URL}/user/auth/logout`,
   },
@@ -115,18 +112,83 @@ export const API_ENDPOINTS = {
   // دسته‌بندی‌ها - حذف شده
   categories: {
     base: `${API_BASE_URL}/category`,
-    getAll: `${API_BASE_URL}/category`,
+    getAll: (marketplaceType = 'services') => {
+      const params = new URLSearchParams();
+      if (marketplaceType) params.set('marketplaceType', marketplaceType);
+      const query = params.toString();
+      return `${API_BASE_URL}/category${query ? `?${query}` : ''}`;
+    },
+    getMapModelsRegistry: (marketplaceType = 'goods') =>
+      `${API_BASE_URL}/category/map-models?marketplaceType=${encodeURIComponent(marketplaceType)}`,
+    adminMapModels: (marketplaceType = 'goods') =>
+      `${API_BASE_URL}/category/admin/map-models?marketplaceType=${encodeURIComponent(marketplaceType)}`,
+    updateMapModel: (id) => `${API_BASE_URL}/category/admin/${id}/map-model`,
+    uploadMapModel: (id) => `${API_BASE_URL}/category/admin/${id}/map-model/upload`,
+    deleteMapModelFile: (id) => `${API_BASE_URL}/category/admin/${id}/map-model/file`,
     getById: (id) => `${API_BASE_URL}/category/${id}`,
     getBySlug: (slug) => `${API_BASE_URL}/category/slug/${slug}`,
     create: `${API_BASE_URL}/category`,
     update: (id) => `${API_BASE_URL}/category/${id}`,
     delete: (id) => `${API_BASE_URL}/category/${id}`,
   },
-  search: (q) => `${API_BASE_URL}/search?q=${encodeURIComponent(q)}`,
+  cities: {
+    getAll: `${API_BASE_URL}/city`,
+    getById: (id) => `${API_BASE_URL}/city/${id}`,
+    getBySlug: (slug) => `${API_BASE_URL}/city/slug/${slug}`,
+    getGeoJson: (slug) => `${API_BASE_URL}/city/geojson/${encodeURIComponent(slug)}`,
+    getLocations: (id) => `${API_BASE_URL}/city/${id}/locations`,
+    getProvinces: `${API_BASE_URL}/city/provinces`,
+    admin: {
+      searchCities: (params = {}) => {
+        const qs = new URLSearchParams();
+        if (params.q) qs.set('q', params.q);
+        if (params.active) qs.set('active', params.active);
+        if (params.provinceId) qs.set('provinceId', params.provinceId);
+        if (params.page) qs.set('page', params.page);
+        if (params.limit) qs.set('limit', params.limit);
+        const query = qs.toString();
+        return `${API_BASE_URL}/city/admin/search${query ? `?${query}` : ''}`;
+      },
+      createCity: `${API_BASE_URL}/city/admin`,
+      updateCity: (id) => `${API_BASE_URL}/city/admin/${id}`,
+      toggleCityActive: (id) => `${API_BASE_URL}/city/admin/${id}/toggle-active`,
+      uploadCityGeoJson: (id) => `${API_BASE_URL}/city/admin/${id}/geojson`,
+      deleteCityGeoJson: (id) => `${API_BASE_URL}/city/admin/${id}/geojson`,
+      deleteCity: (id) => `${API_BASE_URL}/city/admin/${id}`,
+      searchProvinces: (params = {}) => {
+        const qs = new URLSearchParams();
+        if (params.q) qs.set('q', params.q);
+        if (params.active) qs.set('active', params.active);
+        if (params.page) qs.set('page', params.page);
+        if (params.limit) qs.set('limit', params.limit);
+        const query = qs.toString();
+        return `${API_BASE_URL}/city/admin/provinces/search${query ? `?${query}` : ''}`;
+      },
+      createProvince: `${API_BASE_URL}/city/admin/provinces`,
+      updateProvince: (id) => `${API_BASE_URL}/city/admin/provinces/${id}`,
+      toggleProvinceActive: (id) => `${API_BASE_URL}/city/admin/provinces/${id}/toggle-active`,
+      deleteProvince: (id) => `${API_BASE_URL}/city/admin/provinces/${id}`,
+    },
+  },
+  search: (q, cityId) => {
+    let url = `${API_BASE_URL}/search?q=${encodeURIComponent(q)}`;
+    if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+    return url;
+  },
   experts: {
     base: `${API_BASE_URL}/expert`,
-    getAll: `${API_BASE_URL}/expert`,
-    getAllWithLimit: (limit) => `${API_BASE_URL}/expert?limit=${limit}`,
+    getAll: (cityId) => {
+      let url = `${API_BASE_URL}/expert`;
+      if (cityId) url += `?cityId=${encodeURIComponent(cityId)}`;
+      return url;
+    },
+    getAllWithLimit: (limit, cityId) => {
+      let url = `${API_BASE_URL}/expert?limit=${limit}`;
+      if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+      return url;
+    },
+    getLatestForCity: (cityId, limit = 8) =>
+      `${API_BASE_URL}/expert?cityId=${encodeURIComponent(cityId)}&limit=${limit}&sort=latest`,
     getById: (id) => `${API_BASE_URL}/expert/${id}`,
     create: `${API_BASE_URL}/expert`,
     update: (id) => `${API_BASE_URL}/expert/${id}`,
@@ -134,26 +196,98 @@ export const API_ENDPOINTS = {
     getCurrentProfile: `${API_BASE_URL}/expert/profile/current`,
     getUserProfile: `${API_BASE_URL}/expert/profile/user`,
     updateCurrentProfile: `${API_BASE_URL}/expert/profile/current`,
+    updateUserProfile: (userId) =>
+      `${API_BASE_URL}/expert/profile/user?userId=${encodeURIComponent(userId)}`,
     getSpecializations: `${API_BASE_URL}/expert/specializations/current`,
     getUserSpecializations: `${API_BASE_URL}/expert/specializations/user`,
     addSpecialization: `${API_BASE_URL}/expert/specializations/add`,
     removeSpecialization: (categoryId) => `${API_BASE_URL}/expert/specializations/${categoryId}`,
     deleteByUserId: (userId) => `${API_BASE_URL}/expert/user/${userId}`,
+    followStatus: (expertId) => `${API_BASE_URL}/expert/${expertId}/follow/status`,
+    follow: (expertId) => `${API_BASE_URL}/expert/${expertId}/follow`,
+    unfollow: (expertId) => `${API_BASE_URL}/expert/${expertId}/follow`,
+    trustStatus: (expertId) => `${API_BASE_URL}/expert/${expertId}/trust/status`,
+    connectionStatus: (expertId) => `${API_BASE_URL}/expert/${expertId}/connection/status`,
+    connection: (expertId) => `${API_BASE_URL}/expert/${expertId}/connection`,
+    connectionsIncoming: `${API_BASE_URL}/expert/connections/incoming`,
+    connectionAccept: (connectionId) =>
+      `${API_BASE_URL}/expert/connections/${connectionId}/accept`,
+    connectionReject: (connectionId) =>
+      `${API_BASE_URL}/expert/connections/${connectionId}/reject`,
+    trustReasons: (expertId) => `${API_BASE_URL}/expert/${expertId}/trust/reasons`,
+    trust: (expertId) => `${API_BASE_URL}/expert/${expertId}/trust`,
+    untrust: (expertId) => `${API_BASE_URL}/expert/${expertId}/trust`,
+    posts: (expertId, limit) => {
+      let url = `${API_BASE_URL}/expert/${expertId}/posts`;
+      if (limit) url += `?limit=${limit}`;
+      return url;
+    },
+    createPost: `${API_BASE_URL}/expert/posts`,
+    deletePost: (postId) => `${API_BASE_URL}/expert/posts/${postId}`,
+  },
+  merchants: {
+    registerProfile: `${API_BASE_URL}/merchant/profile/register`,
+    getCurrentProfile: `${API_BASE_URL}/merchant/profile/current`,
+    getUserProfile: `${API_BASE_URL}/merchant/profile/user`,
+    updateCurrentProfile: `${API_BASE_URL}/merchant/profile/current`,
+    updateUserProfile: (userId) =>
+      `${API_BASE_URL}/merchant/profile/user?userId=${encodeURIComponent(userId)}`,
+    getCategories: `${API_BASE_URL}/merchant/categories/current`,
+    getUserCategories: `${API_BASE_URL}/merchant/categories/user`,
+    addCategory: `${API_BASE_URL}/merchant/categories/add`,
+    removeCategory: (categoryId) => `${API_BASE_URL}/merchant/categories/${categoryId}`,
+    getForMap: (cityId, limit = 200, categorySlug) => {
+      let url = `${API_BASE_URL}/merchant/map?limit=${limit}`;
+      if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+      if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
+      return url;
+    },
   },
   requests: {
     base: `${API_BASE_URL}/request`,
-    getAll: `${API_BASE_URL}/request`,
+    getAll: (cityId) => {
+      let url = `${API_BASE_URL}/request`;
+      if (cityId) url += `?cityId=${encodeURIComponent(cityId)}`;
+      return url;
+    },
+    getLatestForHome: (cityId, limit = 5) => {
+      let url = `${API_BASE_URL}/request/latest?limit=${limit}`;
+      if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+      return url;
+    },
+    getForMap: (cityId, limit = 200, marketplaceType = 'services') => {
+      let url = `${API_BASE_URL}/request/map?limit=${limit}&marketplaceType=${marketplaceType}`;
+      if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+      return url;
+    },
     getById: (id) => `${API_BASE_URL}/request/${id}`,
     create: `${API_BASE_URL}/request`,
     update: (id) => `${API_BASE_URL}/request/${id}`,
+    updateStatus: (id) => `${API_BASE_URL}/request/${id}/status`,
     delete: (id) => `${API_BASE_URL}/request/${id}`,
+    alerts: `${API_BASE_URL}/request/alerts`,
+    alertCount: `${API_BASE_URL}/request/alerts/count`,
+    dismissAlert: (id) => `${API_BASE_URL}/request/alerts/${id}/dismiss`,
+    mine: (marketplaceType) => {
+      let url = `${API_BASE_URL}/request/mine`;
+      if (marketplaceType) url += `?marketplaceType=${encodeURIComponent(marketplaceType)}`;
+      return url;
+    },
+    createGoodsNeed: `${API_BASE_URL}/request`,
+    expertInvolvements: `${API_BASE_URL}/request/expert/involvements`,
   },
   bids: {
     base: `${API_BASE_URL}/bid`,
-    getAll: `${API_BASE_URL}/bid`,
+    getAll: (requestId) => {
+      let url = `${API_BASE_URL}/bid`;
+      if (requestId) url += `?requestId=${encodeURIComponent(requestId)}`;
+      return url;
+    },
+    getMy: (requestId) => `${API_BASE_URL}/bid/my?requestId=${encodeURIComponent(requestId)}`,
     getById: (id) => `${API_BASE_URL}/bid/${id}`,
     create: `${API_BASE_URL}/bid`,
     update: (id) => `${API_BASE_URL}/bid/${id}`,
+    updateStatus: (id) => `${API_BASE_URL}/bid/${id}/status`,
     delete: (id) => `${API_BASE_URL}/bid/${id}`,
   },
   reviews: {
@@ -217,7 +351,7 @@ export const API_ENDPOINTS = {
     getWikiDetailsBySlug: (slug) => `${API_BASE_URL}/location/getWikiDetailsBySlug/${encodeURIComponent(slug)}`,
     getWikidataInfo: (id) => `${API_BASE_URL}/location/getWikidataInfo/${id}`,
     getWikidataInfoBySlug: (slug) => `${API_BASE_URL}/location/getWikidataInfoBySlug/${encodeURIComponent(slug)}`,
-
+    getGeoJson: (slug) => `${API_BASE_URL}/city/geojson/${encodeURIComponent(slug)}`,
     search: `${API_BASE_URL}/location/search`,
     create: `${API_BASE_URL}/location/create`,
     update: (id) => `${API_BASE_URL}/location/update/${id}`,
@@ -239,4 +373,21 @@ export const API_ENDPOINTS = {
     classifyTags: `${API_BASE_URL}/__removed_articles__/class-tags/classify-tags`,
     fixParentClasses: `${API_BASE_URL}/__removed_articles__/class-tags/fix-parent-classes`,
   },
-}; 
+  };
+}
+
+export function getApiEndpoints() {
+  return createApiEndpoints(getApiBaseUrl());
+}
+
+export const API_ENDPOINTS = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      if (prop === 'then' || typeof prop === 'symbol') return undefined;
+      return getApiEndpoints()[prop];
+    },
+  }
+);
+
+export { getApiBaseUrl }; 

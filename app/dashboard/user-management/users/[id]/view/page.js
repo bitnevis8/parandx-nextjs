@@ -1,328 +1,275 @@
-"use client";
+'use client';
 
-import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "../../../../../config/api";
-import UserAvatar from "../../../../../components/ui/UserAvatar";
+import { use, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '../../../../../components/ProtectedRoute';
+import UserAvatar from '../../../../../components/ui/UserAvatar';
+import { DashboardLoading } from '../../../../../components/ui/dashboard/DashboardUi';
+import {
+  expertDashboardUrl,
+  personalDashboardUrl,
+  fetchExpertByUserId,
+  fetchUserById,
+  formatMobile,
+  formatUserEmail,
+  hasRole,
+  userFullName,
+  getRoleBadgeClass,
+} from '../../../../../components/user-management/userManagementUtils';
+import {
+  UserMgmtPageHeader,
+  UserMgmtAlert,
+  UserMgmtCard,
+  InfoRow,
+} from '../../../../../components/user-management/UserMgmtShell';
 
-export default function UserViewPage({ params }) {
+function ExpertStatusBadge({ status }) {
+  const map = {
+    approved: 'bg-emerald-100 text-emerald-800',
+    pending: 'bg-amber-100 text-amber-800',
+    rejected: 'bg-red-100 text-red-800',
+    suspended: 'bg-gray-200 text-gray-700',
+  };
+  const labels = {
+    approved: 'تأیید شده',
+    pending: 'در انتظار',
+    rejected: 'رد شده',
+    suspended: 'تعلیق',
+  };
+  return (
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${map[status] || map.pending}`}>
+      {labels[status] || status}
+    </span>
+  );
+}
+
+function UserViewContent({ id }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [expert, setExpert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Unwrap params Promise
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
-
   useEffect(() => {
-    const fetchUserData = async () => {
+    let cancelled = false;
+    (async () => {
       try {
         setLoading(true);
-        
-        // دریافت اطلاعات کاربر
-        const userResponse = await fetch(`${API_ENDPOINTS.users.getOne(id)}`);
-        const userData = await userResponse.json();
-        
-        if (userData.success) {
-          setUser(userData.data);
-          
-          // بررسی اینکه آیا کاربر متخصص است یا نه
-          const hasExpertRole = userData.data.userRoles?.some(role => role.name === 'expert');
-          
-          if (hasExpertRole) {
-            // دریافت اطلاعات متخصص
-            const expertResponse = await fetch(`${API_ENDPOINTS.experts.getAll}`);
-            const expertData = await expertResponse.json();
-            
-            if (expertData.success) {
-              const userExpert = expertData.data.find(exp => exp.userId === parseInt(params.id));
-              if (userExpert) {
-                setExpert(userExpert);
-              }
-            }
-          }
-        } else {
-          throw new Error(userData.message || "خطا در دریافت اطلاعات کاربر");
+        setError(null);
+        const userData = await fetchUserById(id);
+        if (cancelled) return;
+        setUser(userData);
+        if (hasRole(userData, 'expert')) {
+          const exp = await fetchExpertByUserId(id);
+          if (!cancelled) setExpert(exp);
         }
       } catch (err) {
-        setError(err.message || "خطا در ارتباط با سرور");
-        console.error("Error fetching user data:", err);
+        if (!cancelled) setError(err.message || 'خطا در بارگذاری');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    if (id) {
-      fetchUserData();
-    }
   }, [id]);
 
-  const getRoleBadgeColor = (roleName) => {
-    switch (roleName) {
-      case 'admin':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'moderator':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'expert':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'customer':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'guest':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getRoleIcon = (roleName) => {
-    switch (roleName) {
-      case 'admin':
-        return '👑';
-      case 'moderator':
-        return '👮';
-      case 'expert':
-        return '🔧';
-      case 'customer':
-        return '👤';
-      case 'guest':
-        return '👥';
-      default:
-        return '❓';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="p-4 md:p-6 bg-white min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">در حال بارگذاری اطلاعات کاربر...</p>
-        </div>
-      </div>
-    );
-  }
-
+  if (loading) return <DashboardLoading />;
   if (error) {
     return (
-      <div className="p-4 md:p-6 bg-white min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-md">
-            <span className="block">{error}</span>
-            <button
-              onClick={() => router.back()}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-            >
-              بازگشت
-            </button>
-          </div>
-        </div>
+      <div className="p-6">
+        <UserMgmtAlert>{error}</UserMgmtAlert>
+        <button type="button" onClick={() => router.back()} className="mt-4 text-sm text-teal-700">
+          بازگشت
+        </button>
       </div>
     );
   }
-
   if (!user) {
     return (
-      <div className="p-4 md:p-6 bg-white min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">کاربر یافت نشد</p>
-          <button
-            onClick={() => router.back()}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            بازگشت
-          </button>
-        </div>
+      <div className="p-6 text-center text-gray-600">
+        کاربر یافت نشد.
+        <Link href="/dashboard/user-management/users" className="mt-4 block text-teal-700">
+          لیست کاربران
+        </Link>
       </div>
     );
   }
 
+  const emailInfo = formatUserEmail(user.email);
+  const isExpert = hasRole(user, 'expert');
+
   return (
-    <div className="p-4 md:p-6 bg-white min-h-screen">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-              مشاهده اطلاعات کاربر
-            </h1>
-            <button
-              onClick={() => router.back()}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out"
-            >
-              بازگشت
-            </button>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 sm:p-6">
+      <div className="mx-auto max-w-4xl">
+        <UserMgmtPageHeader
+          title={userFullName(user)}
+          description={`شناسه #${user.id} · ${user.username ? `@${user.username}` : 'بدون نام کاربری'}`}
+          actions={
+            <>
+              <Link
+                href={personalDashboardUrl('profile-display', user.id)}
+                className="inline-flex items-center rounded-xl border border-teal-200 bg-teal-50 px-4 py-2.5 text-sm font-medium text-teal-800 hover:bg-teal-100"
+              >
+                پروفایل شخصی
+              </Link>
+              <Link
+                href={personalDashboardUrl('profile-edit', user.id)}
+                className="inline-flex items-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-700"
+              >
+                ویرایش پروفایل شخصی
+              </Link>
+              {isExpert ? (
+                <Link
+                  href={expertDashboardUrl('expert-edit', user.id)}
+                  className="inline-flex items-center rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-medium text-violet-800 hover:bg-violet-100"
+                >
+                  پروفایل متخصص
+                </Link>
+              ) : null}
+            </>
+          }
+        />
 
-        {/* User Profile Card */}
-        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-          <div className="flex items-start space-x-6 rtl:space-x-reverse">
-            {/* Avatar */}
-            <div className="flex-shrink-0">
-              <UserAvatar user={user} size="sm" className="rounded-full border-4 border-gray-200" />
-            </div>
-
-            {/* User Info */}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                {user.firstName} {user.lastName}
-              </h2>
-              <p className="text-gray-600 mb-4">{user.email}</p>
-              
-              {/* Roles */}
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">نقش‌ها:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {user.userRoles?.map((role, index) => (
-                    <span
-                      key={index}
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getRoleBadgeColor(role.name)}`}
-                    >
-                      <span className="mr-1">{getRoleIcon(role.name)}</span>
-                      {role.nameFa}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">جنسیت:</label>
-                  <p className="text-gray-900">{user.gender === 'male' ? 'آقا' : user.gender === 'female' ? 'خانم' : 'مشخص نشده'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">نام کاربری:</label>
-                  <p className="text-gray-900">{user.username || '-'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">شماره موبایل:</label>
-                  <p className="text-gray-900">{user.mobile || '-'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">وضعیت:</label>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {user.isActive ? 'فعال' : 'غیرفعال'}
+        <UserMgmtCard className="mb-6">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+            <UserAvatar user={user} size="sm" className="rounded-2xl border-2 border-gray-100" />
+            <div className="flex-1 space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {user.userRoles?.map((role) => (
+                  <span
+                    key={role.id}
+                    className={`rounded-full px-3 py-1 text-sm font-medium ring-1 ring-inset ${getRoleBadgeClass(role.name)}`}
+                  >
+                    {role.nameFa || role.name}
                   </span>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">تاریخ عضویت:</label>
-                  <p className="text-gray-900">
-                    {new Date(user.createdAt).toLocaleDateString('fa-IR')}
-                  </p>
-                </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    user.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {user.isActive ? 'حساب فعال' : 'غیرفعال'}
+                </span>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    user.isMobileVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  موبایل {user.isMobileVerified ? 'تأیید شده' : 'تأیید نشده'}
+                </span>
+                {user.email ? (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      user.isEmailVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    ایمیل {user.isEmailVerified ? 'تأیید شده' : 'تأیید نشده'}
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
-        </div>
+        </UserMgmtCard>
 
-        {/* Expert Information */}
-        {expert && (
-          <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <span className="mr-2">🔧</span>
-              اطلاعات متخصص
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">بیوگرافی:</label>
-                <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
-                  {expert.bio || 'بیوگرافی ثبت نشده است'}
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">تجربه:</label>
-                <p className="text-gray-900">{expert.experience || '-'}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">قیمت پایه:</label>
-                <p className="text-gray-900">
-                  {expert.basePrice ? `${expert.basePrice.toLocaleString()} تومان` : '-'}
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">موقعیت:</label>
-                <p className="text-gray-900">{expert.location || '-'}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">نوع خدمات:</label>
-                <div className="flex flex-wrap gap-2">
-                  {expert.isShop && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      🏪 مغازه
-                    </span>
-                  )}
-                  {expert.isMobile && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      🚗 اعزام به محل
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">وضعیت تایید:</label>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  expert.status === 'approved' ? 'bg-green-100 text-green-800' :
-                  expert.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  expert.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {expert.status === 'approved' ? 'تایید شده' :
-                   expert.status === 'pending' ? 'در انتظار تایید' :
-                   expert.status === 'rejected' ? 'رد شده' :
-                   expert.status === 'suspended' ? 'تعلیق شده' : expert.status}
-                </span>
-              </div>
+        <UserMgmtCard title="اطلاعات تماس و ورود" className="mb-6">
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <InfoRow label="موبایل (شناسه ورود)" value={formatMobile(user.mobile)} />
+            <InfoRow label="ایمیل">
+              <span className={emailInfo.muted ? 'text-gray-400' : ''}>{emailInfo.text}</span>
+            </InfoRow>
+            <InfoRow label="نام کاربری" value={user.username || '—'} />
+            <InfoRow label="تلفن ثابت" value={user.phone || '—'} />
+            <InfoRow
+              label="جنسیت"
+              value={
+                user.gender === 'male' ? 'آقا' : user.gender === 'female' ? 'خانم' : 'مشخص نشده'
+              }
+            />
+            <InfoRow
+              label="تاریخ عضویت"
+              value={user.createdAt ? new Date(user.createdAt).toLocaleDateString('fa-IR') : '—'}
+            />
+          </dl>
+        </UserMgmtCard>
+
+        {user.nationalId ? (
+          <UserMgmtCard title="احراز هویت" className="mb-6">
+            <InfoRow label="کد ملی" value={user.nationalId} />
+            <InfoRow label="وضعیت احراز" value={user.identityVerificationStatus || 'none'} />
+          </UserMgmtCard>
+        ) : null}
+
+        {expert ? (
+          <UserMgmtCard title="پروفایل متخصص" className="mb-6">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <ExpertStatusBadge status={expert.status} />
+              {expert.isShop ? (
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">مغازه</span>
+              ) : null}
+              {expert.isMobile ? (
+                <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">اعزام</span>
+              ) : null}
             </div>
-
-            {/* Categories */}
-            {expert.categories && expert.categories.length > 0 && (
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">تخصص‌ها:</label>
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <InfoRow label="بیو" value={expert.bio || '—'} />
+              <InfoRow label="تجربه" value={expert.experience || '—'} />
+              <InfoRow label="محل کار" value={expert.location || '—'} />
+            </dl>
+            {expert.categories?.length > 0 ? (
+              <div className="mt-4">
+                <p className="mb-2 text-xs font-medium text-gray-500">تخصص‌ها</p>
                 <div className="flex flex-wrap gap-2">
-                  {expert.categories.map((category, index) => (
+                  {expert.categories.map((cat) => (
                     <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200"
+                      key={cat.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-3 py-1 text-sm text-violet-800 ring-1 ring-violet-100"
                     >
-                      <span className="mr-1">{category.icon}</span>
-                      {category.title}
+                      {cat.icon ? <span>{cat.icon}</span> : null}
+                      {cat.title}
                     </span>
                   ))}
                 </div>
               </div>
+            ) : (
+              <p className="mt-4 text-sm text-amber-700">هنوز تخصصی ثبت نشده است.</p>
             )}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="bg-white shadow-lg rounded-lg p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={() => router.push(`/dashboard/user-management/users/${user.id}/edit`)}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-150 ease-in-out"
-            >
-              ویرایش کاربر
-            </button>
-            <button
-              onClick={() => router.back()}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md transition duration-150 ease-in-out"
-            >
-              بازگشت به لیست
-            </button>
-          </div>
-        </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Link
+                href={expertDashboardUrl('expert-edit', user.id)}
+                className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+              >
+                ویرایش پروفایل تخصصی
+              </Link>
+              <Link
+                href={expertDashboardUrl('expert-display', user.id)}
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                مشاهده عمومی
+              </Link>
+            </div>
+          </UserMgmtCard>
+        ) : isExpert ? (
+          <UserMgmtAlert type="info">
+            نقش متخصص دارد ولی پروفایل تخصصی هنوز ساخته نشده.
+            <Link href={expertDashboardUrl('expert-edit', user.id)} className="mr-2 font-medium underline">
+              ایجاد پروفایل
+            </Link>
+          </UserMgmtAlert>
+        ) : null}
       </div>
     </div>
+  );
+}
+
+export default function UserViewPage({ params }) {
+  const { id } = use(params);
+  return (
+    <ProtectedRoute requiredRoles={['admin', 'moderator']}>
+      <UserViewContent id={id} />
+    </ProtectedRoute>
   );
 }

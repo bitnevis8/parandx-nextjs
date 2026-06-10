@@ -1,14 +1,57 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useRole } from '../../hooks/useRole';
-import UserAvatar from './UserAvatar';
 import ProfileDisplay from './ProfileDisplay';
 import ProfileEdit from './ProfileEdit';
+import { API_ENDPOINTS } from '../../config/api';
 import ExpertDisplay from './ExpertDisplay';
 import ExpertEdit from './ExpertEdit';
-import Specializations from './Specializations';
+import MerchantDisplay from './MerchantDisplay';
+import MerchantEdit from './MerchantEdit';
+import { cardClass, DashboardBreadcrumb } from './dashboard/DashboardUi';
+import {
+  EXPERT_SECTION_OVERVIEW,
+  buildExpertDashboardQuery,
+  isExpertProfileTab,
+  resolveExpertSection,
+} from './dashboard/ExpertProfileNav';
+import {
+  MERCHANT_SECTION_OVERVIEW,
+  buildMerchantDashboardQuery,
+  isMerchantProfileTab,
+  resolveMerchantSection,
+} from './dashboard/MerchantProfileNav';
+
+const TABS = [
+  { id: 'personal', label: 'پروفایل شخصی', displayTab: 'profile-display', editTab: 'profile-edit' },
+  { id: 'expert', label: 'پروفایل تخصصی', displayTab: 'expert-display', editTab: 'expert-edit', expertOnly: true },
+  {
+    id: 'merchant',
+    label: 'پروفایل فروشگاه',
+    displayTab: 'merchant-display',
+    editTab: 'merchant-edit',
+    merchantOnly: true,
+  },
+];
+
+const TAB_META = {
+  'profile-display': { section: 'personal', mode: 'مشاهده' },
+  'profile-edit': { section: 'personal', mode: 'ویرایش' },
+  'expert-display': { section: 'expert', mode: 'مشاهده' },
+  'expert-edit': { section: 'expert', mode: 'ویرایش' },
+  'merchant-display': { section: 'merchant', mode: 'مشاهده' },
+  'merchant-edit': { section: 'merchant', mode: 'ویرایش' },
+};
+
+function getSectionForTab(tab) {
+  return TAB_META[tab]?.section || 'personal';
+}
+
+function isEditTab(tab) {
+  return tab?.endsWith('-edit');
+}
 
 export default function DashboardHeader() {
   const [activeTab, setActiveTab] = useState('profile-display');
@@ -16,159 +59,304 @@ export default function DashboardHeader() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const userRole = useRole();
-  const { user, getPrimaryRole } = userRole;
+  const { user, canAccessExpert, canAccessMerchant, canAccessAdmin } = userRole;
+
+  const targetUserId = searchParams.get('userId');
+  const [managedUser, setManagedUser] = useState(null);
+  const sectionFromUrl = searchParams.get('section');
+  const expertSectionFromUrl = resolveExpertSection(sectionFromUrl);
+  const merchantSectionFromUrl = resolveMerchantSection(sectionFromUrl);
+  const [expertSection, setExpertSection] = useState(expertSectionFromUrl);
+  const [merchantSection, setMerchantSection] = useState(merchantSectionFromUrl);
+
+  useEffect(() => {
+    setExpertSection(expertSectionFromUrl);
+    setMerchantSection(merchantSectionFromUrl);
+  }, [expertSectionFromUrl, merchantSectionFromUrl]);
+
+  useEffect(() => {
+    if (!targetUserId || !canAccessAdmin()) {
+      setManagedUser(null);
+      return;
+    }
+    if (user?.id && String(user.id) === String(targetUserId)) {
+      setManagedUser(user);
+      return;
+    }
+    let cancelled = false;
+    fetch(API_ENDPOINTS.users.getById(targetUserId), { credentials: 'include' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.success) setManagedUser(data.data);
+      })
+      .catch(() => {
+        if (!cancelled) setManagedUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [targetUserId, canAccessAdmin, user]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile-display', 'profile-edit', 'expert-display', 'expert-edit', 'specializations'].includes(tab)) {
+
+    if (tab === 'specializations') {
+      router.replace(
+        buildExpertDashboardQuery('expert-edit', {
+          userId: targetUserId,
+          section: 'expert-specializations',
+        }),
+        { scroll: false }
+      );
+      setActiveTab('expert-edit');
+      return;
+    }
+
+    if (tab && TAB_META[tab]) {
       setActiveTab(tab);
     }
-  }, [searchParams]);
+  }, [searchParams, targetUserId, router]);
 
-  // Get userId from URL parameters
-  const targetUserId = searchParams.get('userId');
-
-  const handleTabChange = (tab) => {
+  const navigateDashboard = (
+    tab,
+    { section, resetExpertSection = false, resetMerchantSection = false } = {}
+  ) => {
     setActiveTab(tab);
-    router.push(`/dashboard?tab=${tab}`, { scroll: false });
-    // اسکرول نکن - فقط تب را تغییر بده
+
+    if (isExpertProfileTab(tab)) {
+      const nextSection = resetExpertSection
+        ? EXPERT_SECTION_OVERVIEW
+        : resolveExpertSection(section ?? expertSection);
+
+      setExpertSection(nextSection);
+      router.push(
+        buildExpertDashboardQuery(tab, { userId: targetUserId, section: nextSection }),
+        { scroll: false }
+      );
+      return;
+    }
+
+    if (isMerchantProfileTab(tab)) {
+      const nextSection = resetMerchantSection
+        ? MERCHANT_SECTION_OVERVIEW
+        : resolveMerchantSection(section ?? merchantSection);
+
+      setMerchantSection(nextSection);
+      router.push(
+        buildMerchantDashboardQuery(tab, { userId: targetUserId, section: nextSection }),
+        { scroll: false }
+      );
+      return;
+    }
+
+    router.push(
+      targetUserId ? `?tab=${tab}&userId=${targetUserId}` : `?tab=${tab}`,
+      { scroll: false }
+    );
   };
 
-  if (!user) {
-    return null;
-  }
+  const handleExpertSectionChange = (section) => {
+    if (!isExpertProfileTab(activeTab)) return;
+    const nextSection = resolveExpertSection(section);
+    setExpertSection(nextSection);
+    router.push(
+      buildExpertDashboardQuery(activeTab, { userId: targetUserId, section: nextSection }),
+      { scroll: false }
+    );
+  };
 
-  // فقط در صفحه اصلی داشبورد نمایش داده شود
-  if (pathname !== '/dashboard') {
-    return null;
-  }
+  const handleMerchantSectionChange = (section) => {
+    if (!isMerchantProfileTab(activeTab)) return;
+    const nextSection = resolveMerchantSection(section);
+    setMerchantSection(nextSection);
+    router.push(
+      buildMerchantDashboardQuery(activeTab, { userId: targetUserId, section: nextSection }),
+      { scroll: false }
+    );
+  };
 
-  const primaryRole = getPrimaryRole();
-  const userRoles = userRole.getUserRoles();
+  const targetHasExpertRole =
+    managedUser?.userRoles?.some((r) => r.name === 'expert') ?? false;
+  const targetHasMerchantRole =
+    managedUser?.userRoles?.some((r) => r.name === 'merchant') ?? false;
 
-  const getRoleDisplayName = (role) => {
-    switch (role) {
-      case 'admin': return 'مدیر کل';
-      case 'moderator': return 'ناظر';
-      case 'expert': return 'متخصص';
-      case 'customer': return 'مشتری';
-      default: return role;
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.expertOnly) {
+      if (targetUserId && canAccessAdmin()) return targetHasExpertRole;
+      return canAccessExpert();
+    }
+    if (tab.merchantOnly) {
+      if (targetUserId && canAccessAdmin()) return targetHasMerchantRole;
+      return canAccessMerchant();
+    }
+    return true;
+  });
+
+  const activeSection = getSectionForTab(activeTab);
+  const activeSectionConfig = visibleTabs.find((t) => t.id === activeSection);
+  const isProfileView =
+    activeTab.startsWith('profile-') ||
+    activeTab.startsWith('expert-') ||
+    activeTab.startsWith('merchant-');
+  const isEditMode = isEditTab(activeTab);
+
+  const switchToDisplay = () => {
+    if (!activeSectionConfig) return;
+    navigateDashboard(activeSectionConfig.displayTab, {
+      section: isMerchantProfileTab(activeTab) ? merchantSection : expertSection,
+    });
+  };
+
+  const switchToEdit = () => {
+    if (!activeSectionConfig) return;
+    navigateDashboard(activeSectionConfig.editTab, {
+      section: isMerchantProfileTab(activeTab) ? merchantSection : expertSection,
+    });
+  };
+
+  const modeProps = {
+    mode: isEditMode ? 'edit' : 'view',
+    onSwitchToView: switchToDisplay,
+    onSwitchToEdit: switchToEdit,
+  };
+
+  const expertSectionProps = {
+    activeSection: expertSection,
+    onSectionChange: handleExpertSectionChange,
+  };
+
+  const merchantSectionProps = {
+    activeSection: merchantSection,
+    onSectionChange: handleMerchantSectionChange,
+  };
+
+  const breadcrumbItems = useMemo(() => {
+    const meta = TAB_META[activeTab] || TAB_META['profile-display'];
+    const sectionTab = TABS.find((t) => t.id === meta.section);
+    const sectionLabel = sectionTab?.label || 'پروفایل شخصی';
+    const sectionTarget = sectionTab?.displayTab || 'profile-display';
+    const qs = targetUserId ? `&userId=${targetUserId}` : '';
+
+    const managedName = managedUser
+      ? [managedUser.firstName, managedUser.lastName].filter(Boolean).join(' ')
+      : null;
+
+    return [
+      ...(targetUserId && canAccessAdmin()
+        ? [
+            {
+              label: 'مدیریت کاربران',
+              href: '/dashboard/user-management/users',
+              onClick: (e) => {
+                e.preventDefault();
+                router.push('/dashboard/user-management/users');
+              },
+            },
+            {
+              label: managedName || `کاربر #${targetUserId}`,
+              href: `/dashboard/user-management/users/${targetUserId}/view`,
+              onClick: (e) => {
+                e.preventDefault();
+                router.push(`/dashboard/user-management/users/${targetUserId}/view`);
+              },
+            },
+          ]
+        : [
+            {
+              label: 'داشبورد',
+              href: `/dashboard${targetUserId ? `?userId=${targetUserId}` : ''}`,
+              onClick: (e) => {
+                e.preventDefault();
+                navigateDashboard('profile-display');
+              },
+            },
+          ]),
+      {
+        label: sectionLabel,
+        href: `/dashboard?tab=${sectionTarget}${qs}`,
+        onClick: (e) => {
+          e.preventDefault();
+          navigateDashboard(sectionTarget, {
+            resetExpertSection: true,
+            resetMerchantSection: true,
+          });
+        },
+      },
+      { label: meta.mode },
+    ];
+  }, [activeTab, targetUserId, managedUser, canAccessAdmin, router]);
+
+  const renderProfileContent = () => {
+    switch (activeTab) {
+      case 'profile-display':
+        return <ProfileDisplay targetUserId={targetUserId} {...modeProps} />;
+      case 'profile-edit':
+        return <ProfileEdit targetUserId={targetUserId} {...modeProps} />;
+      case 'expert-display':
+        return (
+          <ExpertDisplay targetUserId={targetUserId} {...modeProps} {...expertSectionProps} />
+        );
+      case 'expert-edit':
+        return <ExpertEdit targetUserId={targetUserId} {...modeProps} {...expertSectionProps} />;
+      case 'merchant-display':
+        return (
+          <MerchantDisplay
+            targetUserId={targetUserId}
+            {...modeProps}
+            {...merchantSectionProps}
+          />
+        );
+      case 'merchant-edit':
+        return (
+          <MerchantEdit targetUserId={targetUserId} {...modeProps} {...merchantSectionProps} />
+        );
+      default:
+        return null;
     }
   };
 
+  if (!user || pathname !== '/dashboard') {
+    return null;
+  }
+
   return (
-    <div className="space-y-2 w-full max-w-full overflow-hidden">
-      {/* Header Section */}
-      <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-0">
-          {/* User Avatar */}
-          <div className="sm:ml-4 flex-shrink-0">
-            <UserAvatar user={user} size="md" />
-          </div>
-          
-          {/* User Info */}
-          <div className="flex-1 min-w-0 w-full text-center sm:text-right">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 truncate">
-              {user.firstName} {user.lastName}
-            </h1>
-            <div className="flex flex-wrap gap-2 mb-3 sm:mb-4 justify-center sm:justify-start">
-              {userRoles.map((role, index) => (
-                <span
-                  key={index}
-                  className={`px-2 py-1 rounded text-xs font-medium ${
-                    role === 'admin' ? 'bg-red-100 text-red-700' :
-                    role === 'moderator' ? 'bg-orange-100 text-orange-700' :
-                    role === 'expert' ? 'bg-blue-100 text-blue-700' :
-                    role === 'customer' ? 'bg-green-100 text-green-700' :
-                    'bg-gray-100 text-gray-700'
+    <div className="w-full max-w-full overflow-hidden">
+      <DashboardBreadcrumb items={breadcrumbItems} />
+
+      <section className={cardClass}>
+        <div className="border-b border-gray-100 px-3 py-3 sm:px-6 sm:py-4">
+          <nav className="-mx-1 flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+            {visibleTabs.map((tab) => {
+              const isActive = tab.id === activeSection;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() =>
+                    navigateDashboard(tab.displayTab, {
+                      resetExpertSection: true,
+                      resetMerchantSection: true,
+                    })
+                  }
+                  className={`shrink-0 rounded-xl px-4 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? tab.id === 'merchant'
+                        ? 'bg-amber-600 text-white shadow-sm shadow-amber-600/20'
+                        : 'bg-teal-600 text-white shadow-sm shadow-teal-600/20'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  {getRoleDisplayName(role)}
-                </span>
-              ))}
-            </div>
-            <div className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 break-words">
-              <span>منطقه زندگی: {user.location || 'نامشخص'}</span>
-              <span className="mx-2">•</span>
-              <span>موبایل: {user.mobile || 'نامشخص'}</span>
-            </div>
-            
-            {/* Stats Cards - Small squares under location */}
-            <div className="flex gap-3 sm:gap-6 justify-center sm:justify-start flex-wrap">
-              <div className="border border-gray-300 rounded-lg p-2 sm:p-3 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 sm:mb-2">
-                  <span className="text-xs sm:text-sm">📊</span>
-                </div>
-                <p className="text-[10px] sm:text-xs text-gray-600 text-center">پروژه‌ها</p>
-                <p className="text-xs sm:text-sm font-bold text-gray-800">12</p>
-              </div>
-
-              <div className="border border-gray-300 rounded-lg p-2 sm:p-3 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 sm:mb-2">
-                  <span className="text-xs sm:text-sm">💰</span>
-                </div>
-                <p className="text-[10px] sm:text-xs text-gray-600 text-center">درآمد</p>
-                <p className="text-xs sm:text-sm font-bold text-gray-800">2.5M</p>
-              </div>
-
-              <div className="border border-gray-300 rounded-lg p-2 sm:p-3 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 sm:mb-2">
-                  <span className="text-xs sm:text-sm">⭐</span>
-                </div>
-                <p className="text-[10px] sm:text-xs text-gray-600 text-center">امتیاز</p>
-                <p className="text-xs sm:text-sm font-bold text-gray-800">4.8</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-lg">
-        <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
-          <nav className="flex space-x-4 sm:space-x-6 px-3 sm:px-6 min-w-0 flex-nowrap">
-            <button
-              onClick={() => handleTabChange('profile-display')}
-              className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
-                activeTab === 'profile-display'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              نمایه شخصی
-            </button>
-            <button
-              onClick={() => handleTabChange('expert-display')}
-              className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
-                activeTab === 'expert-display'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              نمایه تخصصی
-            </button>
-            <button
-              onClick={() => handleTabChange('specializations')}
-              className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
-                activeTab === 'specializations'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              تخصص‌ها
-            </button>
+                  {tab.label}
+                </button>
+              );
+            })}
           </nav>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-6">
-          {activeTab === 'profile-display' && <ProfileDisplay onEditClick={() => handleTabChange('profile-edit')} />}
-          {activeTab === 'profile-edit' && <ProfileEdit targetUserId={targetUserId} />}
-          {activeTab === 'expert-display' && <ExpertDisplay onEditClick={() => handleTabChange('expert-edit')} />}
-          {activeTab === 'expert-edit' && <ExpertEdit targetUserId={targetUserId} />}
-          {activeTab === 'specializations' && <Specializations targetUserId={targetUserId} />}
+        <div className={isProfileView ? 'p-0' : 'p-4 sm:p-6'}>
+          {renderProfileContent()}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

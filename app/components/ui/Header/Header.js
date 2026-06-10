@@ -1,17 +1,34 @@
 "use client";
+
 import { useState, useContext, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  Bars3Icon,
+  EnvelopeIcon,
+} from '@heroicons/react/24/outline';
 import UserDropdown from '../UserDropdown';
 import { AuthContext } from '../../../context/AuthContext';
 import AuthButtons from '../../AuthButtons';
 import MobileMenu from '../../MobileMenu';
 import MainNavBar from './MainNavBar';
+import CitySelector from '../CitySelector';
+import RequestAlertsMenu from '../RequestAlertsMenu';
+import MarketplaceSwitcher, {
+  shouldShowMarketplaceSwitcher,
+} from '../../marketplace/MarketplaceSwitcher';
 import { API_ENDPOINTS } from '../../../config/api';
 
+/** عرض هدر — کمی بیشتر از بدنه صفحه برای تنفس بهتر سوئیچ */
+export const HEADER_CONTAINER =
+  'mx-auto w-full max-w-7xl px-3 sm:px-5 lg:px-6';
+
 export default function Header() {
+  const pathname = usePathname() || '/';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { user, isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
+  const showMarketplaceSwitcher = shouldShowMarketplaceSwitcher(pathname);
 
   const fetchUnreadCount = async () => {
     try {
@@ -38,78 +55,69 @@ export default function Header() {
     };
   }, [isAuthenticated]);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
   return (
-    <header className="bg-white shadow-md sticky top-0 z-[9999] w-full overflow-visible">
-      {/* ردیف اول: لوگو، لینک‌های اصلی، احراز هویت — relative z-10 تا منوی کاربر بالای ناوبر رسم شود */}
-      <div className="relative z-10 container mx-auto pl-1 pr-3 sm:px-4 max-w-[100vw]">
-        <div className="flex items-center justify-between h-14 sm:h-16 min-h-[3.5rem]">
-          {/* سمت راست - لوگو (عکس شامل لوگو و متن پرندیکس) */}
-          <div className="flex items-center min-w-0 flex-1 justify-start md:flex-initial md:justify-start">
-            <Link href="/" scroll={false} className="block max-w-[45vw] sm:max-w-[200px]">
-              <img
-                src="/images/logo_text.jpg"
-                alt="پرندیکس"
-                width={180}
-                height={48}
-                className="h-8 sm:h-10 w-auto max-h-10 object-contain object-right"
-              />
-            </Link>
+    <header className="sticky top-0 z-[9999] w-full border-b border-gray-200 bg-white shadow-sm">
+      <div className={HEADER_CONTAINER}>
+        <div className="grid h-[3.25rem] grid-cols-[auto_1fr_auto] items-center gap-3 sm:h-14 sm:gap-4">
+          <Link href="/" scroll={false} className="shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo_text.jpg"
+              alt="پرندیکس"
+              className="h-8 w-auto max-w-[7rem] object-contain object-right sm:h-9 sm:max-w-[9.5rem]"
+            />
+          </Link>
+
+          <div className="flex min-w-0 justify-center overflow-visible">
+            {showMarketplaceSwitcher ? (
+              <MarketplaceSwitcher variant="header" />
+            ) : null}
           </div>
 
-          {/* وسط - خالی در دسکتاپ (منوی کاربر و داشبورد در نوار ناوبری زیر هدر است) */}
-          <div className="hidden md:block flex-1 min-w-0" aria-hidden="true" />
+          <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+            <CitySelector compact />
 
-          {/* سمت چپ - دکمه‌های ورود/ثبت‌نام (فقط دسکتاپ) یا نام کاربر + آیکون پیام + منو */}
-          <div className="flex items-center gap-2 min-w-0 flex-1 justify-start md:flex-initial md:justify-end">
-            {!isAuthenticated ? (
-              <div className="hidden md:flex items-center gap-2 sm:gap-3">
-                <AuthButtons />
-              </div>
-            ) : (
+            {isAuthenticated && (
               <>
+                <RequestAlertsMenu />
                 <Link
                   href="/dashboard/messages"
-                  className="relative p-2 rounded-lg text-gray-600 hover:text-teal-600 hover:bg-gray-100 transition-colors"
+                  className="relative hidden md:flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-50 hover:text-teal-600"
                   title="پیام‌ها"
                   aria-label="پیام‌ها"
                 >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                  <EnvelopeIcon className="h-5 w-5 shrink-0" aria-hidden />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold px-1">
+                    <span className="absolute top-1.5 left-1.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
                 </Link>
-                <div className="relative">
-                  <UserDropdown variant="header" />
-                </div>
+                <UserDropdown variant="header" />
               </>
             )}
-          </div>
 
-          {/* دکمه منوی موبایل (موبایل: منو؛ دسکتاپ: مخفی چون احراز هویت در همین هدر است) */}
-          <button
-            onClick={toggleMobileMenu}
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-100 transition-colors shrink-0"
-          >
-            <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            {!isAuthenticated && (
+              <div className="hidden items-center md:flex">
+                <AuthButtons />
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-50 hover:text-teal-600 md:hidden"
+              aria-label={isMobileMenuOpen ? 'بستن منو' : 'باز کردن منو'}
+              aria-expanded={isMobileMenuOpen}
+            >
+              <Bars3Icon className="h-6 w-6" aria-hidden />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* نوار ناوبری اصلی زیر هدر: خدمات، کارشناسان، ایجاد پروژه جدید */}
-      <MainNavBar />
-
-      {/* منوی موبایل */}
+      <MainNavBar unreadCount={unreadCount} />
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
     </header>
   );
-} 
+}

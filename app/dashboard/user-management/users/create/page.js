@@ -1,60 +1,48 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { API_ENDPOINTS } from "../../../../config/api";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '../../../../components/ProtectedRoute';
+import { API_ENDPOINTS } from '../../../../config/api';
+import RoleCheckboxGroup from '../../../../components/user-management/RoleCheckboxGroup';
+import { FETCH_OPTS, fetchRoles } from '../../../../components/user-management/userManagementUtils';
+import {
+  UserMgmtPageHeader,
+  UserMgmtAlert,
+  UserMgmtCard,
+} from '../../../../components/user-management/UserMgmtShell';
+import {
+  FormField,
+  formActionsClass,
+  ghostBtnClass,
+  inputClass,
+  submitBtnClass,
+} from '../../../../components/ui/dashboard/DashboardUi';
 
-export default function CreateUser() {
+export default function CreateUserPage() {
   const router = useRouter();
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    mobile: "",
-    phone: "",
-    username: "",
-    password: "",
-    gender: "",
-    avatar: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    mobile: '',
+    phone: '',
+    username: '',
+    password: '',
+    gender: '',
     roleIds: [],
   });
 
   useEffect(() => {
-    // دریافت لیست نقش‌ها
-    fetch(API_ENDPOINTS.roles.getAll)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setRoles(data.data || []);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching roles:", error);
-      });
+    fetchRoles().then(setRoles).catch(() => {});
   }, []);
 
   const handleChange = (e) => {
-    const { name, value, options } = e.target;
-
-    setFormData((prev) => {
-      if (name === "roleIds") {
-        const selectedRoles = Array.from(options)
-          .filter(option => option.selected)
-          .map(option => parseInt(option.value, 10));
-        return {
-          ...prev,
-          [name]: selectedRoles,
-        };
-      } else {
-        return {
-      ...prev,
-      [name]: value,
-        };
-      }
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -62,206 +50,128 @@ export default function CreateUser() {
     setLoading(true);
     setError(null);
 
+    if (!formData.mobile.trim()) {
+      setError('شماره موبایل الزامی است.');
+      setLoading(false);
+      return;
+    }
+    if (!formData.email.trim() && !formData.mobile.trim()) {
+      setError('حداقل موبایل یا ایمیل لازم است.');
+      setLoading(false);
+      return;
+    }
+
     try {
+      const payload = {
+        ...formData,
+        email: formData.email.trim() || null,
+        mobile: formData.mobile.trim(),
+        phone: formData.phone.trim() || null,
+        username: formData.username.trim() || null,
+      };
+
       const response = await fetch(API_ENDPOINTS.users.create, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        ...FETCH_OPTS,
+        body: JSON.stringify(payload),
       });
-
       const data = await response.json();
-
-      if (data.success) {
-        router.push("/dashboard/user-management/users");
-      } else {
-        setError(data.message || "خطا در ایجاد کاربر");
+      if (!data.success) {
+        throw new Error(data.message || 'خطا در ایجاد کاربر');
       }
-    } catch (error) {
-      setError("خطا در ارتباط با سرور");
-      console.error("Error creating user:", error);
+      router.push(`/dashboard/user-management/users/${data.data.id}/view`);
+    } catch (err) {
+      setError(err.message || 'خطا در ارتباط با سرور');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-4">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">افزودن کاربر جدید</h1>
+    <ProtectedRoute requiredRoles={['admin', 'moderator']}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 sm:p-6">
+        <div className="mx-auto max-w-3xl">
+          <UserMgmtPageHeader
+            title="افزودن کاربر"
+            description="موبایل برای ورود الزامی است. ایمیل اختیاری — مطابق کاربران سید (فقط ادمین اصلی ایمیل دارد)."
+          />
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+          {error ? <UserMgmtAlert>{error}</UserMgmtAlert> : null}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                نام
-              </label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <form onSubmit={handleSubmit}>
+            <UserMgmtCard title="اطلاعات پایه" className="mb-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField label="نام" required>
+                  <input name="firstName" value={formData.firstName} onChange={handleChange} required className={inputClass} />
+                </FormField>
+                <FormField label="نام خانوادگی" required>
+                  <input name="lastName" value={formData.lastName} onChange={handleChange} required className={inputClass} />
+                </FormField>
+                <FormField label="موبایل" required>
+                  <input
+                    name="mobile"
+                    type="tel"
+                    dir="ltr"
+                    value={formData.mobile}
+                    onChange={handleChange}
+                    required
+                    className={`${inputClass} text-left`}
+                  />
+                </FormField>
+                <FormField label="ایمیل (اختیاری)">
+                  <input
+                    name="email"
+                    type="email"
+                    dir="ltr"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`${inputClass} text-left`}
+                  />
+                </FormField>
+                <FormField label="نام کاربری">
+                  <input name="username" value={formData.username} onChange={handleChange} className={inputClass} />
+                </FormField>
+                <FormField label="رمز عبور" required>
+                  <input
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    className={inputClass}
+                  />
+                </FormField>
+                <FormField label="جنسیت">
+                  <select name="gender" value={formData.gender} onChange={handleChange} className={inputClass}>
+                    <option value="">—</option>
+                    <option value="male">آقا</option>
+                    <option value="female">خانم</option>
+                  </select>
+                </FormField>
+              </div>
+            </UserMgmtCard>
+
+            <UserMgmtCard title="نقش‌ها" className="mb-6">
+              <RoleCheckboxGroup
+                roles={roles}
+                value={formData.roleIds}
+                onChange={(roleIds) => setFormData((p) => ({ ...p, roleIds }))}
               />
-            </div>
+            </UserMgmtCard>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                نام خانوادگی
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className={formActionsClass}>
+              <button type="button" className={ghostBtnClass} onClick={() => router.back()}>
+                انصراف
+              </button>
+              <button type="submit" disabled={loading} className={submitBtnClass}>
+                {loading ? 'در حال ثبت...' : 'ایجاد کاربر'}
+              </button>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ایمیل
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                موبایل
-              </label>
-              <input
-                type="tel"
-                name="mobile"
-                value={formData.mobile}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                تلفن ثابت
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                نام کاربری
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                جنسیت
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">مشخص نشده</option>
-                <option value="male">آقا</option>
-                <option value="female">خانم</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                آواتار (URL تصویر)
-              </label>
-              <input
-                type="url"
-                name="avatar"
-                value={formData.avatar}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="اختیاری"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                رمز عبور
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                نقش‌ها
-              </label>
-              <select
-                name="roleIds"
-                value={formData.roleIds.map(String)}
-                onChange={handleChange}
-                multiple
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
-              >
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.nameFa || role.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-4 mt-6">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              انصراف
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-            >
-              {loading ? "در حال ثبت..." : "ثبت کاربر"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
-} 
+}

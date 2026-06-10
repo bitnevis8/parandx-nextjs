@@ -1,0 +1,29 @@
+import { API_ENDPOINTS } from '../../../../config/api';
+
+export async function PATCH(request, context) {
+  try {
+    const { id } = await context.params;
+    const cookies = request.headers.get('cookie');
+    const body = await request.text();
+
+    const backendResponse = await fetch(API_ENDPOINTS.requests.updateStatus(id), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookies || '',
+      },
+      body,
+    });
+
+    const text = await backendResponse.text();
+    return new Response(text, {
+      status: backendResponse.status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    return Response.json(
+      { success: false, message: error.message || 'خطا در ارتباط با سرور' },
+      { status: 500 }
+    );
+  }
+}

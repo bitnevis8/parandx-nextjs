@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { API_ENDPOINTS } from "../config/api";
+import { useCity } from "../context/CityContext";
 import { MagnifyingGlassIcon, Squares2X2Icon, UserCircleIcon } from "@heroicons/react/24/outline";
 
 function normalizeForSearch(text) {
@@ -14,6 +15,7 @@ function normalizeForSearch(text) {
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") || "";
+  const { selectedCity } = useCity();
   const [loading, setLoading] = useState(false);
   const [filteredCats, setFilteredCats] = useState([]);
   const [filteredExperts, setFilteredExperts] = useState([]);
@@ -28,7 +30,7 @@ export default function SearchPage() {
     }
     let cancelled = false;
     setLoading(true);
-    fetch(API_ENDPOINTS.search(q))
+    fetch(API_ENDPOINTS.search(q, selectedCity?.id))
       .then((res) => res.json())
       .then((json) => {
         if (cancelled || !json.success) return;
@@ -46,7 +48,7 @@ export default function SearchPage() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [q]);
+  }, [q, selectedCity?.id]);
 
   if (loading) {
     return (
@@ -87,13 +89,13 @@ export default function SearchPage() {
           <div className="text-center py-12">
             <div className="text-5xl mb-4">🔍</div>
             <h2 className="text-xl font-bold text-gray-800 mb-2">نتیجه‌ای یافت نشد</h2>
-            <p className="text-gray-600">واژهٔ دیگری امتحان کنید یا از دسته‌بندی‌ها و لیست متخصصان استفاده کنید.</p>
+            <p className="text-gray-600">یه کلمهٔ دیگه امتحان کنید، یا از دسته‌ها و لیست متخصص‌ها کمک بگیرید.</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link href="/categories" className="text-teal-600 hover:text-teal-700 font-medium">
+              <Link href="/#home-path-categories" className="text-teal-600 hover:text-teal-700 font-medium">
                 دسته‌بندی خدمات
               </Link>
-              <Link href="/experts" className="text-teal-600 hover:text-teal-700 font-medium">
-                لیست متخصصان
+              <Link href="/#home-path-map" className="text-teal-600 hover:text-teal-700 font-medium">
+                نقشه و یافتن متخصص
               </Link>
             </div>
           </div>
@@ -111,7 +113,7 @@ export default function SearchPage() {
                   {filteredCats.map((c) => (
                     <li key={c.type === "sub" ? `sub-${c.id}` : `cat-${c.id}`}>
                       <Link
-                        href={c.parentSlug ? `/categories/${c.parentSlug}` : `/categories/${c.slug || c.id}`}
+                        href={`/categories/${c.slug || c.id}`}
                         className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-teal-50 border border-gray-100 hover:border-teal-200 transition-colors"
                       >
                         <span className="text-2xl shrink-0">{c.icon || "📂"}</span>
@@ -130,7 +132,7 @@ export default function SearchPage() {
               <section>
                 <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
                   <UserCircleIcon className="w-5 h-5 text-teal-600" />
-                  متخصصان ({filteredExperts.length})
+                  متخصص‌ها ({filteredExperts.length})
                 </h2>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {filteredExperts.map((expert) => (

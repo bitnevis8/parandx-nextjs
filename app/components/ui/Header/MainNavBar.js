@@ -4,154 +4,90 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useContext } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
+import UserDropdown from '../UserDropdown';
 import {
+  EnvelopeIcon,
   HomeIcon,
-  Squares2X2Icon,
-  UserGroupIcon,
-  PlusCircleIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
-  Squares2X2Icon as Squares2X2IconSolid,
-  UserGroupIcon as UserGroupIconSolid,
-  PlusCircleIcon as PlusCircleIconSolid,
+  EnvelopeIcon as EnvelopeIconSolid,
 } from '@heroicons/react/24/solid';
 
-const navItems = [
-  {
-    href: '/',
-    label: 'صفحه اصلی',
-    Icon: HomeIcon,
-    IconActive: HomeIconSolid,
-    exact: true,
-  },
-  {
-    href: '/categories',
-    label: 'خدمات',
-    Icon: Squares2X2Icon,
-    IconActive: Squares2X2IconSolid,
-    exact: false,
-  },
-  {
-    href: '/experts',
-    label: 'کارشناسان',
-    Icon: UserGroupIcon,
-    IconActive: UserGroupIconSolid,
-    exact: false,
-  },
-  {
-    href: '/requests/new',
-    label: 'ایجاد پروژه جدید',
-    Icon: PlusCircleIcon,
-    IconActive: PlusCircleIconSolid,
-    exact: false,
-  },
-];
+function NavTab({ href, label, Icon, IconActive, exact, pathname, badge }) {
+  const isActive = exact
+    ? pathname === href
+    : pathname === href || pathname?.startsWith(`${href}/`);
+  const ActiveIcon = isActive ? IconActive : Icon;
 
-export default function MainNavBar() {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      className={`
+        relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2
+        text-[11px] font-medium transition-colors
+        ${isActive ? 'text-teal-600' : 'text-gray-500 hover:text-gray-700'}
+      `}
+    >
+      <span className="relative inline-flex">
+        <ActiveIcon className="w-6 h-6 shrink-0" strokeWidth={isActive ? 2.25 : 1.75} aria-hidden />
+        {badge > 0 && (
+          <span className="absolute -top-1 -left-1 min-w-[1rem] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold px-1">
+            {badge > 99 ? '99+' : badge}
+          </span>
+        )}
+      </span>
+      <span className="leading-none">{label}</span>
+    </Link>
+  );
+}
+
+export default function MainNavBar({ unreadCount = 0 }) {
   const pathname = usePathname();
   const { isAuthenticated } = useContext(AuthContext);
 
-  const linkContent = (item, isActive, Icon) => (
-    <>
-      <span className="icon-wrap inline-flex shrink-0 items-center justify-center w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6" aria-hidden>
-        <Icon
-          className="w-full h-full"
-          style={{ width: '100%', height: '100%' }}
-          strokeWidth={isActive ? 2.5 : 2}
-        />
-      </span>
-      <span className="whitespace-nowrap">{item.label}</span>
-    </>
-  );
-
   return (
-    <>
-      {/* دسکتاپ: نوار زیر هدر — z-0 تا منوی کاربر (ردیف اول با z-10) بالای آن رسم شود */}
-      <nav className="relative z-0 hidden md:block bg-gradient-to-l from-teal-600 to-cyan-600 border-b border-teal-500/50 shadow-lg overflow-x-auto overflow-y-hidden">
-        <div className="container mx-auto px-3 sm:px-4 min-w-0">
-          <div className="flex items-center justify-center gap-2 md:gap-3 py-2.5 sm:py-3.5 overflow-x-auto scrollbar-hide flex-nowrap md:flex-wrap">
-            {navItems.map((item) => {
-                const isActive = item.exact
-                  ? pathname === item.href
-                  : pathname === item.href || pathname?.startsWith(item.href + '/');
-                const Icon = isActive ? item.IconActive : item.Icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    scroll={false}
-                    className={`
-                      flex items-center gap-1.5 sm:gap-2 md:gap-3 px-3 py-2 sm:px-5 sm:py-3 md:px-6 rounded-xl shrink-0
-                      font-medium text-xs sm:text-sm md:text-base transition-all duration-300 ease-out
-                      hover:scale-[1.03] hover:shadow-xl
-                      ${isActive
-                        ? 'bg-white text-teal-700 shadow-lg ring-2 ring-white/40'
-                        : 'text-white/95 hover:bg-white/20 hover:text-white'
-                      }
-                    `}
-                  >
-                    {linkContent(item, isActive, Icon)}
-                  </Link>
-                );
-              })}
-          </div>
-        </div>
-      </nav>
+    <nav
+      className="md:hidden fixed bottom-0 inset-x-0 z-[9998] bg-white border-t border-gray-200 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
+      aria-label="ناوبری پایین"
+    >
+      <div className="flex items-stretch h-14 max-w-lg mx-auto">
+        <NavTab
+          href="/"
+          label="خانه"
+          Icon={HomeIcon}
+          IconActive={HomeIconSolid}
+          exact
+          pathname={pathname}
+        />
 
-      {/* موبایل: Bottom Bar ثابت — آیکون بالا، عنوان پایین؛ برای مهمان‌ها دکمه ورود */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] bg-gradient-to-l from-teal-600 to-cyan-600 border-t border-teal-500/50 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
-        style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
-      >
-        <div className="flex items-stretch justify-around h-16">
-          {navItems.map((item) => {
-            const isActive = item.exact
-              ? pathname === item.href
-              : pathname === item.href || pathname?.startsWith(item.href + '/');
-            const Icon = isActive ? item.IconActive : item.Icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                scroll={false}
-                className={`
-                  flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-2 px-1
-                  font-medium text-[10px] sm:text-xs transition-colors
-                  active:bg-white/15
-                  ${isActive
-                    ? 'text-white bg-white/25'
-                    : 'text-white/90'
-                  }
-                `}
-              >
-                <span className="icon-wrap inline-flex shrink-0 items-center justify-center w-6 h-6" aria-hidden>
-                  <Icon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={isActive ? 2.5 : 2} />
-                </span>
-                <span className="leading-tight text-center line-clamp-1">{item.label}</span>
-              </Link>
-            );
-          })}
-          {!isAuthenticated && (
-            <Link
-              href="/auth/login"
-              scroll={false}
-              className={`
-                flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-2 px-1
-                font-medium text-[10px] sm:text-xs transition-colors
-                active:bg-white/15
-                ${pathname === '/auth/login' ? 'text-white bg-white/25' : 'text-white/90'}
-              `}
-            >
-              <span className="icon-wrap inline-flex shrink-0 items-center justify-center w-6 h-6" aria-hidden>
-                <ArrowRightOnRectangleIcon className="w-full h-full" style={{ width: '100%', height: '100%' }} strokeWidth={2} />
-              </span>
-              <span className="leading-tight text-center line-clamp-1">ورود</span>
-            </Link>
-          )}
-        </div>
-      </nav>
-    </>
+        {isAuthenticated ? (
+          <>
+            <NavTab
+              href="/dashboard/messages"
+              label="پیام‌ها"
+              Icon={EnvelopeIcon}
+              IconActive={EnvelopeIconSolid}
+              exact={false}
+              pathname={pathname}
+              badge={unreadCount}
+            />
+            <UserDropdown variant="bottomBar" />
+          </>
+        ) : (
+          <NavTab
+            href="/auth"
+            label="ورود"
+            Icon={ArrowRightOnRectangleIcon}
+            IconActive={ArrowRightOnRectangleIcon}
+            exact
+            pathname={pathname}
+          />
+        )}
+      </div>
+    </nav>
   );
 }

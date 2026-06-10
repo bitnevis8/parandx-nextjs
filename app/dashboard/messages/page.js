@@ -77,7 +77,7 @@ export default function MessagesPage() {
       {conversations.length === 0 && !error && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center text-gray-500">
           <p className="text-lg">هنوز مکالمه‌ای ندارید.</p>
-          <p className="text-sm mt-2">با ورود به صفحه هر کارشناس یا از طریق درخواست‌ها می‌توانید پیام بفرستید.</p>
+          <p className="text-sm mt-2">از صفحه جزئیات درخواست، کنار هر پیشنهاد دکمه «گفتگو» را بزنید.</p>
         </div>
       )}
 
@@ -85,7 +85,11 @@ export default function MessagesPage() {
         {conversations.map((conv) => (
           <li key={conv.otherUser?.id}>
             <Link
-              href={`/dashboard/messages/${conv.otherUser?.id}`}
+              href={
+                conv.lastMessage?.requestId
+                  ? `/dashboard/messages/${conv.otherUser?.id}?requestId=${conv.lastMessage.requestId}`
+                  : `/dashboard/messages/${conv.otherUser?.id}`
+              }
               className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-teal-300 hover:shadow-md transition-all"
             >
               <div className="shrink-0">
