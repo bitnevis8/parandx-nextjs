@@ -18,6 +18,7 @@ import {
   ShoppingBagIcon,
   MapIcon,
   CubeIcon,
+  MegaphoneIcon,
 } from '@heroicons/react/24/outline';
 import { MARKETPLACE } from '../../../config/marketplaceConfig';
 
@@ -50,6 +51,13 @@ export const DASHBOARD_SECTION_THEMES = {
     activeNavClass: 'bg-amber-600 text-white shadow-sm shadow-amber-600/15',
     iconWrapActive: 'bg-white/20',
     iconWrapIdle: 'bg-amber-50 text-amber-700',
+  },
+  divar: {
+    accent: 'violet',
+    headerClass: 'text-violet-900',
+    activeNavClass: 'bg-violet-600 text-white shadow-sm shadow-violet-600/15',
+    iconWrapActive: 'bg-white/20',
+    iconWrapIdle: 'bg-violet-50 text-violet-700',
   },
 };
 
@@ -93,6 +101,27 @@ export function detectMarketFromPath(pathname = '', searchParams) {
   return DASHBOARD_MARKET_TABS.services;
 }
 
+/** بخش دیوار — همیشه در سایدبار */
+export function buildDivarNavGroups() {
+  return [
+    {
+      id: 'divar',
+      title: 'دیوار',
+      theme: 'divar',
+      items: [
+        { title: 'آگهی‌های من', path: '/dashboard/divar/my-listings', icon: ClipboardDocumentListIcon },
+        { title: 'ثبت آگهی', path: '/divar/new', icon: PlusCircleIcon },
+        {
+          title: MARKETPLACE.divar.shortLabel,
+          path: MARKETPLACE.divar.basePath,
+          icon: MegaphoneIcon,
+          externalMarket: true,
+        },
+      ],
+    },
+  ];
+}
+
 /** بخش‌های ثابت بالای سایدبار */
 export function buildFixedTopNavGroups() {
   return [
@@ -129,7 +158,7 @@ export function buildServicesMarketGroups(userRole) {
   if (userRole.canAccessCustomer()) {
     groups.push({
       id: 'services-customer',
-      title: 'کارفرما',
+      title: 'کاربر',
       theme: 'services',
       items: [
         { title: 'ثبت کار جدید', path: '/dashboard/customer/new-request', icon: PlusCircleIcon },
@@ -169,6 +198,8 @@ export function buildGoodsMarketGroups(userRole) {
       items: [
         { title: 'پروفایل فروشگاه', path: '/dashboard?tab=merchant-display', icon: BuildingStorefrontIcon },
         { title: 'ویرایش فروشگاه', path: '/dashboard?tab=merchant-edit', icon: BuildingStorefrontIcon },
+        { title: 'ویترین محصولات', path: '/dashboard/goods/vitrine', icon: ShoppingBagIcon },
+        { title: 'فرصت‌های فروش', path: '/dashboard/goods/opportunities', icon: ShoppingBagIcon },
       ],
     });
   }
@@ -179,6 +210,10 @@ export function buildGoodsMarketGroups(userRole) {
     theme: 'goods',
     items: [
       { title: 'ثبت نیاز کالا', path: '/goods/needs/new', icon: PlusCircleIcon },
+      { title: 'نیازهای من', path: '/dashboard/goods/my-needs', icon: ClipboardDocumentListIcon },
+      { title: 'ثبت عرضه کالا', path: '/goods/supplies/new', icon: CubeIcon },
+      { title: 'عرضه‌های من', path: '/dashboard/goods/my-supplies', icon: ClipboardDocumentListIcon },
+      { title: 'فرصت‌های خرید', path: '/dashboard/goods/buy-opportunities', icon: ShoppingBagIcon },
       { title: 'نقشه بازار کالا', path: '/dashboard/goods/map', icon: MapIcon },
     ],
   });
@@ -230,6 +265,8 @@ export function buildFixedBottomNavGroups(userRole) {
         { title: 'مراکز', path: '/dashboard/settings/unit-locations', icon: MapPinIcon },
         { title: 'نرخ‌ها', path: '/dashboard/settings/rate-settings', icon: CurrencyDollarIcon },
         { title: 'مدل‌های ۳D نقشه', path: '/dashboard/settings/category-map-models', icon: CubeIcon },
+        { title: 'باکس استخدام — جملات و انیمیشن', path: '/dashboard/settings/home-floating-quotes', icon: MegaphoneIcon },
+        { title: 'ستاره‌های آسمان شب', path: '/dashboard/settings/night-sky-stars', icon: StarIcon },
       ],
     });
   }
@@ -313,8 +350,18 @@ export function getDashboardMobilePageTitle(pathname, searchParams) {
     ['/dashboard/customer/history', 'تاریخچه'],
     ['/dashboard/customer/my-reviews', 'نظرات من'],
     ['/goods/needs/new', 'ثبت نیاز کالا'],
+    ['/goods/supplies/new', 'ثبت عرضه کالا'],
+    ['/dashboard/goods/my-needs', 'نیازهای من'],
+    ['/dashboard/goods/my-supplies', 'عرضه‌های من'],
+    ['/dashboard/goods/opportunities', 'فرصت‌های فروش'],
+    ['/dashboard/goods/buy-opportunities', 'فرصت‌های خرید'],
     ['/dashboard/goods/map', 'نقشه بازار کالا'],
+    ['/dashboard/goods/vitrine', 'ویترین محصولات'],
+    ['/dashboard/divar/my-listings', 'آگهی‌های من'],
+    ['/divar/new', 'ثبت آگهی'],
     ['/dashboard/settings/category-map-models', 'مدل‌های ۳D نقشه'],
+    ['/dashboard/settings/home-floating-quotes', 'باکس استخدام — جملات و انیمیشن'],
+    ['/dashboard/settings/night-sky-stars', 'ستاره‌های آسمان شب'],
     ['/dashboard/user-management/users', 'مدیریت کاربران'],
     ['/dashboard/user-management/roles', 'نقش‌ها'],
     ['/dashboard/user-management/cities', 'شهرها و استان‌ها'],
@@ -331,6 +378,10 @@ export function getDashboardMobilePageTitle(pathname, searchParams) {
 
   if (pathname === '/goods' || pathname.startsWith('/goods/')) {
     return MARKETPLACE.goods.label;
+  }
+
+  if (pathname === '/divar' || pathname.startsWith('/divar/')) {
+    return MARKETPLACE.divar.label;
   }
 
   return 'داشبورد';

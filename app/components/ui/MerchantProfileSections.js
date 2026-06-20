@@ -5,15 +5,16 @@ import { ProfileFormGroup, ProfilePanelRow } from './dashboard/ProfileViewUi';
 import {
   MERCHANT_ACTIVITY_TYPE_OPTIONS,
   MERCHANT_DELIVERY_RADIUS_OPTIONS,
+  MERCHANT_ACCOUNT_TYPE_OPTIONS,
   formatMerchantActivityTypesSummary,
   getMerchantDeliveryRadiusLabel,
 } from '../../utils/merchantProfileUtils';
-import { EXPERT_ACCOUNT_TYPE_OPTIONS } from '../../utils/expertProfileUtils';
 
 export function MerchantIdentityEditor({
   sectionId,
   accountType,
   storeName,
+  storeSlug,
   description,
   logo,
   companyName,
@@ -34,7 +35,7 @@ export function MerchantIdentityEditor({
       <div className="space-y-4">
         <FormField label="نوع حساب">
           <div className="flex flex-wrap gap-2">
-            {EXPERT_ACCOUNT_TYPE_OPTIONS.map((opt) => (
+            {MERCHANT_ACCOUNT_TYPE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
@@ -61,6 +62,34 @@ export function MerchantIdentityEditor({
           />
         </FormField>
 
+        <FormField label="آدرس صفحه (لاتین)">
+          <div className="relative">
+            <span
+              className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-sm text-gray-400"
+              dir="ltr"
+              aria-hidden
+            >
+              /
+            </span>
+            <input
+              type="text"
+              value={storeSlug}
+              onChange={(e) => onChange({ storeSlug: e.target.value })}
+              className={`${inputClass} ps-7`}
+              dir="ltr"
+              placeholder="pourdian-mobile"
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-gray-500">
+            فقط حروف انگلیسی، عدد، خط‌تیره — مثلاً{' '}
+            <span className="font-mono text-amber-700" dir="ltr">
+              /pourdian-mobile
+            </span>
+          </p>
+        </FormField>
+
         <FormField label="معرفی فروشگاه">
           <textarea
             value={description}
@@ -73,12 +102,13 @@ export function MerchantIdentityEditor({
 
         {isBusiness ? (
           <>
-            <FormField label="نام شرکت / کسب‌وکار">
+            <FormField label="نام شرکت (اختیاری)">
               <input
                 type="text"
                 value={companyName}
                 onChange={(e) => onChange({ companyName: e.target.value })}
                 className={inputClass}
+                placeholder="اگر شرکت ثبت‌شده دارید؛ در غیر این صورت همان نام فروشگاه کافی است"
               />
             </FormField>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -123,8 +153,17 @@ export function MerchantIdentityDisplay({ profile }) {
   return (
     <ProfileFormGroup title="مشخصات کاسب">
       <ProfilePanelRow label="نام فروشگاه" value={profile?.storeName} />
+      <ProfilePanelRow
+        label="آدرس صفحه"
+        value={profile?.storeSlug ? `/${profile.storeSlug}` : '—'}
+      />
       <ProfilePanelRow label="معرفی" value={profile?.description} />
-      <ProfilePanelRow label="نوع حساب" value={profile?.accountType === 'business' ? 'حقوقی' : 'حقیقی'} />
+      <ProfilePanelRow
+        label="نوع حساب"
+        value={
+          profile?.accountType === 'business' ? 'شرکت / شخص حقوقی' : 'مغازه / شخص حقیقی'
+        }
+      />
       {profile?.accountType === 'business' ? (
         <ProfilePanelRow label="نام شرکت" value={profile?.companyName} />
       ) : null}

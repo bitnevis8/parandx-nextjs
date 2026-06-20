@@ -1,15 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { API_ENDPOINTS } from '../../config/api';
-import { resolveCityMapConfig, resolveCityMapView } from '../../utils/cityMapConfig';
-import { loadCityBoundaryData, cityHasBoundaryMap } from '../../utils/loadCityBoundary';
-import MapBoundaryRegionFilters, {
-  resolveRegionSearchBoundary,
-  resolveRegionSearchCenter,
-} from '../map/MapBoundaryRegionFilters';
-import { MAP_EXPLORER_MODES, isPlacesExplorerMode } from '../../utils/mapExplorerModes';
+import { resolveCityMapView } from '../../utils/cityMapConfig';
+import { MAP_EXPLORER_MODES } from '../../utils/mapExplorerModes';
 import {
   buildMapExplorerStats,
   buildRegionLabel,
@@ -27,18 +21,14 @@ import {
   getRequestMapExplorerSummaryCopy,
 } from '../../utils/requestMapUtils';
 import MapLayerToolbar from './MapLayerToolbar';
-import MapCategoryFilterFields, {
-  MapMainCategorySelect,
-  MapSubcategorySelect,
-} from './MapCategoryFilterFields';
+import { MapProfessionSearchSelect } from './MapCategoryFilterFields';
 import HomeCityMap from './HomeCityMap';
 import HomeMapFullscreenModal from './HomeMapFullscreenModal';
-import HomeMapExplorerIntro from './HomeMapExplorerIntro';
-import HomeMapExplorerTabs from './HomeMapExplorerTabs';
+import HomeMapBannerChrome from './HomeMapBannerChrome';
+import { MAP_INTRO, buildMapSpecialtyTitle } from '../../copy/friendlyFa';
 import { HOME_CARD_SHELL } from './homePageTheme';
 import { useExpertMapSpecializations } from '../../hooks/useExpertMapSpecializations';
-
-const MapPlaceCategoryPanel = dynamic(() => import('../map/MapPlaceCategoryPanel'), { ssr: false });
+import { useIsMobileViewport } from '../../hooks/useIsMobileViewport';
 
 function buildMobileSheetSummary({
   serviceTitle,
@@ -56,7 +46,7 @@ function buildMobileSheetSummary({
   if (mapLayer === MAP_LAYERS.requests && hasSpecializations) {
     parts.push(requestsMineOnly ? 'کارهای تخصص من' : 'همه کارها');
   } else {
-    parts.push(mapLayer === MAP_LAYERS.requests ? 'کارها' : 'متخصصین');
+    parts.push(mapLayer === MAP_LAYERS.requests ? 'کارها' : 'متخصص‌ها');
   }
   if (parts.length > 1) return parts.join(' · ');
   return cityName ? cityName : 'نقشه';
@@ -64,15 +54,7 @@ function buildMobileSheetSummary({
 
 export default function HomeCityMapExplorer({ city, categories = [], connectBelow = false }) {
   const mapInstanceRef = useRef(null);
-  const cityMapConfig = useMemo(
-    () => resolveCityMapConfig(city),
-    [city?.id, city?.slug, city?.name, city?.latitude, city?.longitude, city?.mapZoom]
-  );
-
-  const [explorerMode, setExplorerMode] = useState(MAP_EXPLORER_MODES.work);
-  const isPlacesMode = isPlacesExplorerMode(explorerMode);
-  const [boundaryData, setBoundaryData] = useState(null);
-  const [placesCategoryStatus, setPlacesCategoryStatus] = useState('');
+  const isMobile = useIsMobileViewport();
 
   const cityMapView = useMemo(() => resolveCityMapView(city), [
     city?.id,
@@ -116,6 +98,10 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
     if (!city) return;
     const view = resolveCityMapView(city);
     setShow3D(view?.show3D ?? true);
+    if (view?.useConfiguredView && view?.center) {
+      setMapRecenterKey((key) => key + 1);
+      if (view.show3D) setMap3DApplyKey((key) => key + 1);
+    }
     setRegion((prev) => ({
       ...prev,
       sectionId: view?.defaultRegion?.sectionId || '',
@@ -123,33 +109,19 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
       sectionName: '',
       neighborhoodName: '',
     }));
-  }, [city?.id, city?.defaultSectionId, city?.defaultNeighborhoodId, city?.mapShow3D]);
-
-  useEffect(() => {
-    if (!isPlacesMode) {
-      setPlacesCategoryStatus('');
-    }
-  }, [isPlacesMode]);
-
-  useEffect(() => {
-    if (!isPlacesMode || !city?.slug || !cityHasBoundaryMap(city)) {
-      setBoundaryData(null);
-      return undefined;
-    }
-
-    let cancelled = false;
-    loadCityBoundaryData(city.slug)
-      .then((data) => {
-        if (!cancelled) setBoundaryData(data);
-      })
-      .catch(() => {
-        if (!cancelled) setBoundaryData(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isPlacesMode, city?.slug, city?.id]);
+  }, [
+    city?.id,
+    city?.defaultSectionId,
+    city?.defaultNeighborhoodId,
+    city?.mapShow3D,
+    city?.mapUseConfiguredView,
+    city?.latitude,
+    city?.longitude,
+    city?.mapZoom,
+    city?.mapZoomMobile,
+    city?.mapPitch,
+    city?.mapBearing,
+  ]);
 
   const services = useMemo(() => flattenServiceOptions(categories), [categories]);
 
@@ -220,33 +192,6 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
       neighborhoodName: next.neighborhoodName || '',
     });
   }, []);
-
-  const handlePlacesSectionChange = useCallback(
-    (sectionId) => {
-      const section = boundaryData?.sections?.find((item) => item.featureId === sectionId);
-      handleRegionChange({
-        sectionId,
-        neighborhoodId: '',
-        sectionName: section?.name || '',
-        neighborhoodName: '',
-      });
-    },
-    [boundaryData?.sections, handleRegionChange]
-  );
-
-  const handlePlacesNeighborhoodChange = useCallback(
-    (neighborhoodId) => {
-      const section = boundaryData?.sections?.find((item) => item.featureId === region.sectionId);
-      const neighborhood = section?.neighborhoods?.find((item) => item.featureId === neighborhoodId);
-      handleRegionChange({
-        sectionId: region.sectionId,
-        neighborhoodId,
-        sectionName: section?.name || region.sectionName,
-        neighborhoodName: neighborhood?.name || '',
-      });
-    },
-    [boundaryData?.sections, region.sectionId, region.sectionName, handleRegionChange]
-  );
 
   useEffect(() => {
     if (!serviceSlug || parentSlug) return;
@@ -333,6 +278,7 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
       region.sectionId,
       region.neighborhoodId,
       city?.slug,
+      city?.id,
     ]
   );
 
@@ -453,6 +399,18 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
     />
   );
 
+  const mobileBannerLayerToolbar = (
+    <MapLayerToolbar
+      variant="mobileBanner"
+      layer={mapLayer}
+      onLayerChange={handleMapLayerChange}
+      showRequestScope={isLoggedInExpert && hasSpecializations}
+      requestsMineOnly={requestsMineOnly}
+      onRequestsMineOnlyChange={setRequestsMineOnly}
+      requestScopeLoading={expertSpecsLoading}
+    />
+  );
+
   const mobileSheetSummary = useMemo(
     () =>
       buildMobileSheetSummary({
@@ -484,104 +442,24 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
     mapToolbar: true,
   };
 
-  const bannerMainCategory = (
-    <MapMainCategorySelect {...categoryFilterProps} size="md" />
+  const bannerProfessionSearch = (
+    <MapProfessionSearchSelect {...categoryFilterProps} size="md" />
   );
 
-  const bannerSubCategory = (
-    <MapSubcategorySelect {...categoryFilterProps} size="md" />
-  );
-
-  const modalMainCategory = (
-    <MapMainCategorySelect
+  const modalProfessionSearch = (
+    <MapProfessionSearchSelect
       {...categoryFilterProps}
       size="lg"
       mobileTopPicker
-      inputId="map-main-category-search-modal"
+      inputId="map-profession-search-modal"
     />
   );
 
-  const modalSubCategory = (
-    <MapSubcategorySelect
-      {...categoryFilterProps}
-      size="lg"
-      mobileTopPicker
-      inputId="map-subcategory-search-modal"
-    />
+  const bannerProfessionSearchCorner = (
+    <MapProfessionSearchSelect {...categoryFilterProps} mapGlassCorner />
   );
 
-  const bannerCategoryFiltersMobile = (
-    <MapCategoryFilterFields {...categoryFilterProps} size="md" />
-  );
-
-  const modalCategoryFiltersMobile = (
-    <MapCategoryFilterFields
-      {...categoryFilterProps}
-      size="lg"
-      mobileTopPicker
-      mainInputId="map-main-category-search-modal"
-      subInputId="map-subcategory-search-modal"
-    />
-  );
-
-  const bannerServiceSummary = null;
-
-  const modalServiceSummary = null;
-
-  const searchBoundaryGeometry = useMemo(
-    () => resolveRegionSearchBoundary(boundaryData, region.sectionId, region.neighborhoodId),
-    [boundaryData, region.sectionId, region.neighborhoodId]
-  );
-
-  const searchCenter = useMemo(
-    () => resolveRegionSearchCenter(searchBoundaryGeometry, cityMapConfig?.lat, cityMapConfig?.lng),
-    [searchBoundaryGeometry, cityMapConfig?.lat, cityMapConfig?.lng]
-  );
-
-  const placesRegionControls = boundaryData ? (
-    <MapBoundaryRegionFilters
-      data={boundaryData}
-      cityName={city?.name || 'شهر'}
-      sectionId={region.sectionId}
-      neighborhoodId={region.neighborhoodId}
-      onSectionChange={handlePlacesSectionChange}
-      onNeighborhoodChange={handlePlacesNeighborhoodChange}
-    />
-  ) : null;
-
-  const placesSummaryCopy = useMemo(
-    () => ({
-      title: city?.name ? `مراکز و اماکن ${city.name}` : 'مراکز و اماکن',
-      detail:
-        placesCategoryStatus ||
-        'دسته را انتخاب کنید، روی نقشه ببینید — یا از جستجو استفاده کنید.',
-      tone: 'muted',
-    }),
-    [city?.name, placesCategoryStatus]
-  );
-
-  const placeCategoryPanelProps = useMemo(
-    () => ({
-      mapRef: mapInstanceRef,
-      cityName: city?.name || '',
-      centerLat: searchCenter.lat,
-      centerLng: searchCenter.lng,
-      boundaryGeometry: searchBoundaryGeometry,
-      markerEngine: 'maplibre',
-      regionKey: `${region.sectionId}-${region.neighborhoodId}`,
-      onStatusChange: setPlacesCategoryStatus,
-    }),
-    [
-      city?.name,
-      searchCenter.lat,
-      searchCenter.lng,
-      searchBoundaryGeometry,
-      region.sectionId,
-      region.neighborhoodId,
-    ]
-  );
-
-  const workMapProps = {
+  const mapProps = {
     city,
     expertMarkers: mapLayer === MAP_LAYERS.experts ? expertMarkers : [],
     requestMarkers: mapLayer === MAP_LAYERS.requests ? requestMarkers : [],
@@ -596,92 +474,39 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
     onSelect3D: handleSelect3D,
     mapRecenterKey,
     map3DApplyKey,
-    showMapSettingsBar: true,
+    showMapSettingsBar: false,
     explorerMode: MAP_EXPLORER_MODES.work,
     placeSearchControl: null,
     placeSearchEnabled: false,
     placesRegionControls: null,
+    mapCornerCategoryControl: bannerProfessionSearchCorner,
     onMapInstanceReady: (map) => {
       mapInstanceRef.current = map;
     },
-  };
-
-  const placesMapProps = {
-    city,
-    expertMarkers: [],
-    requestMarkers: [],
-    layerToolbar: null,
-    mapExplorerSummaryCopy: placesSummaryCopy,
-    mapLayer: null,
-    onRegionChange: handleRegionChange,
-    showBoundaries,
-    onShowBoundariesChange: setShowBoundaries,
-    show3D,
-    onSelect2D: handleSelect2D,
-    onSelect3D: handleSelect3D,
-    mapRecenterKey,
-    map3DApplyKey,
-    showMapSettingsBar: true,
-    explorerMode: MAP_EXPLORER_MODES.places,
-    placeSearchControl: null,
-    placeSearchEnabled: true,
-    placesRegionControls: null,
-    onMapInstanceReady: (map) => {
-      mapInstanceRef.current = map;
+    expandHint: {
+      label: MAP_INTRO.mobileExpandHint,
+      ariaLabel: MAP_INTRO.mobileExpandHintAria,
+      mobileOnly: false,
     },
   };
 
-  const placesMobileSummary = useMemo(
-    () =>
-      buildRegionLabel({
-        cityName: city?.name,
-        sectionName: region.sectionName,
-        neighborhoodName: region.neighborhoodName,
-        sectionId: region.sectionId,
-        neighborhoodId: region.neighborhoodId,
-      }),
-    [
-      city?.name,
-      region.sectionName,
-      region.neighborhoodName,
-      region.sectionId,
-      region.neighborhoodId,
-    ]
-  );
+  const categoryProps = {
+    mainCategoryControl: bannerProfessionSearch,
+    subCategoryControl: null,
+    mobileCategoryControls: null,
+    serviceSummary: null,
+    mobileControlsSummary: mobileSheetSummary,
+  };
 
-  const activeMapProps = isPlacesMode ? placesMapProps : workMapProps;
+  const modalCategoryProps = {
+    mainCategoryControl: modalProfessionSearch,
+    subCategoryControl: null,
+    mobileCategoryControls: null,
+    serviceSummary: null,
+    mobileControlsSummary: mobileSheetSummary,
+  };
 
-  const bannerCategoryProps = isPlacesMode
-    ? {
-        mainCategoryControl: null,
-        subCategoryControl: null,
-        mobileCategoryControls: null,
-        serviceSummary: null,
-        mobileControlsSummary: placesMobileSummary,
-      }
-    : {
-        mainCategoryControl: bannerMainCategory,
-        subCategoryControl: bannerSubCategory,
-        mobileCategoryControls: bannerCategoryFiltersMobile,
-        serviceSummary: bannerServiceSummary,
-        mobileControlsSummary: mobileSheetSummary,
-      };
-
-  const modalCategoryProps = isPlacesMode
-    ? {
-        mainCategoryControl: null,
-        subCategoryControl: null,
-        mobileCategoryControls: null,
-        serviceSummary: null,
-        mobileControlsSummary: placesMobileSummary,
-      }
-    : {
-        mainCategoryControl: modalMainCategory,
-        subCategoryControl: modalSubCategory,
-        mobileCategoryControls: modalCategoryFiltersMobile,
-        serviceSummary: modalServiceSummary,
-        mobileControlsSummary: mobileSheetSummary,
-      };
+  const mapSpecialtyTitle = buildMapSpecialtyTitle(city?.name);
 
   return (
     <>
@@ -689,45 +514,38 @@ export default function HomeCityMapExplorer({ city, categories = [], connectBelo
         id="home-path-map"
         className={`${HOME_CARD_SHELL}${connectBelow ? ' rounded-b-none border-b-0 shadow-none' : ''}`}
       >
-        <HomeMapExplorerIntro
-          serviceTitle={isPlacesMode ? null : serviceTitle || parentTitle}
-          onOpenMap={openMapFullscreen}
-          disabled={!categories.length && !isPlacesMode}
+        <HomeMapBannerChrome
+          title={mapSpecialtyTitle}
+          layerToolbar={isMobile ? null : layerToolbar}
         />
-
-        <HomeMapExplorerTabs value={explorerMode} onChange={setExplorerMode} />
-
         <HomeCityMap
           variant="banner"
           embedded
           expandOnInteract={false}
           onRequestExpand={openMapFullscreen}
-          {...bannerCategoryProps}
-          {...activeMapProps}
+          skipDesktopFilterBar
+          {...categoryProps}
+          {...mapProps}
+          layerToolbar={isMobile ? mobileBannerLayerToolbar : null}
         />
-
-        {isPlacesMode ? <MapPlaceCategoryPanel {...placeCategoryPanelProps} /> : null}
       </div>
 
       <HomeMapFullscreenModal
         isOpen={mapFullscreenOpen}
         onClose={closeMapFullscreen}
-        title={city?.name || 'نقشه'}
+        title={mapSpecialtyTitle}
+        headerExtra={isMobile ? modalProfessionSearch : null}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <HomeMapExplorerTabs value={explorerMode} onChange={setExplorerMode} className="shrink-0" />
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1">
-              <HomeCityMap
-                variant="fullscreen"
-                mapResizeTrigger={mapFullscreenOpen ? mapFullscreenKey : null}
-                {...modalCategoryProps}
-                {...activeMapProps}
-              />
-            </div>
-            {isPlacesMode ? (
-              <MapPlaceCategoryPanel {...placeCategoryPanelProps} compact />
-            ) : null}
+          <div className="min-h-0 flex-1">
+            <HomeCityMap
+              variant="fullscreen"
+              skipDesktopFilterBar
+              mapResizeTrigger={mapFullscreenOpen ? mapFullscreenKey : null}
+              {...modalCategoryProps}
+              {...mapProps}
+              layerToolbar={isMobile ? mobileBannerLayerToolbar : layerToolbar}
+            />
           </div>
         </div>
       </HomeMapFullscreenModal>

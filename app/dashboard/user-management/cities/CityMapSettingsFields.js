@@ -55,7 +55,8 @@ export default function CityMapSettingsFields({ form, updateForm, updateFormFiel
       <div>
         <h3 className="text-sm font-semibold text-gray-800">تنظیمات نقشه (MapLibre / بدون نشان)</h3>
         <p className="mt-1 text-xs text-gray-500">
-          مرکز، زوم و نمای پیش‌فرض برای نقشهٔ شهر در صفحهٔ اصلی و فرم‌ها — وقتی از نشان استفاده نمی‌شود.
+          مرکز، زوم، زاویه و نمای ۳D برای نقشهٔ شهر در صفحهٔ اصلی (موبایل و دسکتاپ) و فرم‌ها — وقتی از نشان
+          استفاده نمی‌شود. با فعال‌کردن «نمای سفارشی» و ذخیره، همین مقادیر جایگزین پیش‌فرض کد می‌شوند.
         </p>
       </div>
 
@@ -71,7 +72,7 @@ export default function CityMapSettingsFields({ form, updateForm, updateFormFiel
         </span>
       </label>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <label className="block">
           <span className="mb-1 block text-xs text-gray-600">عرض جغرافیایی (مرکز)</span>
           <input
@@ -95,15 +96,32 @@ export default function CityMapSettingsFields({ form, updateForm, updateFormFiel
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs text-gray-600">زوم پیش‌فرض</span>
+          <span className="mb-1 block text-xs text-gray-600">زوم پیش‌فرض (دسکتاپ)</span>
           <input
             type="number"
             min={4}
             max={20}
+            step={0.1}
             value={form.mapZoom}
             onChange={(e) => updateForm('mapZoom', e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-xs text-gray-600">زوم پیش‌فرض (موبایل)</span>
+          <input
+            type="number"
+            min={4}
+            max={20}
+            step={0.1}
+            value={form.mapZoomMobile ?? ''}
+            onChange={(e) => updateForm('mapZoomMobile', e.target.value)}
+            placeholder="مثل دسکتاپ"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <span className="mt-1 block text-[11px] text-gray-500">
+            خالی = همان زوم دسکتاپ
+          </span>
         </label>
       </div>
 

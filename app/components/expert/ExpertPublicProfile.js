@@ -49,12 +49,12 @@ function SectionCard({ id, title, description, children }) {
   return (
     <section
       id={id}
-      className="scroll-mt-28 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm"
+      className="scroll-mt-28 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm dark:border-sky-800 dark:bg-sky-900 dark:shadow-none"
     >
-      <header className="border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
-        <h2 className="text-base font-bold text-slate-900 sm:text-lg">{title}</h2>
+      <header className="border-b border-slate-100 px-4 py-3 dark:border-sky-800 sm:px-5 sm:py-4">
+        <h2 className="text-base font-bold text-slate-900 dark:text-sky-50 sm:text-lg">{title}</h2>
         {description ? (
-          <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">{description}</p>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-sky-300 sm:text-sm">{description}</p>
         ) : null}
       </header>
       <div>{children}</div>
@@ -70,7 +70,7 @@ function ExpertPublicCategories({ categories }) {
       {categories.map((cat) => (
         <span
           key={cat.id}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-teal-100 bg-teal-50/80 px-3.5 py-2 text-sm font-medium text-teal-900"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-teal-100 bg-teal-50/80 px-3.5 py-2 text-sm font-medium text-teal-900 dark:border-teal-800/60 dark:bg-teal-950/50 dark:text-teal-200"
         >
           {cat.icon ? (
             <span className="text-base leading-none" aria-hidden>
@@ -91,7 +91,7 @@ function ExpertPublicPortfolioGallery({ portfolio }) {
 
   if (!items.length) {
     return (
-      <p className="px-4 py-6 text-center text-sm text-slate-500 sm:px-5">
+      <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-sky-300 sm:px-5">
         هنوز نمونه‌کاری ثبت نشده است.
       </p>
     );
@@ -102,7 +102,7 @@ function ExpertPublicPortfolioGallery({ portfolio }) {
       {items.map((item, index) => (
         <article
           key={index}
-          className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50 transition hover:border-teal-200 hover:shadow-md"
+          className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50 transition hover:border-teal-200 hover:shadow-md dark:border-sky-700 dark:bg-sky-950/60 dark:hover:border-teal-700"
         >
           {item.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -112,14 +112,14 @@ function ExpertPublicPortfolioGallery({ portfolio }) {
               className="aspect-[4/3] w-full object-cover"
             />
           ) : (
-            <div className="flex aspect-[4/3] flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-slate-100 to-teal-50 text-slate-400">
+            <div className="flex aspect-[4/3] flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-slate-100 to-teal-50 text-slate-400 dark:from-sky-900 dark:to-sky-950 dark:text-sky-500">
               <PhotoIcon className="h-8 w-8" aria-hidden />
               <span className="text-sm">بدون عکس</span>
             </div>
           )}
           <div className="space-y-2 p-3">
             {item.title ? (
-              <h3 className="text-sm font-semibold text-slate-900">{item.title}</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-sky-100">{item.title}</h3>
             ) : null}
             <div className="flex flex-wrap gap-2">
               {item.instagramUrl ? (
@@ -127,7 +127,7 @@ function ExpertPublicPortfolioGallery({ portfolio }) {
                   href={item.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-900"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-900 dark:text-teal-300 dark:hover:text-teal-200"
                 >
                   اینستاگرام
                   <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" aria-hidden />
@@ -138,7 +138,7 @@ function ExpertPublicPortfolioGallery({ portfolio }) {
                   href={item.websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-900"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-900 dark:text-teal-300 dark:hover:text-teal-200"
                 >
                   وب‌سایت
                   <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" aria-hidden />
@@ -156,15 +156,15 @@ function ExpertPublicReviews({ reviews }) {
   if (!reviews?.length) {
     return (
       <div className="flex flex-col items-center px-4 py-10 text-center sm:px-5">
-        <ChatBubbleLeftEllipsisIcon className="h-12 w-12 text-slate-300" aria-hidden />
-        <p className="mt-3 text-sm font-medium text-slate-600">هنوز نظری ثبت نشده است</p>
-        <p className="mt-1 text-xs text-slate-500">پس از همکاری می‌توانید اولین نظر را بگذارید.</p>
+        <ChatBubbleLeftEllipsisIcon className="h-12 w-12 text-slate-300 dark:text-sky-600" aria-hidden />
+        <p className="mt-3 text-sm font-medium text-slate-600 dark:text-sky-200">هنوز نظری ثبت نشده است</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-sky-400">پس از همکاری می‌توانید اولین نظر را بگذارید.</p>
       </div>
     );
   }
 
   return (
-    <ul className="divide-y divide-slate-100">
+    <ul className="divide-y divide-slate-100 dark:divide-sky-800">
       {reviews.map((review) => (
         <li key={review.id} className="px-4 py-4 sm:px-5">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -173,16 +173,16 @@ function ExpertPublicReviews({ reviews }) {
                 n <= review.rating ? (
                   <StarSolidIcon key={n} className="h-4 w-4 text-amber-400" />
                 ) : (
-                  <StarIcon key={n} className="h-4 w-4 text-slate-200" />
+                  <StarIcon key={n} className="h-4 w-4 text-slate-200 dark:text-sky-700" />
                 )
               )}
             </div>
-            <time className="text-xs text-slate-500" dateTime={review.createdAt}>
+            <time className="text-xs text-slate-500 dark:text-sky-400" dateTime={review.createdAt}>
               {new Date(review.createdAt).toLocaleDateString('fa-IR')}
             </time>
           </div>
           {review.comment ? (
-            <p className="text-sm leading-relaxed text-slate-700">{review.comment}</p>
+            <p className="text-sm leading-relaxed text-slate-700 dark:text-sky-200">{review.comment}</p>
           ) : null}
         </li>
       ))}
@@ -246,8 +246,8 @@ export default function ExpertPublicProfile({ expert, reviews = [] }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="sticky top-0 z-20 bg-slate-100/95 backdrop-blur-sm">
+    <div className="min-h-screen bg-slate-50 dark:bg-sky-950">
+      <div className="sticky top-0 z-20 bg-slate-100/95 backdrop-blur-sm dark:bg-sky-950/95">
         <ExpertPublicProfileHeader
           expert={expert}
           sections={SECTIONS}
@@ -259,7 +259,7 @@ export default function ExpertPublicProfile({ expert, reviews = [] }) {
       <main className="mx-auto max-w-4xl space-y-4 px-4 py-4 sm:space-y-5 sm:px-6 sm:py-5">
         {expert?.status && expert.status !== 'approved' ? (
           <div
-            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200"
             role="status"
           >
             این پروفایل هنوز توسط تیم پرند ایکس تأیید نشده است.

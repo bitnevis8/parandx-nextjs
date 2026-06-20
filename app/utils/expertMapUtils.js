@@ -46,6 +46,82 @@ export function flattenServiceOptions(categories = []) {
   return list.sort((a, b) => a.title.localeCompare(b.title, 'fa'));
 }
 
+const MAIN_PROFESSION_PREFIX = '__main__:';
+
+/** یک لیست جستجو — دسته اصلی + زیردسته */
+export function flattenProfessionSearchOptions(categories = []) {
+  const list = [
+    {
+      id: 'all',
+      slug: '',
+      title: 'همه دسته‌ها',
+      kind: 'all',
+      searchText: 'همه دسته‌ها',
+    },
+  ];
+
+  categories.forEach((main) => {
+    const subs = main.subcategories || [];
+    if (!subs.length) return;
+
+    list.push({
+      id: `main-${main.id}`,
+      slug: `${MAIN_PROFESSION_PREFIX}${main.slug}`,
+      title: main.title,
+      kind: 'main',
+      parentSlug: main.slug,
+      parentTitle: 'دسته اصلی · همه زیردسته‌ها',
+      searchText: `${main.title} ${main.slug} دسته`.toLowerCase(),
+    });
+
+    subs.forEach((sub) => {
+      list.push({
+        id: sub.id,
+        slug: sub.slug,
+        title: sub.title,
+        kind: 'sub',
+        parentTitle: main.title,
+        parentSlug: main.slug,
+        searchText: `${sub.title} ${main.title} ${sub.slug}`.toLowerCase(),
+      });
+    });
+  });
+
+  return list.sort((a, b) => {
+    if (a.kind === 'all') return -1;
+    if (b.kind === 'all') return 1;
+    return a.title.localeCompare(b.title, 'fa');
+  });
+}
+
+export function encodeProfessionSearchValue(parentSlug = '', serviceSlug = '') {
+  if (serviceSlug) return serviceSlug;
+  if (parentSlug) return `${MAIN_PROFESSION_PREFIX}${parentSlug}`;
+  return '';
+}
+
+export function applyProfessionSearchSelection(
+  slug,
+  categories = [],
+  { onParentChange, onServiceChange } = {}
+) {
+  if (!slug) {
+    onParentChange?.('');
+    onServiceChange?.('');
+    return;
+  }
+
+  if (slug.startsWith(MAIN_PROFESSION_PREFIX)) {
+    onParentChange?.(slug.slice(MAIN_PROFESSION_PREFIX.length));
+    onServiceChange?.('');
+    return;
+  }
+
+  onServiceChange?.(slug);
+  const parent = findParentSlugForService(categories, slug);
+  if (parent) onParentChange?.(parent);
+}
+
 export function findParentSlugForService(categories = [], serviceSlug = '') {
   if (!serviceSlug) return '';
   const main = categories.find((c) =>

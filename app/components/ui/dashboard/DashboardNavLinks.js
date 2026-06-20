@@ -7,6 +7,7 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { useRole } from '../../../hooks/useRole';
 import { MARKETPLACE } from '../../../config/marketplaceConfig';
 import {
+  buildDivarNavGroups,
   buildFixedBottomNavGroups,
   buildFixedTopNavGroups,
   buildMarketNavGroups,
@@ -181,6 +182,7 @@ export default function DashboardNavLinks({
   const isMobile = variant === 'mobile';
 
   const topGroups = useMemo(() => buildFixedTopNavGroups(), []);
+  const divarGroups = useMemo(() => buildDivarNavGroups(), []);
   const marketGroups = useMemo(
     () => buildMarketNavGroups(activeMarket, userRole),
     [activeMarket, userRole]
@@ -205,6 +207,10 @@ export default function DashboardNavLinks({
       aria-label="منوی داشبورد"
     >
       {renderGroups(topGroups)}
+
+      <div className={isMobile ? 'mt-2' : 'mt-3 px-1'}>
+        {renderGroups(divarGroups)}
+      </div>
 
       <div className={isMobile ? 'mt-3 px-0' : 'mt-4 px-2'}>
         <DashboardMarketplaceTabs

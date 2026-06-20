@@ -47,7 +47,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white w-full max-w-[100vw] overflow-x-hidden">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white dark:bg-transparent">
       <HomeHero
         city={selectedCity}
         cityName={selectedCity.name}

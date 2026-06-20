@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { AdjustmentsHorizontalIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 import { API_ENDPOINTS } from '../../config/api';
 import { resolveCityMapView } from '../../utils/cityMapConfig';
+import { loadCityBoundaryData, cityHasBoundaryMap } from '../../utils/loadCityBoundary';
 import { MAP_EXPLORER_MODES } from '../../utils/mapExplorerModes';
+import { EXPERT_MARKER_STYLES } from '../../utils/mapExpertMarkerConfig';
 import {
   MAP_GOODS_LAYERS,
   buildMerchantMapExplorerStats,
@@ -18,19 +20,19 @@ import {
   flattenServiceOptions,
   getMerchantMapExplorerSummaryCopy,
   getGoodsNeedMapExplorerSummaryCopy,
+  getGoodsSupplyMapExplorerSummaryCopy,
 } from '../../utils/merchantMapUtils';
 import MapGoodsLayerToolbar from './MapGoodsLayerToolbar';
+import { MapProfessionSearchSelect } from './MapCategoryFilterFields';
 import HomeCityMap from './HomeCityMap';
 import HomeMapFullscreenModal from './HomeMapFullscreenModal';
-import { HOME_GOODS_MAP_SHELL } from './homePageTheme';
-import { GOODS_MAP_INTRO } from '../../copy/goodsPageFa';
-import { useMerchantMapCategories } from '../../hooks/useMerchantMapCategories';
-import { useCategoryMapModels } from '../../hooks/useCategoryMapModels';
-import { ensureModelViewerLoaded } from '../../utils/mapGlbMarkerUi';
-import { loadCityBoundaryData, cityHasBoundaryMap } from '../../utils/loadCityBoundary';
+import HomeMapBannerChrome from './HomeMapBannerChrome';
 import MapBoundaryRegionFilters from '../map/MapBoundaryRegionFilters';
-
-const MapGoodsCategoryPanel = dynamic(() => import('../map/MapGoodsCategoryPanel'), { ssr: false });
+import { MapSettingToggle, MapViewModeToggle } from './MapSettingsBar';
+import { buildGoodsMapSpecialtyTitle, GOODS_MAP_INTRO } from '../../copy/goodsPageFa';
+import { HOME_CARD_SHELL } from './homePageTheme';
+import { useMerchantMapCategories } from '../../hooks/useMerchantMapCategories';
+import { useIsMobileViewport } from '../../hooks/useIsMobileViewport';
 
 function buildGoodsMobileSheetSummary({
   serviceTitle,
@@ -47,6 +49,8 @@ function buildGoodsMobileSheetSummary({
   if (regionLabel) parts.push(regionLabel);
   if (mapLayer === MAP_GOODS_LAYERS.needs && hasCategories) {
     parts.push(needsMineOnly ? 'نیازهای دسته من' : 'همه نیازها');
+  } else if (mapLayer === MAP_GOODS_LAYERS.supplies) {
+    parts.push('عرضه‌های کالا');
   } else {
     parts.push(mapLayer === MAP_GOODS_LAYERS.needs ? 'نیازهای کالا' : 'فروشگاه‌ها');
   }
@@ -59,9 +63,9 @@ export default function GoodsCityMapExplorer({
   categories = [],
   connectBelow = false,
   sectionId = 'home-path-map',
-  enableMerchantGlbMarkers = false,
 }) {
   const mapInstanceRef = useRef(null);
+  const isMobile = useIsMobileViewport();
 
   const cityMapView = useMemo(() => resolveCityMapView(city), [
     city?.id,
@@ -82,8 +86,10 @@ export default function GoodsCityMapExplorer({
   }));
   const [merchants, setMerchants] = useState([]);
   const [needs, setNeeds] = useState([]);
+  const [supplies, setSupplies] = useState([]);
   const [loadingMerchants, setLoadingMerchants] = useState(false);
   const [loadingNeeds, setLoadingNeeds] = useState(false);
+  const [loadingSupplies, setLoadingSupplies] = useState(false);
   const [mapLayer, setMapLayer] = useState(MAP_GOODS_LAYERS.merchants);
   const [needsMineOnly, setNeedsMineOnly] = useState(true);
   const [showBoundaries, setShowBoundaries] = useState(true);
@@ -91,6 +97,7 @@ export default function GoodsCityMapExplorer({
   const [mapRecenterKey, setMapRecenterKey] = useState(0);
   const [map3DApplyKey, setMap3DApplyKey] = useState(0);
   const [boundaryData, setBoundaryData] = useState(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const handleSelect2D = useCallback(() => {
     setShow3D(false);
@@ -106,6 +113,10 @@ export default function GoodsCityMapExplorer({
     if (!city) return;
     const view = resolveCityMapView(city);
     setShow3D(view?.show3D ?? true);
+    if (view?.useConfiguredView && view?.center) {
+      setMapRecenterKey((key) => key + 1);
+      if (view.show3D) setMap3DApplyKey((key) => key + 1);
+    }
     setRegion((prev) => ({
       ...prev,
       sectionId: view?.defaultRegion?.sectionId || '',
@@ -113,7 +124,19 @@ export default function GoodsCityMapExplorer({
       sectionName: '',
       neighborhoodName: '',
     }));
-  }, [city?.id, city?.defaultSectionId, city?.defaultNeighborhoodId, city?.mapShow3D]);
+  }, [
+    city?.id,
+    city?.defaultSectionId,
+    city?.defaultNeighborhoodId,
+    city?.mapShow3D,
+    city?.mapUseConfiguredView,
+    city?.latitude,
+    city?.longitude,
+    city?.mapZoom,
+    city?.mapZoomMobile,
+    city?.mapPitch,
+    city?.mapBearing,
+  ]);
 
   const services = useMemo(() => flattenServiceOptions(categories), [categories]);
 
@@ -123,13 +146,6 @@ export default function GoodsCityMapExplorer({
     loading: merchantCategoriesLoading,
     isLoggedInMerchant,
   } = useMerchantMapCategories();
-
-  const { registry: mapModelRegistry } = useCategoryMapModels('goods');
-
-  useEffect(() => {
-    if (!enableMerchantGlbMarkers) return;
-    ensureModelViewerLoaded();
-  }, [enableMerchantGlbMarkers]);
 
   const handleMapLayerChange = useCallback(
     (layer) => {
@@ -247,30 +263,6 @@ export default function GoodsCityMapExplorer({
     [region.sectionId, region.neighborhoodId]
   );
 
-  const goodsRegionFilters = useMemo(
-    () =>
-      boundaryData ? (
-        <MapBoundaryRegionFilters
-          data={boundaryData}
-          cityName={city?.name || 'شهر'}
-          sectionId={region.sectionId}
-          neighborhoodId={region.neighborhoodId}
-          onSectionChange={handlePlacesSectionChange}
-          onNeighborhoodChange={handlePlacesNeighborhoodChange}
-          layout="row"
-          mapToolbar
-        />
-      ) : null,
-    [
-      boundaryData,
-      city?.name,
-      region.sectionId,
-      region.neighborhoodId,
-      handlePlacesSectionChange,
-      handlePlacesNeighborhoodChange,
-    ]
-  );
-
   useEffect(() => {
     if (!serviceSlug || parentSlug) return;
     const inferred = findParentSlugForService(categories, serviceSlug);
@@ -313,7 +305,7 @@ export default function GoodsCityMapExplorer({
     let cancelled = false;
     setLoadingNeeds(true);
 
-    fetch(API_ENDPOINTS.requests.getForMap(city.id, 200, 'goods'))
+    fetch(API_ENDPOINTS.requests.getForMap(city.id, 200, 'goods', 'need'))
       .then((res) => res.json())
       .then((json) => {
         if (cancelled) return;
@@ -324,6 +316,33 @@ export default function GoodsCityMapExplorer({
       })
       .finally(() => {
         if (!cancelled) setLoadingNeeds(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [city?.id]);
+
+  useEffect(() => {
+    if (!city?.id) {
+      setSupplies([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setLoadingSupplies(true);
+
+    fetch(API_ENDPOINTS.requests.getForMap(city.id, 200, 'goods', 'supply'))
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled) return;
+        setSupplies(Array.isArray(json.data) ? json.data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setSupplies([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingSupplies(false);
       });
 
     return () => {
@@ -350,6 +369,7 @@ export default function GoodsCityMapExplorer({
       region.sectionId,
       region.neighborhoodId,
       city?.slug,
+      city?.id,
     ]
   );
 
@@ -376,6 +396,25 @@ export default function GoodsCityMapExplorer({
     ]
   );
 
+  const filteredSupplies = useMemo(
+    () =>
+      filterGoodsNeedsForMap(supplies, {
+        serviceSlug,
+        parentSlug: serviceSlug ? '' : parentSlug,
+        categories,
+        sectionId: region.sectionId,
+        neighborhoodId: region.neighborhoodId,
+      }),
+    [
+      supplies,
+      serviceSlug,
+      parentSlug,
+      categories,
+      region.sectionId,
+      region.neighborhoodId,
+    ]
+  );
+
   const merchantMarkers = useMemo(
     () =>
       collectMerchantMapMarkers(filteredMerchants, {
@@ -386,8 +425,6 @@ export default function GoodsCityMapExplorer({
         categorySlug: serviceSlug,
         parentSlug: serviceSlug ? '' : parentSlug,
         categories,
-        includeGlbModels: enableMerchantGlbMarkers,
-        mapModelRegistry,
       }),
     [
       filteredMerchants,
@@ -398,8 +435,6 @@ export default function GoodsCityMapExplorer({
       serviceSlug,
       parentSlug,
       categories,
-      enableMerchantGlbMarkers,
-      mapModelRegistry,
     ]
   );
 
@@ -413,6 +448,16 @@ export default function GoodsCityMapExplorer({
     [filteredNeeds, serviceSlug, parentSlug, categories]
   );
 
+  const supplyMarkers = useMemo(
+    () =>
+      collectGoodsNeedMapMarkers(filteredSupplies, {
+        serviceSlug,
+        parentSlug: serviceSlug ? '' : parentSlug,
+        categories,
+      }),
+    [filteredSupplies, serviceSlug, parentSlug, categories]
+  );
+
   const merchantStats = useMemo(
     () => buildMerchantMapExplorerStats(filteredMerchants, merchantMarkers),
     [filteredMerchants, merchantMarkers]
@@ -421,6 +466,11 @@ export default function GoodsCityMapExplorer({
   const needStats = useMemo(
     () => buildGoodsNeedMapExplorerStats(filteredNeeds, needMarkers),
     [filteredNeeds, needMarkers]
+  );
+
+  const supplyStats = useMemo(
+    () => buildGoodsNeedMapExplorerStats(filteredSupplies, supplyMarkers),
+    [filteredSupplies, supplyMarkers]
   );
 
   const regionLabel = buildRegionLabel({
@@ -449,6 +499,14 @@ export default function GoodsCityMapExplorer({
       });
     }
 
+    if (mapLayer === MAP_GOODS_LAYERS.supplies) {
+      return getGoodsSupplyMapExplorerSummaryCopy({
+        stats: supplyStats,
+        loading: loadingSupplies,
+        filterMode,
+      });
+    }
+
     return getMerchantMapExplorerSummaryCopy({
       stats: merchantStats,
       loading: loadingMerchants,
@@ -459,29 +517,34 @@ export default function GoodsCityMapExplorer({
     filterMode,
     merchantStats,
     needStats,
+    supplyStats,
     loadingMerchants,
     loadingNeeds,
+    loadingSupplies,
   ]);
 
-  const panelLayerToolbar = useMemo(
-    () => (
-      <MapGoodsLayerToolbar
-        layer={mapLayer}
-        onLayerChange={handleMapLayerChange}
-        showNeedScope={isLoggedInMerchant && hasCategories}
-        needsMineOnly={needsMineOnly}
-        onNeedsMineOnlyChange={setNeedsMineOnly}
-        needScopeLoading={merchantCategoriesLoading}
-      />
-    ),
-    [
-      mapLayer,
-      handleMapLayerChange,
-      isLoggedInMerchant,
-      hasCategories,
-      needsMineOnly,
-      merchantCategoriesLoading,
-    ]
+  const layerToolbar = (
+    <MapGoodsLayerToolbar
+      stretch
+      layer={mapLayer}
+      onLayerChange={handleMapLayerChange}
+      showNeedScope={isLoggedInMerchant && hasCategories}
+      needsMineOnly={needsMineOnly}
+      onNeedsMineOnlyChange={setNeedsMineOnly}
+      needScopeLoading={merchantCategoriesLoading}
+    />
+  );
+
+  const mobileBannerLayerToolbar = (
+    <MapGoodsLayerToolbar
+      variant="mobileBanner"
+      layer={mapLayer}
+      onLayerChange={handleMapLayerChange}
+      showNeedScope={isLoggedInMerchant && hasCategories}
+      needsMineOnly={needsMineOnly}
+      onNeedsMineOnlyChange={setNeedsMineOnly}
+      needScopeLoading={merchantCategoriesLoading}
+    />
   );
 
   const mobileSheetSummary = useMemo(
@@ -506,42 +569,46 @@ export default function GoodsCityMapExplorer({
     ]
   );
 
-  const categoryPanelProps = useMemo(
-    () => ({
-      categories,
-      parentSlug,
-      serviceSlug,
-      onParentChange: handleParentChange,
-      onServiceChange: handleServiceChange,
-      statusDetail: '',
-      position: 'aboveMap',
-      showSearch: true,
-      flushTop: true,
-      layerToolbar: panelLayerToolbar,
-      regionFilters: goodsRegionFilters,
-    }),
-    [
-      categories,
-      parentSlug,
-      serviceSlug,
-      handleParentChange,
-      handleServiceChange,
-      panelLayerToolbar,
-      goodsRegionFilters,
-    ]
+  const categoryFilterProps = {
+    categories,
+    parentSlug,
+    serviceSlug,
+    onParentChange: handleParentChange,
+    onServiceChange: handleServiceChange,
+    mapToolbar: true,
+  };
+
+  const bannerProfessionSearch = (
+    <MapProfessionSearchSelect {...categoryFilterProps} size="md" />
+  );
+
+  const modalProfessionSearch = (
+    <MapProfessionSearchSelect
+      {...categoryFilterProps}
+      size="lg"
+      mobileTopPicker
+      inputId="goods-map-profession-search-modal"
+    />
+  );
+
+  const bannerProfessionSearchCorner = (
+    <MapProfessionSearchSelect {...categoryFilterProps} mapGlassCorner />
   );
 
   const mapProps = {
     city,
     expertMarkers: mapLayer === MAP_GOODS_LAYERS.merchants ? merchantMarkers : [],
-    requestMarkers: mapLayer === MAP_GOODS_LAYERS.needs ? needMarkers : [],
-    merchantGlbMarkers: enableMerchantGlbMarkers,
-    layerToolbar: null,
+    requestMarkers:
+      mapLayer === MAP_GOODS_LAYERS.needs
+        ? needMarkers
+        : mapLayer === MAP_GOODS_LAYERS.supplies
+          ? supplyMarkers
+          : [],
+    layerToolbar,
     mapExplorerSummaryCopy: summaryCopy,
     mapLayer,
     onRegionChange: handleRegionChange,
     regionValue,
-    skipDesktopFilterBar: true,
     showBoundaries,
     onShowBoundariesChange: setShowBoundaries,
     show3D,
@@ -550,56 +617,142 @@ export default function GoodsCityMapExplorer({
     mapRecenterKey,
     map3DApplyKey,
     showMapSettingsBar: false,
-    mapSettingsOverlay: true,
-    showWalkExplorer: true,
     explorerMode: MAP_EXPLORER_MODES.work,
     placeSearchControl: null,
     placeSearchEnabled: false,
     placesRegionControls: null,
+    mapCornerCategoryControl: bannerProfessionSearchCorner,
+    expertMarkerStyleOverride: EXPERT_MARKER_STYLES.category,
+    onMapInstanceReady: (map) => {
+      mapInstanceRef.current = map;
+    },
+    expandHint: {
+      label: GOODS_MAP_INTRO.mobileExpandHint,
+      ariaLabel: GOODS_MAP_INTRO.mobileExpandHintAria,
+      mobileOnly: false,
+    },
+  };
+
+  const categoryProps = {
+    mainCategoryControl: bannerProfessionSearch,
+    subCategoryControl: null,
+    mobileCategoryControls: null,
+    serviceSummary: null,
+    mobileControlsSummary: mobileSheetSummary,
+  };
+
+  const modalCategoryProps = {
     mainCategoryControl: null,
     subCategoryControl: null,
     mobileCategoryControls: null,
     serviceSummary: null,
     mobileControlsSummary: mobileSheetSummary,
-    onMapInstanceReady: (map) => {
-      mapInstanceRef.current = map;
-    },
   };
+
+  const openMobileMapFilters = useCallback(() => {
+    setMobileFiltersOpen((open) => !open);
+  }, []);
+
+  const mobileHeaderRegionFilters = boundaryData ? (
+    <MapBoundaryRegionFilters
+      data={boundaryData}
+      cityName={city?.name || 'شهر'}
+      sectionId={region.sectionId}
+      neighborhoodId={region.neighborhoodId}
+      onSectionChange={handlePlacesSectionChange}
+      onNeighborhoodChange={handlePlacesNeighborhoodChange}
+      layout="row"
+      mapToolbar
+    />
+  ) : null;
+
+  const mobileFullscreenHeader = (
+    <div className="flex flex-col gap-2.5">
+      {mobileBannerLayerToolbar}
+      <div className="flex items-stretch gap-2">
+        <div className="min-w-0 flex-1">{modalProfessionSearch}</div>
+        <button
+          type="button"
+          onClick={openMobileMapFilters}
+          aria-expanded={mobileFiltersOpen}
+          className={`inline-flex h-10 shrink-0 touch-manipulation items-center gap-1.5 rounded-xl border px-3 text-xs font-bold shadow-sm transition active:scale-[0.98] ${
+            mobileFiltersOpen
+              ? 'border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-600 dark:bg-teal-950/80 dark:text-teal-100'
+              : 'border-gray-200/90 bg-white text-teal-700 hover:border-teal-200 hover:bg-teal-50 dark:border-sky-700 dark:bg-sky-900 dark:text-teal-300 dark:hover:border-sky-600 dark:hover:bg-sky-800'
+          }`}
+          aria-label="فیلتر و تنظیمات نقشه"
+        >
+          <AdjustmentsHorizontalIcon className="h-4 w-4 shrink-0" aria-hidden />
+          <span>فیلتر</span>
+        </button>
+      </div>
+      {mobileFiltersOpen ? (
+        <div className="space-y-2.5 rounded-xl border border-gray-200/90 bg-gray-50/90 p-2.5 dark:border-sky-800 dark:bg-sky-900/50">
+          {mobileHeaderRegionFilters}
+          <div className="flex flex-wrap items-center gap-2">
+            <MapViewModeToggle
+              compact
+              show3D={show3D}
+              onSelect2D={handleSelect2D}
+              onSelect3D={handleSelect3D}
+            />
+            <MapSettingToggle
+              compact
+              active={showBoundaries}
+              onToggle={() => setShowBoundaries((value) => !value)}
+              icon={RectangleGroupIcon}
+              label="مرزها"
+              ariaOn="مخفی کردن مرزها"
+              ariaOff="نمایش مرزها"
+            />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const mapSpecialtyTitle = buildGoodsMapSpecialtyTitle(city?.name);
 
   return (
     <>
       <div
         id={sectionId}
-        className={`${HOME_GOODS_MAP_SHELL}${connectBelow ? ' rounded-b-none border-b-0 shadow-none' : ''}`}
+        className={`${HOME_CARD_SHELL}${connectBelow ? ' rounded-b-none border-b-0 shadow-none' : ''}`}
       >
-        <MapGoodsCategoryPanel {...categoryPanelProps} />
-
+        <HomeMapBannerChrome
+          title={mapSpecialtyTitle}
+          layerToolbar={isMobile ? null : layerToolbar}
+        />
         <HomeCityMap
           variant="banner"
           embedded
-          mapHeightPreset="goods"
           expandOnInteract={false}
           onRequestExpand={openMapFullscreen}
-          expandHint={{
-            label: GOODS_MAP_INTRO.expandHint,
-            ariaLabel: GOODS_MAP_INTRO.expandHintAria,
-          }}
+          skipDesktopFilterBar
+          {...categoryProps}
           {...mapProps}
+          layerToolbar={isMobile ? mobileBannerLayerToolbar : null}
         />
       </div>
 
       <HomeMapFullscreenModal
         isOpen={mapFullscreenOpen}
         onClose={closeMapFullscreen}
-        title={city?.name ? `نقشه ${city.name}` : 'نقشه بازار کالا'}
+        title={mapSpecialtyTitle}
+        headerLayerToolbar={layerToolbar}
+        headerExtra={mobileFullscreenHeader}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <MapGoodsCategoryPanel {...categoryPanelProps} compact />
           <div className="min-h-0 flex-1">
             <HomeCityMap
               variant="fullscreen"
+              skipDesktopFilterBar
+              skipMobileFullscreenSheet
               mapResizeTrigger={mapFullscreenOpen ? mapFullscreenKey : null}
+              {...modalCategoryProps}
               {...mapProps}
+              layerToolbar={null}
+              mainCategoryControl={isMobile ? null : bannerProfessionSearch}
             />
           </div>
         </div>

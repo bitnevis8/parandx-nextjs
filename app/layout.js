@@ -1,9 +1,14 @@
 import './globals.css'
 import { AuthProvider } from './context/AuthContext'
 import { CityProvider } from './context/CityContext'
+import { ThemeProvider } from './context/ThemeContext'
 import Header from './components/ui/Header/Header'
+import MainNavBar from './components/ui/Header/MainNavBar'
 import Footer from './components/ui/Footer/Footer'
 import CityPickerModal from './components/ui/CityPickerModal'
+import NightSkyStars from './components/ui/NightSkyStars'
+
+const themeInitScript = `(function(){try{var t=localStorage.getItem('parandx-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`
 
 export const metadata = {
   title: 'پرندیکس - پلتفرم خدمات شهری',
@@ -41,20 +46,25 @@ export default function RootLayout({ children }) {
         <meta charSet="utf-8" />
         <meta name="enamad" content="70429060" />
         <link rel="icon" href="/favicon.ico" />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="font-iransans bg-white overflow-x-hidden" suppressHydrationWarning>
-        <AuthProvider>
-          <CityProvider>
-            <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
-              <Header />
-              <main className="flex-grow w-full overflow-x-hidden pb-20 md:pb-0">
-                {children}
-              </main>
-              <Footer />
-              <CityPickerModal />
-            </div>
-          </CityProvider>
-        </AuthProvider>
+      <body className="font-iransans bg-white text-slate-900 overflow-x-hidden dark:bg-[#020617] dark:text-slate-100" suppressHydrationWarning>
+        <ThemeProvider>
+          <NightSkyStars />
+          <AuthProvider>
+            <CityProvider>
+              <div className="relative z-10 flex min-h-screen flex-col overflow-x-hidden bg-white dark:bg-transparent">
+                <Header />
+                <main className="flex-grow w-full overflow-x-hidden pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))] dark:bg-transparent md:pb-0">
+                  {children}
+                </main>
+                <Footer />
+                <CityPickerModal />
+              </div>
+              <MainNavBar />
+            </CityProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

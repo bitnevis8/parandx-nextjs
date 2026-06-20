@@ -31,9 +31,9 @@ export function ExpertPublicBioBlock({ bio }) {
   if (!text) return null;
 
   return (
-    <article className="rounded-2xl border border-teal-100 bg-gradient-to-b from-teal-50/40 to-white p-4 sm:p-5">
-      <h3 className="text-sm font-bold text-teal-900">درباره من</h3>
-      <p className="mt-3 text-sm leading-8 text-slate-700 whitespace-pre-wrap sm:text-[0.9375rem]">
+    <article className="rounded-2xl border border-teal-100 bg-gradient-to-b from-teal-50/40 to-white p-4 dark:border-teal-800/50 dark:from-teal-950/30 dark:to-sky-900 sm:p-5">
+      <h3 className="text-sm font-bold text-teal-900 dark:text-teal-200">درباره من</h3>
+      <p className="mt-3 text-sm leading-8 text-slate-700 dark:text-sky-200 whitespace-pre-wrap sm:text-[0.9375rem]">
         {text}
       </p>
     </article>
@@ -56,11 +56,11 @@ function TrustPill({ itemKey, ok }) {
     return (
       <li>
         <span
-          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200/90"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200/90 dark:bg-sky-900 dark:text-sky-100 dark:ring-sky-700"
           title={meta.title}
         >
           <CheckBadgeIcon className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-          <Icon className="h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden />
+          <Icon className="h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-sky-400" aria-hidden />
           <span>{meta.title}</span>
         </span>
       </li>
@@ -70,7 +70,7 @@ function TrustPill({ itemKey, ok }) {
   return (
     <li>
       <span
-        className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100/80 px-2.5 py-1.5 text-xs text-slate-400 ring-1 ring-slate-200/60"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100/80 px-2.5 py-1.5 text-xs text-slate-400 ring-1 ring-slate-200/60 dark:bg-sky-950/60 dark:text-sky-500 dark:ring-sky-800"
         title={`${meta.title} — تکمیل نشده`}
       >
         <Icon className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
@@ -89,7 +89,7 @@ export function ExpertPublicProfileHighlights({ expert, user }) {
   if (verified.length === 0 && !expertPending) return null;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white ring-1 ring-slate-100/80">
+    <section className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white ring-1 ring-slate-100/80 dark:border-sky-800 dark:bg-sky-900 dark:ring-sky-800/60">
       <div className="px-4 py-3.5 sm:px-5">
         <ul className="flex flex-wrap gap-2" aria-label="نشان‌های اعتماد">
           {verified.map((item) => (
@@ -97,7 +97,7 @@ export function ExpertPublicProfileHighlights({ expert, user }) {
           ))}
           {expertPending ? (
             <li>
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/80 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-900">
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/80 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200">
                 <ShieldCheckIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 در انتظار تأیید
               </span>
@@ -124,7 +124,7 @@ export function ExpertPublicPresenceSection({ presenceStatus, workSchedule }) {
   const statusLabel = getPresenceStatusLabel(presenceStatus);
 
   return (
-    <div className="divide-y divide-slate-100">
+    <div className="divide-y divide-slate-100 dark:divide-sky-800">
       {statusLabel ? (
         <div className="flex items-center gap-3 px-4 py-4 sm:px-5">
           <span
@@ -132,16 +132,16 @@ export function ExpertPublicPresenceSection({ presenceStatus, workSchedule }) {
             aria-hidden
           />
           <div>
-            <p className="text-xs text-slate-500">وضعیت فعلی</p>
-            <p className="text-sm font-semibold text-slate-900">{statusLabel}</p>
+            <p className="text-xs text-slate-500 dark:text-sky-400">وضعیت فعلی</p>
+            <p className="text-sm font-semibold text-slate-900 dark:text-sky-100">{statusLabel}</p>
           </div>
         </div>
       ) : null}
 
       <div className="px-4 py-4 sm:px-5">
         <div className="mb-3 flex items-center gap-2">
-          <ClockIcon className="h-5 w-5 text-teal-600" aria-hidden />
-          <h3 className="text-sm font-bold text-slate-900">برنامه هفتگی</h3>
+          <ClockIcon className="h-5 w-5 text-teal-600 dark:text-teal-400" aria-hidden />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-sky-100">برنامه هفتگی</h3>
         </div>
 
         {/* موبایل: کارت هر روز */}
@@ -153,16 +153,18 @@ export function ExpertPublicPresenceSection({ presenceStatus, workSchedule }) {
               <li
                 key={key}
                 className={`flex items-center justify-between rounded-xl border px-3 py-2.5 ${
-                  open ? 'border-teal-100 bg-teal-50/50' : 'border-slate-100 bg-slate-50/50'
+                  open
+                    ? 'border-teal-100 bg-teal-50/50 dark:border-teal-800/60 dark:bg-teal-950/40'
+                    : 'border-slate-100 bg-slate-50/50 dark:border-sky-800 dark:bg-sky-950/60'
                 }`}
               >
-                <span className="text-sm font-medium text-slate-800">{label}</span>
+                <span className="text-sm font-medium text-slate-800 dark:text-sky-100">{label}</span>
                 {open ? (
-                  <span className="text-xs font-medium text-teal-800" dir="ltr">
+                  <span className="text-xs font-medium text-teal-800 dark:text-teal-300" dir="ltr">
                     {day.start} – {day.end}
                   </span>
                 ) : (
-                  <span className="text-xs text-slate-400">تعطیل</span>
+                  <span className="text-xs text-slate-400 dark:text-sky-500">تعطیل</span>
                 )}
               </li>
             );
@@ -173,7 +175,7 @@ export function ExpertPublicPresenceSection({ presenceStatus, workSchedule }) {
         <div className="hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[280px] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-right text-xs text-slate-500">
+              <tr className="border-b border-slate-200 text-right text-xs text-slate-500 dark:border-sky-700 dark:text-sky-400">
                 <th className="py-2 pl-3 font-semibold">روز</th>
                 <th className="py-2 px-3 font-semibold">وضعیت</th>
                 <th className="py-2 pr-3 font-semibold" dir="ltr">
@@ -188,21 +190,21 @@ export function ExpertPublicPresenceSection({ presenceStatus, workSchedule }) {
                 return (
                   <tr
                     key={key}
-                    className={`border-b border-slate-100 last:border-0 ${
-                      open ? 'bg-teal-50/30' : ''
+                    className={`border-b border-slate-100 last:border-0 dark:border-sky-800 ${
+                      open ? 'bg-teal-50/30 dark:bg-teal-950/30' : ''
                     }`}
                   >
-                    <td className="py-2.5 pl-3 font-medium text-slate-800">{label}</td>
+                    <td className="py-2.5 pl-3 font-medium text-slate-800 dark:text-sky-100">{label}</td>
                     <td className="py-2.5 px-3">
                       {open ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
                           باز
                         </span>
                       ) : (
-                        <span className="text-xs text-slate-400">تعطیل</span>
+                        <span className="text-xs text-slate-400 dark:text-sky-500">تعطیل</span>
                       )}
                     </td>
-                    <td className="py-2.5 pr-3 text-left font-medium text-slate-700" dir="ltr">
+                    <td className="py-2.5 pr-3 text-left font-medium text-slate-700 dark:text-sky-200" dir="ltr">
                       {open ? `${day.start} – ${day.end}` : '—'}
                     </td>
                   </tr>
@@ -223,8 +225,8 @@ function AddressMapBlock({ city, addressData, title }) {
   if (!mapSelection && !pinPosition) return null;
 
   return (
-    <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
-      <div className="border-b border-slate-100 bg-slate-50/80 px-3 py-1.5 text-xs text-slate-500">
+    <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 dark:border-sky-700">
+      <div className="border-b border-slate-100 bg-slate-50/80 px-3 py-1.5 text-xs text-slate-500 dark:border-sky-800 dark:bg-sky-950/80 dark:text-sky-400">
         نقشه — {title}
       </div>
       <div className="h-48 sm:h-56">
@@ -247,7 +249,7 @@ export function ExpertPublicAddressesList({ addresses, cities = [] }) {
 
   if (!list.length) {
     return (
-      <p className="px-4 py-8 text-center text-sm text-slate-500 sm:px-5">
+      <p className="px-4 py-8 text-center text-sm text-slate-500 dark:text-sky-400 sm:px-5">
         آدرسی ثبت نشده است.
       </p>
     );
@@ -270,12 +272,12 @@ export function ExpertPublicAddressesList({ addresses, cities = [] }) {
         return (
           <li
             key={addr.id || `addr-${index}`}
-            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-sky-800 dark:bg-sky-900 dark:shadow-none"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/60 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/60 px-4 py-3 dark:border-sky-800 dark:bg-sky-950/60">
               <div className="flex items-center gap-2">
-                <MapPinIcon className="h-5 w-5 shrink-0 text-teal-600" aria-hidden />
-                <h3 className="text-sm font-bold text-slate-900">{label}</h3>
+                <MapPinIcon className="h-5 w-5 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-sky-100">{label}</h3>
               </div>
               {addr.isPrimary ? (
                 <span className="rounded-full bg-teal-600 px-2.5 py-0.5 text-xs font-semibold text-white">
@@ -284,23 +286,23 @@ export function ExpertPublicAddressesList({ addresses, cities = [] }) {
               ) : null}
             </div>
 
-            <dl className="grid gap-0 divide-y divide-slate-100 px-4 text-sm sm:grid-cols-2 sm:divide-y-0 sm:gap-x-4 sm:py-3">
+            <dl className="grid gap-0 divide-y divide-slate-100 px-4 text-sm dark:divide-sky-800 sm:grid-cols-2 sm:divide-y-0 sm:gap-x-4 sm:py-3">
               {provinceName ? (
                 <div className="py-2.5 sm:py-2">
-                  <dt className="text-xs text-slate-500">استان</dt>
-                  <dd className="mt-0.5 font-medium text-slate-800">{provinceName}</dd>
+                  <dt className="text-xs text-slate-500 dark:text-sky-400">استان</dt>
+                  <dd className="mt-0.5 font-medium text-slate-800 dark:text-sky-100">{provinceName}</dd>
                 </div>
               ) : null}
               {cityName ? (
                 <div className="py-2.5 sm:py-2">
-                  <dt className="text-xs text-slate-500">شهر</dt>
-                  <dd className="mt-0.5 font-medium text-slate-800">{cityName}</dd>
+                  <dt className="text-xs text-slate-500 dark:text-sky-400">شهر</dt>
+                  <dd className="mt-0.5 font-medium text-slate-800 dark:text-sky-100">{cityName}</dd>
                 </div>
               ) : null}
               {fullLine ? (
                 <div className="py-2.5 sm:col-span-2 sm:py-2">
-                  <dt className="text-xs text-slate-500">نشانی کامل</dt>
-                  <dd className="mt-1 leading-relaxed text-slate-800">{fullLine}</dd>
+                  <dt className="text-xs text-slate-500 dark:text-sky-400">نشانی کامل</dt>
+                  <dd className="mt-1 leading-relaxed text-slate-800 dark:text-sky-200">{fullLine}</dd>
                 </div>
               ) : null}
             </dl>

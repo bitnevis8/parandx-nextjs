@@ -19,7 +19,14 @@ import RequestChatLink from './RequestChatLink';
 import { formatPriceToman } from '../../utils/requestFormat';
 import { ghostBtnClass } from '../ui/dashboard/DashboardUi';
 
-export default function RequestListCard({ request, detailHref, myBid, showChat = false }) {
+export default function RequestListCard({
+  request,
+  detailHref,
+  myBid,
+  showChat = false,
+  theme = 'services',
+}) {
+  const isGoods = theme === 'goods';
   const catLabel = getCategoryLabel(request);
   const catIcon = getCategoryIcon(request);
   const pendingBids = countPendingBids(request);
@@ -27,7 +34,11 @@ export default function RequestListCard({ request, detailHref, myBid, showChat =
   const href = detailHref || `/requests/${request.id}`;
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-teal-200 hover:shadow-md">
+    <article
+      className={`group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md ${
+        isGoods ? 'hover:border-amber-200' : 'hover:border-teal-200'
+      }`}
+    >
       <div className="border-b border-gray-100 bg-gradient-to-bl from-gray-50/80 to-white px-4 py-4 sm:px-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -43,7 +54,13 @@ export default function RequestListCard({ request, detailHref, myBid, showChat =
                   ) : null}
                 </>
               ) : totalBids > 0 ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-800 ring-1 ring-inset ring-teal-200">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
+                    isGoods
+                      ? 'bg-amber-50 text-amber-800 ring-amber-200'
+                      : 'bg-teal-50 text-teal-800 ring-teal-200'
+                  }`}
+                >
                   <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" aria-hidden />
                   {totalBids} پیشنهاد
                   {pendingBids > 0 ? ` (${pendingBids} جدید)` : ''}
@@ -57,7 +74,10 @@ export default function RequestListCard({ request, detailHref, myBid, showChat =
             <h2 className="mt-2 text-base font-bold text-gray-900 sm:text-lg">{request.title}</h2>
             {catLabel !== '—' ? (
               <p className="mt-1 inline-flex items-center gap-1 text-xs text-gray-600">
-                <TagIcon className="h-3.5 w-3.5 text-teal-600" aria-hidden />
+                <TagIcon
+                  className={`h-3.5 w-3.5 ${isGoods ? 'text-amber-600' : 'text-teal-600'}`}
+                  aria-hidden
+                />
                 {catIcon} {catLabel}
               </p>
             ) : null}
@@ -83,7 +103,10 @@ export default function RequestListCard({ request, detailHref, myBid, showChat =
           ) : null}
           {request.location ? (
             <span className="inline-flex items-center gap-1">
-              <MapPinIcon className="h-3.5 w-3.5 text-teal-600" aria-hidden />
+              <MapPinIcon
+                className={`h-3.5 w-3.5 ${isGoods ? 'text-amber-600' : 'text-teal-600'}`}
+                aria-hidden
+              />
               {request.location}
             </span>
           ) : null}
@@ -96,11 +119,14 @@ export default function RequestListCard({ request, detailHref, myBid, showChat =
               <RequestChatLink
                 otherUserId={request.userId}
                 requestId={request.id}
-                label="گفتگو با کارفرما"
+                label="گفتگو با کاربر"
                 compact
               />
             ) : null}
-            <Link href={href} className={`${ghostBtnClass} gap-1 text-teal-700`}>
+            <Link
+              href={href}
+              className={`${ghostBtnClass} gap-1 ${isGoods ? 'text-amber-700' : 'text-teal-700'}`}
+            >
               مشاهده جزئیات
               <ChevronLeftIcon className="h-4 w-4" aria-hidden />
             </Link>

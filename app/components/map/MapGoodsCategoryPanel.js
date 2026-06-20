@@ -278,10 +278,41 @@ function NavCategoryScrollRow({
   );
 }
 
-const GOODS_MAP_OPEN_SEARCH_EVENT = 'goods-map-open-search';
+export const GOODS_MAP_OPEN_SEARCH_EVENT = 'goods-map-open-search';
 
-function GoodsMapToolbarRow({ layerToolbar, searchControl, regionFilters, flushTop = false }) {
+function GoodsMapToolbarRow({
+  layerToolbar,
+  searchControl,
+  regionFilters,
+  flushTop = false,
+  searchBelow = false,
+}) {
   if (!layerToolbar && !searchControl && !regionFilters) return null;
+
+  const toolbarRow = layerToolbar || regionFilters ? (
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+      {layerToolbar ? (
+        <div className="min-w-0 shrink-0 basis-[9.5rem] sm:max-w-[14rem] sm:basis-auto">
+          {layerToolbar}
+        </div>
+      ) : null}
+      {regionFilters ? (
+        <div className="flex min-w-0 max-w-full shrink gap-1.5 sm:max-w-[min(100%,18rem)] sm:gap-2">
+          {regionFilters}
+        </div>
+      ) : null}
+      {!searchBelow && searchControl ? (
+        <div className="min-w-0 max-w-full basis-full sm:max-w-[14rem] sm:basis-[14rem] sm:shrink-0">
+          {searchControl}
+        </div>
+      ) : null}
+    </div>
+  ) : null;
+
+  const searchRow =
+    searchBelow && searchControl ? (
+      <div className="mt-2 min-w-0 max-w-full sm:max-w-md">{searchControl}</div>
+    ) : null;
 
   return (
     <div
@@ -291,17 +322,8 @@ function GoodsMapToolbarRow({ layerToolbar, searchControl, regionFilters, flushT
       }`}
       dir="rtl"
     >
-      <div className="flex items-center gap-1.5 sm:gap-2">
-        {layerToolbar ? (
-          <div className="min-w-0 shrink-0 sm:max-w-[14rem]">{layerToolbar}</div>
-        ) : null}
-        {searchControl ? searchControl : null}
-        {regionFilters ? (
-          <div className="flex min-w-0 max-w-[min(100%,20rem)] shrink gap-1.5 sm:gap-2">
-            {regionFilters}
-          </div>
-        ) : null}
-      </div>
+      {toolbarRow}
+      {searchRow}
     </div>
   );
 }
@@ -353,6 +375,8 @@ function GoodsCategoryNavbar({
   layerToolbar = null,
   regionFilters = null,
   flushTop = false,
+  showToolbar = true,
+  searchBelow = false,
 }) {
   const inputId = compact ? 'goods-map-category-search-fullscreen' : 'goods-map-category-search';
 
@@ -473,18 +497,30 @@ function GoodsCategoryNavbar({
       />
     ) : null;
 
+  const hasToolbarItems = Boolean(layerToolbar || regionFilters || (showSearch && searchControl));
+
   return (
     <div
       className={`border-b border-gray-200/90 bg-white ${
         flushTop ? 'sticky top-14 z-30 sm:top-16' : ''
       }`}
     >
-      <GoodsMapToolbarRow
-        layerToolbar={layerToolbar}
-        searchControl={searchControl}
-        regionFilters={regionFilters}
-        flushTop={flushTop}
-      />
+      {showToolbar && hasToolbarItems ? (
+        <GoodsMapToolbarRow
+          layerToolbar={layerToolbar}
+          searchControl={searchControl}
+          regionFilters={regionFilters}
+          flushTop={flushTop}
+          searchBelow={searchBelow}
+        />
+      ) : showSearch && searchControl ? (
+        <div
+          className={`${GOODS_MAP_TOOLBAR} ${GOODS_MAP_TOOLBAR_PAD} ${flushTop ? 'rounded-t-2xl' : ''}`}
+          dir="rtl"
+        >
+          <div className="min-w-0 max-w-full sm:max-w-md">{searchControl}</div>
+        </div>
+      ) : null}
 
       {statusDetail && !flushTop ? (
         <p className="truncate border-b border-gray-50 bg-gray-50/40 px-3 py-1 text-[10px] text-gray-500 sm:px-4">
@@ -515,6 +551,8 @@ export default function MapGoodsCategoryPanel({
   layerToolbar = null,
   regionFilters = null,
   flushTop = false,
+  showToolbar = true,
+  searchBelow = false,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -635,6 +673,8 @@ export default function MapGoodsCategoryPanel({
           layerToolbar={layerToolbar}
           regionFilters={regionFilters}
           flushTop={flushTop}
+          showToolbar={showToolbar}
+          searchBelow={searchBelow}
         />
       </div>
     );
@@ -666,6 +706,8 @@ export default function MapGoodsCategoryPanel({
         layerToolbar={layerToolbar}
         regionFilters={regionFilters}
         flushTop={flushTop}
+        showToolbar={showToolbar}
+        searchBelow={searchBelow}
       />
     </div>
   );

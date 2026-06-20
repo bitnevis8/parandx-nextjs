@@ -33,11 +33,11 @@ export default function ExpertHeaderActivityTypes({ expert, className = '' }) {
         return (
           <li key={opt.key}>
             <span
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-700 sm:text-xs"
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-700 dark:text-sky-200 sm:text-xs"
               title={opt.label}
             >
               {Icon ? (
-                <Icon className="h-4 w-4 shrink-0 text-teal-600" aria-hidden />
+                <Icon className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
               ) : null}
               <span className="text-start leading-snug">{opt.label}</span>
             </span>

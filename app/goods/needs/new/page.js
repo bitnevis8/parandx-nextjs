@@ -198,7 +198,7 @@ function GoodsNeedNewForm() {
       <div className="border-b border-gray-200 bg-gradient-to-bl from-amber-50 via-white to-gray-50">
         <div className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
           <Link
-            href="/goods#home-path-need"
+            href="/goods"
             className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-amber-700 hover:text-amber-800"
           >
             <ArrowRightIcon className="h-4 w-4" />

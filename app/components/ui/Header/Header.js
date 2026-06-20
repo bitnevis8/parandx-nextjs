@@ -1,32 +1,29 @@
 "use client";
 
-import { useState, useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Bars3Icon,
-  EnvelopeIcon,
-} from '@heroicons/react/24/outline';
+import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import UserDropdown from '../UserDropdown';
 import { AuthContext } from '../../../context/AuthContext';
 import AuthButtons from '../../AuthButtons';
-import MobileMenu from '../../MobileMenu';
 import MainNavBar from './MainNavBar';
+import HeaderMobileSearch from './HeaderMobileSearch';
+import HeaderMobileMessagesButton from './HeaderMobileMessagesButton';
 import CitySelector from '../CitySelector';
 import RequestAlertsMenu from '../RequestAlertsMenu';
 import MarketplaceSwitcher, {
   shouldShowMarketplaceSwitcher,
 } from '../../marketplace/MarketplaceSwitcher';
 import { API_ENDPOINTS } from '../../../config/api';
+import ThemeToggle from '../ThemeToggle';
 
 /** عرض هدر — کمی بیشتر از بدنه صفحه برای تنفس بهتر سوئیچ */
 export const HEADER_CONTAINER =
-  'mx-auto w-full max-w-7xl px-3 sm:px-5 lg:px-6';
+  'mx-auto w-full max-w-7xl px-2 min-[420px]:px-3 sm:px-5 lg:px-6';
 
 export default function Header() {
   const pathname = usePathname() || '/';
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const { isAuthenticated } = useContext(AuthContext);
   const showMarketplaceSwitcher = shouldShowMarketplaceSwitcher(pathname);
 
@@ -34,90 +31,115 @@ export default function Header() {
     try {
       const res = await fetch(API_ENDPOINTS.messages.unreadCount, { credentials: 'include' });
       const data = await res.json();
-      if (data?.success && typeof data?.data?.count === 'number') setUnreadCount(data.data.count);
+      if (data?.success && typeof data?.data?.count === 'number') return data.data.count;
     } catch (_) {}
+    return 0;
   };
+
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) {
       setUnreadCount(0);
       return;
     }
-    fetchUnreadCount();
+    let cancelled = false;
+    const refresh = async () => {
+      const count = await fetchUnreadCount();
+      if (!cancelled) setUnreadCount(count);
+    };
+    refresh();
     const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') fetchUnreadCount();
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') refresh();
     }, 45000);
-    const onRefresh = () => fetchUnreadCount();
+    const onRefresh = () => refresh();
     window.addEventListener('refresh-unread-count', onRefresh);
     return () => {
+      cancelled = true;
       clearInterval(interval);
       window.removeEventListener('refresh-unread-count', onRefresh);
     };
   }, [isAuthenticated]);
 
+  const authCluster = (
+    <>
+      <ThemeToggle />
+      <CitySelector />
+
+      {isAuthenticated && (
+        <>
+          <RequestAlertsMenu />
+          <Link
+            href="/dashboard/messages"
+            className="relative hidden md:flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-50 hover:text-teal-600 dark:text-sky-300 dark:hover:bg-sky-900 dark:hover:text-teal-300"
+            title="پیام‌ها"
+            aria-label="پیام‌ها"
+          >
+            <EnvelopeIcon className="h-5 w-5 shrink-0" aria-hidden />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 left-1.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Link>
+          <UserDropdown variant="header" />
+        </>
+      )}
+
+      {!isAuthenticated && (
+        <div className="hidden items-center md:flex">
+          <AuthButtons />
+        </div>
+      )}
+    </>
+  );
+
   return (
-    <header className="sticky top-0 z-[9999] w-full border-b border-gray-200 bg-white shadow-sm">
+    <header className="sticky top-0 z-[100] w-full border-b border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-transparent dark:shadow-none">
       <div className={HEADER_CONTAINER}>
-        <div className="grid h-[3.25rem] grid-cols-[auto_1fr_auto] items-center gap-3 sm:h-14 sm:gap-4">
+        {/* موبایل: لوگو راست — چپ: چت + آلارم */}
+        <div className="flex h-12 min-h-12 items-center justify-between gap-2 md:hidden">
           <Link href="/" scroll={false} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/logo_text.jpg"
               alt="پرندیکس"
-              className="h-8 w-auto max-w-[7rem] object-contain object-right sm:h-9 sm:max-w-[9.5rem]"
+              className="h-7 w-auto max-w-[5.25rem] object-contain object-right min-[420px]:h-8 min-[420px]:max-w-[7rem]"
             />
           </Link>
 
-          <div className="flex min-w-0 justify-center overflow-visible">
+          <div className="flex shrink-0 items-center gap-1.5">
+            <ThemeToggle className="h-9 w-9" />
+            <HeaderMobileMessagesButton
+              href={isAuthenticated ? '/dashboard/messages' : '/auth'}
+              unreadCount={isAuthenticated ? unreadCount : 0}
+            />
+            <RequestAlertsMenu variant="mobile" />
+          </div>
+        </div>
+
+        {/* دسکتاپ */}
+        <div className="hidden h-14 min-h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 md:grid">
+          <Link href="/" scroll={false} className="shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logo_text.jpg"
+              alt="پرندیکس"
+              className="h-9 w-auto max-w-[9.5rem] object-contain object-right"
+            />
+          </Link>
+
+          <div className="flex min-w-0 items-center justify-center overflow-hidden px-0.5">
             {showMarketplaceSwitcher ? (
               <MarketplaceSwitcher variant="header" />
             ) : null}
           </div>
 
-          <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
-            <CitySelector compact />
-
-            {isAuthenticated && (
-              <>
-                <RequestAlertsMenu />
-                <Link
-                  href="/dashboard/messages"
-                  className="relative hidden md:flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-50 hover:text-teal-600"
-                  title="پیام‌ها"
-                  aria-label="پیام‌ها"
-                >
-                  <EnvelopeIcon className="h-5 w-5 shrink-0" aria-hidden />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1.5 left-1.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
-                <UserDropdown variant="header" />
-              </>
-            )}
-
-            {!isAuthenticated && (
-              <div className="hidden items-center md:flex">
-                <AuthButtons />
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen((open) => !open)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-50 hover:text-teal-600 md:hidden"
-              aria-label={isMobileMenuOpen ? 'بستن منو' : 'باز کردن منو'}
-              aria-expanded={isMobileMenuOpen}
-            >
-              <Bars3Icon className="h-6 w-6" aria-hidden />
-            </button>
-          </div>
+          <div className="flex shrink-0 items-center justify-end gap-2">{authCluster}</div>
         </div>
       </div>
 
-      <MainNavBar unreadCount={unreadCount} />
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+      <HeaderMobileSearch />
     </header>
   );
 }

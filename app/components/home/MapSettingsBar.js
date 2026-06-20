@@ -13,20 +13,21 @@ export function MapSettingToggle({
   ariaOff,
   compact = false,
   glass = false,
+  fullWidth = false,
 }) {
   const glassClass = glass
-    ? `h-9 gap-1.5 rounded-lg px-2 text-[11px] font-semibold ${MAP_GLASS_SURFACE} ${MAP_GLASS_TEXT} hover:bg-white/30`
+    ? `h-9 gap-1.5 rounded-lg px-2 text-[11px] font-semibold ${MAP_GLASS_SURFACE} ${MAP_GLASS_TEXT} hover:bg-slate-950/55 ${fullWidth ? 'w-full' : ''}`
     : `rounded-lg font-semibold ${
         compact ? 'px-2 py-1.5 text-[10px]' : 'gap-2 px-3 py-2 text-xs'
       } ${
         active
-          ? 'bg-teal-50 text-teal-800 ring-1 ring-teal-200/90 hover:bg-teal-100/80'
-          : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+          ? 'bg-teal-50 text-teal-800 ring-1 ring-teal-200/90 hover:bg-teal-100/80 dark:bg-teal-500/20 dark:text-teal-100 dark:ring-teal-500/40 dark:hover:bg-teal-500/30'
+          : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-sky-900/90 dark:text-sky-200 dark:ring-sky-700/80 dark:hover:bg-sky-800'
       }`;
 
   const switchTrackClass = glass
-    ? `h-4 w-7 ${active ? 'bg-white/45' : 'bg-white/20'}`
-    : `${compact ? 'h-4 w-7' : 'h-5 w-9'} ${active ? 'bg-teal-500' : 'bg-gray-300'}`;
+    ? `h-4 w-7 ${active ? 'bg-white/35' : 'bg-white/15'}`
+    : `${compact ? 'h-4 w-7' : 'h-5 w-9'} ${active ? 'bg-teal-500 dark:bg-teal-400' : 'bg-gray-300 dark:bg-sky-700'}`;
 
   return (
     <button
@@ -35,10 +36,14 @@ export function MapSettingToggle({
       aria-checked={active}
       aria-label={active ? ariaOn : ariaOff}
       onClick={onToggle}
-      className={`inline-flex items-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/45 ${glassClass}`}
+      className={`inline-flex items-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/45 ${glassClass} ${
+        fullWidth && !glass
+          ? 'h-9 w-full gap-1.5 rounded-lg px-2 text-[11px] font-semibold'
+          : ''
+      } ${fullWidth && !glass ? (active ? 'bg-teal-50 text-teal-800 ring-1 ring-teal-200/90' : 'bg-white text-gray-600 ring-1 ring-gray-200') : ''}`}
     >
       <Icon className={`shrink-0 ${compact || glass ? 'h-3.5 w-3.5' : 'h-4 w-4'}`} strokeWidth={1.75} aria-hidden />
-      <span className={compact && !glass ? 'max-w-[4.5rem] truncate sm:max-w-none' : ''}>{label}</span>
+      <span className={fullWidth ? 'min-w-0 flex-1 text-right' : compact && !glass ? 'max-w-[4.5rem] truncate sm:max-w-none' : ''}>{label}</span>
       <span className={`relative shrink-0 rounded-full transition-colors ${switchTrackClass}`} aria-hidden>
         <span
           className={`absolute top-0.5 rounded-full bg-white shadow-sm transition-all h-3 w-3 ${
@@ -50,21 +55,38 @@ export function MapSettingToggle({
   );
 }
 
-export function MapViewModeToggle({ show3D, onSelect2D, onSelect3D, compact = false, glass = false }) {
+export function MapViewModeToggle({
+  show3D,
+  onSelect2D,
+  onSelect3D,
+  compact = false,
+  glass = false,
+  fullWidth = false,
+}) {
   const shellClass = glass
-    ? MAP_GLASS_GROUP
-    : `inline-flex rounded-lg bg-white/95 p-0.5 shadow-md ring-1 ring-gray-200/90 backdrop-blur-sm ${
+    ? fullWidth
+      ? `grid h-9 w-full grid-cols-2 gap-0.5 rounded-lg p-0.5 ${MAP_GLASS_SURFACE}`
+      : MAP_GLASS_GROUP
+    : `inline-flex rounded-lg bg-white/95 p-0.5 shadow-md ring-1 ring-gray-200/90 backdrop-blur-sm dark:bg-sky-950/90 dark:ring-sky-700/80 ${
         compact ? '' : ''
       }`;
 
   const activeClass = glass
-    ? 'bg-white/35 text-white shadow-sm'
-    : 'bg-teal-500 text-white shadow-sm';
+    ? 'bg-white/22 text-white shadow-sm'
+    : 'bg-teal-500 text-white shadow-sm dark:bg-teal-400 dark:text-sky-950';
   const idleClass = glass
-    ? `${MAP_GLASS_MUTED} hover:bg-white/15`
-    : 'text-gray-600 hover:bg-gray-50';
+    ? `${MAP_GLASS_MUTED} hover:bg-white/10`
+    : 'text-gray-600 hover:bg-gray-50 dark:text-sky-200 dark:hover:bg-sky-800/80';
 
-  const btnSize = glass || compact ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs';
+  const btnSize = glass
+    ? fullWidth
+      ? 'inline-flex w-full items-center justify-center rounded-md py-1.5 text-[11px] font-bold'
+      : compact
+        ? 'px-2.5 py-1 text-[11px]'
+        : 'px-3 py-1.5 text-xs'
+    : compact
+      ? 'px-2.5 py-1 text-[11px]'
+      : 'px-3 py-1.5 text-xs';
 
   return (
     <div className={shellClass} role="group" aria-label="نمای نقشه">
@@ -72,7 +94,7 @@ export function MapViewModeToggle({ show3D, onSelect2D, onSelect3D, compact = fa
         type="button"
         aria-pressed={!show3D}
         onClick={onSelect2D}
-        className={`rounded-md font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/45 ${btnSize} ${
+        className={`font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/45 ${btnSize} ${
           !show3D ? activeClass : idleClass
         }`}
       >
@@ -82,7 +104,7 @@ export function MapViewModeToggle({ show3D, onSelect2D, onSelect3D, compact = fa
         type="button"
         aria-pressed={show3D}
         onClick={onSelect3D}
-        className={`rounded-md font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/45 ${btnSize} ${
+        className={`font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/45 ${btnSize} ${
           show3D ? activeClass : idleClass
         }`}
       >
@@ -144,7 +166,7 @@ export default function MapSettingsBar({
               active={showBoundaries}
               onToggle={() => onShowBoundariesChange?.(!showBoundaries)}
               icon={RectangleGroupIcon}
-              label="نمایش مرزها"
+              label="مرزها"
               ariaOn="مخفی کردن مرزها"
               ariaOff="نمایش مرزها"
             />

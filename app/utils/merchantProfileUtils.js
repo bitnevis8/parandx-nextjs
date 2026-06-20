@@ -4,6 +4,12 @@ export const MERCHANT_ACTIVITY_TYPE_OPTIONS = [
   { key: 'delivery', label: 'ارسال به آدرس مشتری' },
 ];
 
+/** نوع حساب فروشگاه — برچسب مناسب کاسب، نه متخصص */
+export const MERCHANT_ACCOUNT_TYPE_OPTIONS = [
+  { value: 'individual', label: 'مغازه / شخص حقیقی' },
+  { value: 'business', label: 'شرکت / شخص حقوقی' },
+];
+
 export const MERCHANT_DELIVERY_RADIUS_OPTIONS = [
   { value: '', label: 'محدوده مشخص نشده' },
   { value: 'city', label: 'کل شهر' },
@@ -39,6 +45,22 @@ export function defaultMerchantStoreName(profile) {
   const user = profile?.user;
   const name = [user?.firstName, user?.lastName].filter(Boolean).join(' ');
   return name || '';
+}
+
+/** آدرس کوتاه صفحه فروشگاه — فقط حروف لاتین */
+export function normalizeMerchantStoreSlug(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9_-]/g, '')
+    .slice(0, 48);
+}
+
+export function isValidMerchantStoreSlug(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return true;
+  return /^[a-z0-9_-]+$/i.test(raw);
 }
 
 export function getMerchantDeliveryRadiusLabel(value) {

@@ -8,7 +8,24 @@ export default function SettingsPage() {
       href: "/dashboard/settings/unit-locations",
       icon: "📍",
     },
-    // Add more settings sections here
+    {
+      title: "مدل‌های ۳D نقشه",
+      description: "آپلود و تنظیم مدل سه‌بعدی دسته‌ها روی نقشه",
+      href: "/dashboard/settings/category-map-models",
+      icon: "🗺️",
+    },
+    {
+      title: "باکس استخدام — جملات و انیمیشن",
+      description: "جملات، سرعت و زاویه هدر شناور و نوشته تایپی زیر «اعلان کار | استخدام جدید»",
+      href: "/dashboard/settings/home-floating-quotes",
+      icon: "💬",
+    },
+    {
+      title: "ستاره‌های آسمان شب",
+      description: "تنظیم ستاره‌های بالای سایت — جدا برای موبایل و دسکتاپ",
+      href: "/dashboard/settings/night-sky-stars",
+      icon: "✨",
+    },
   ];
 
   return (

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "i": "node ../scripts/npm-with-fallback.js install",
+    "predev": "node scripts/print-lan-ip.js",
     "dev": "next dev --turbopack -H 0.0.0.0 -p 3001",
     "build": "next build --webpack",
     "start": "next start",

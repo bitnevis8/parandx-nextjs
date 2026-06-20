@@ -13,12 +13,14 @@ export default function HomeSectionHeader({
   badge = null,
   action = null,
   titleId,
-      iconClassName = '',
+  iconClassName = '',
+  cornerRibbon = null,
   className = '',
 }) {
   return (
-    <header className={`${HOME_CARD_HEADER} ${className}`.trim()}>
-      <div className="flex items-start gap-3 text-right">
+    <header className={`relative overflow-hidden ${HOME_CARD_HEADER} ${className}`.trim()}>
+      {cornerRibbon ? cornerRibbon : null}
+      <div className="relative z-[1] flex items-start gap-3 text-right">
         {Icon ? (
           <span className={`${HOME_ICON_BOX} ${iconClassName}`.trim()} aria-hidden>
             <Icon className="h-5 w-5 sm:h-[1.35rem] sm:w-[1.35rem]" />
@@ -32,7 +34,7 @@ export default function HomeSectionHeader({
           </h2>
           {description ? <p className={HOME_BLOCK_LEAD}>{description}</p> : null}
           {hint ? (
-            <p className="mt-1.5 text-xs font-medium leading-relaxed text-teal-800/90 sm:text-[13px]">
+            <p className="mt-1.5 text-xs font-medium leading-relaxed text-teal-800/90 dark:text-sky-300 sm:text-[13px]">
               {hint}
             </p>
           ) : null}

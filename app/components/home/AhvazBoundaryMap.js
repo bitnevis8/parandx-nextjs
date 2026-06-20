@@ -11,6 +11,7 @@ export default function AhvazBoundaryMap({
   enableGestures = false,
   headerControls = null,
   mainCategoryControl = null,
+  mapCornerCategoryControl = null,
   subCategoryControl = null,
   mobileCategoryControls = null,
   serviceSummary = null,
@@ -45,6 +46,8 @@ export default function AhvazBoundaryMap({
   showMapTools = false,
   cornerControlsLayout = 'corner',
   showWalkExplorer = false,
+  expertMarkerStyleOverride = null,
+  skipMobileFullscreenSheet = false,
 }) {
   return (
     <AhvazAddressPicker
@@ -68,6 +71,7 @@ export default function AhvazBoundaryMap({
       enableGestures={enableGestures}
       headerControls={headerControls}
       mainCategoryControl={mainCategoryControl}
+      mapCornerCategoryControl={mapCornerCategoryControl}
       subCategoryControl={subCategoryControl}
       mobileCategoryControls={mobileCategoryControls}
       serviceSummary={serviceSummary}
@@ -91,6 +95,8 @@ export default function AhvazBoundaryMap({
       showMapTools={showMapTools}
       cornerControlsLayout={cornerControlsLayout}
       showWalkExplorer={showWalkExplorer}
+      expertMarkerStyleOverride={expertMarkerStyleOverride}
+      skipMobileFullscreenSheet={skipMobileFullscreenSheet}
     />
   );
 }

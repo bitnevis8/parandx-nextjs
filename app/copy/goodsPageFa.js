@@ -1,11 +1,12 @@
 /** متن‌های بازار کالا */
 
 export const GOODS_HERO_INTRO = {
-  titleBrand: 'بازار کالا',
+  titleBrand: 'کالا',
   titleRest: 'خرید، فروش و پیدا کردن فروشگاه در شهر شما',
   leadSearch: 'جستجو',
   leadMap: 'نقشه فروشگاه',
-  leadNeed: 'ثبت نیاز',
+  leadNeed: 'کالا نیاز دارم',
+  leadSupply: 'کالا برای فروش دارم',
   leadSuffix: 'هر طور راحت‌ترید',
 };
 
@@ -18,6 +19,7 @@ export const GOODS_MARKET_OVERVIEW = {
       'جستجو و پیدا کردن فروشگاه نزدیک',
       'دیدن فروشگاه‌ها روی نقشه با دسته‌بندی',
       'ثبت نیاز کالا و دریافت پیشنهاد قیمت',
+      'ثبت عرضه کالا و دریافت پیشنهاد خرید',
     ],
   },
   seller: {
@@ -34,18 +36,28 @@ export const GOODS_MARKET_OVERVIEW = {
 export const GOODS_CUSTOMER_PATHS_INTRO =
   '۴ راه برای پیدا کردن کالا — روی هر مورد بزنید تا همان بخش باز شود';
 
+export const GOODS_CATEGORY_BROWSE = {
+  title: 'دسته‌بندی فروشگاه‌ها',
+  searchPlaceholder: 'جستجو در دسته و زیردسته…',
+  emptySearch: 'دسته‌ای با این نام پیدا نشد',
+};
+
 export const GOODS_NEED_INTRO = {
-  title: 'ثبت نیاز کالا',
-  tag: 'ثبت رایگان',
-  body: 'کالایی که دنبالش هستید را با جزئیات و محل تحویل ثبت کنید. فروشگاه‌های مرتبط در شهر شما مطلع می‌شوند و پیشنهاد قیمت و موجودی می‌فرستند. پیشنهادها را مقایسه کنید و بهترین گزینه را انتخاب کنید.',
-  cta: 'ثبت نیاز کالا',
-  ariaLabel: 'رفتن به فرم ثبت نیاز کالا',
-  illustrationSrc: '/images/home-register-work.webp',
-  illustrationSrcFallback: '/images/home-register-work.png',
+  title: 'کالا نیاز دارم',
+  body: 'نیازت رو ثبت کن تا دارنده‌های کالا با خبر بشن و قیمتشون رو برات بفرستن. مناسب‌ترین رو انتخاب کن.',
+  cta: 'کالا نیاز دارم',
+  ariaLabel: 'رفتن به فرم — کالا نیاز دارم',
+  illustrationSrc: '/images/need.png',
+  illustrationAlt: 'کالا نیاز دارم',
+  steps: [
+    { key: 'register', label: 'ثبت نیاز' },
+    { key: 'offers', label: 'دریافت پیشنهاد قیمت' },
+    { key: 'choose', label: 'نهایی کردن خرید' },
+  ],
 };
 
 export const GOODS_NEED_FORM = {
-  eyebrow: 'ثبت نیاز کالا',
+  eyebrow: 'کالا نیاز دارم',
   title: 'دریافت پیشنهاد از فروشگاه‌ها',
   lead: 'کالای مورد نظر، دسته و جزئیات را بنویسید. محل تحویل روی نقشه اختیاری است؛ فروشگاه‌های مرتبط در شهر شما خبرشان می‌شود.',
   detailsTitle: 'جزئیات نیاز',
@@ -63,36 +75,91 @@ export const GOODS_NEED_FORM = {
   descriptionPlaceholder: 'برند، مدل، تعداد، وضعیت نو یا دست‌دوم، بودجه تقریبی و...',
 };
 
-export const GOODS_SELLER_HEADER = {
-  title: 'صاحب فروشگاه یا کسب‌وکار کالا؟',
-  description: 'فروشگاهت را معرفی کن — در نقشه و دسته‌های مرتبط دیده شو',
+export const GOODS_SUPPLY_INTRO = {
+  title: 'کالا برای فروش دارم',
+  body: 'کالاتو ثبت کن، پیشنهادهای خرید رو دریافت کن. پیشنهادها رو ببین و هر کدوم مناسب‌تر بود انتخاب کن.',
+  cta: 'کالا برای فروش دارم',
+  ariaLabel: 'رفتن به فرم — کالا برای فروش دارم',
+  illustrationSrc: '/images/bid.png',
+  illustrationAlt: 'کالا برای فروش دارم',
+  steps: [
+    { key: 'register', label: 'ثبت کالا' },
+    { key: 'offers', label: 'دریافت پیشنهاد خرید' },
+    { key: 'choose', label: 'نهایی کردن معامله' },
+  ],
 };
 
-export const GOODS_SELLER_CTA = {
+export const GOODS_SUPPLY_FORM = {
+  eyebrow: 'کالا برای فروش دارم',
+  title: 'دریافت پیشنهاد خرید',
+  lead: 'کالای موجود، دسته و جزئیات را بنویسید. محل تحویل یا انبار روی نقشه اختیاری است؛ خریداران مرتبط در شهر شما خبرشان می‌شود.',
+  detailsTitle: 'جزئیات عرضه',
+  detailsHint: 'عنوان، دسته کالا و توضیحات',
+  locationTitle: 'محل تحویل / انبار',
+  locationHint: 'آدرس متنی یا نقشه — هر دو اختیاری',
+  scheduleTitle: 'زمان‌بندی',
+  scheduleHint: 'مهلت فروش یا آماده‌بودن کالا (اختیاری)',
+  submitHint: 'بعد از ثبت، خریدارانی که در همان دسته نیاز ثبت کرده‌اند مطلع می‌شوند و می‌توانند پیشنهاد خرید بفرستند.',
+  submit: 'ثبت عرضه کالا',
+  submitting: 'در حال ارسال...',
+  successTitle: 'عرضه کالا ثبت شد',
+  successBody: 'خبر به خریداران مرتبط رسید — به‌زودی پیشنهاد خرید می‌فرستند.',
+  titlePlaceholder: 'مثلاً ماشین لباسشویی ۷ کیلو سامسونگ',
+  descriptionPlaceholder: 'برند، مدل، تعداد، وضعیت، قیمت تقریبی، گارانتی، شرایط تحویل و...',
+};
+
+/** هدر بلوک فروشگاه‌ها — صفحه بازار کالا */
+export const GOODS_MERCHANT_COMMUNITY_HEADER = {
+  title: 'صاحب فروشگاه هستید؟ در شهر دیده شوید',
+  description: 'فروشگاهت را معرفی کن — در جستجو، نقشه و دسته‌های مرتبط دیده می‌شوید',
+};
+
+/** متن کنار مغازه‌ها — فضای خالی سمت چپ */
+export const GOODS_MERCHANT_JOIN_PITCH = {
+  title: 'مغازه‌اتو بیار اینجا',
+  body:
+    'ثبت‌نام کن — مغازه‌ات روی نقشه می‌شینه و یه صفحه مخصوص خودت هم داری. همکارای دور و برتو فالو کن؛ مشتری‌هاتم می‌تونن فالوت کنن تا وقتی جنس تازه یا تخفیف داری، زودتر بفهمن.',
+};
+
+/** باکس دعوت ثبت فروشگاه — پایین بلوک فروشگاه‌ها */
+export const GOODS_MERCHANT_SIGNUP_CTA = {
   badge: 'ثبت فروشگاه',
-  title: 'فروشگاهت را در پرندیکس معرفی کن',
-  bodyBeforeCity: 'دسته کالا، آدرس، تماس و موقعیت روی نقشه — در ',
+  title: 'صفحه فروشگاه خودت رو داشته باش',
+  bodyBeforeCity:
+    'دسته کالا، ویترین، تماس و موقعیت روی نقشه — همه توی پروفایل فروشگاهت. در ',
   bodyAfterCity:
-    ' مشتریان نزدیک را پیدا می‌کنید و وقتی نیاز کالا ثبت می‌شود خبردار می‌شوید.',
-  cta: 'ثبت‌نام فروشنده',
-  ctaHint: 'ثبت‌نام رایگان است',
+    ' در جستجو و نقشه دیده می‌شی؛ وقتی نیاز کالا ثبت می‌شه خبردار می‌شی و مشتریان نزدیکت رو پیدا می‌کنی.',
+  cta: 'ثبت فروشگاه',
+  ctaPageLabel: 'لینک اختصاصی فروشگاه',
+  ctaPageUrlHost: 'parandx.com',
+  ctaPageUrlPath: '/goods/stores/',
+  ctaPageUrlSlug: 'فروشگاه-شما',
+  ctaHint: 'ثبت‌نام رایگان است و رایگان خواهد ماند',
   benefitsAriaLabel: 'مزایای ثبت فروشگاه',
   benefits: [
-    { key: 'map', title: 'روی نقشه شهر', description: 'موقعیت و دسته کالا' },
-    { key: 'reach', title: 'دیده‌شدن', description: 'جستجو و دسته‌بندی' },
+    { key: 'profile', title: 'پروفایل فروشگاه', description: 'معرفی، تماس و دسته کالا' },
+    { key: 'vitrine', title: 'ویترین کالا', description: 'نمایش محصولات و اعتماد' },
+    { key: 'reach', title: 'معرفی در شهر', description: 'جستجو، نقشه و دیده‌شدن' },
     { key: 'needs', title: 'نیاز مشتری', description: 'اعلان درخواست خرید' },
-    { key: 'trust', title: 'پروفایل فروشگاه', description: 'تماس و معرفی' },
   ],
 };
 
 export const GOODS_MAP_INTRO = {
   ariaLabel: 'پیدا کردن فروشگاه از روی نقشه',
   eyebrow: 'فروشگاه‌ها روی نقشه',
-  body: 'دسته کالا را انتخاب کنید؛ فروشگاه‌های ثبت‌شده و نیازهای خریدار روی نقشه نشان داده می‌شوند. محله را فیلتر کنید تا دقیق‌تر جستجو شود.',
+  body: 'دسته کالا را انتخاب کنید؛ فروشگاه‌ها، نیازهای خریدار و عرضه‌های ثبت‌شده روی نقشه نشان داده می‌شوند. محله را فیلتر کنید تا دقیق‌تر جستجو شود.',
   mobileTapHint: 'برای کار با نقشه، بزنید',
+  mobileExpandHint: 'برای کار با نقشه، بزرگنمایی کنید',
+  mobileExpandHintAria: 'باز کردن نقشه در حالت تمام‌صفحه',
   expandHint: 'برای استفاده کامل از نقشه روی بزرگ‌نمایی کلیک کنید',
   expandHintAria: 'باز کردن نقشه در حالت تمام‌صفحه — بزرگ‌نمایی',
 };
+
+/** عنوان بلوک/مودال نقشه کالا — «نقشه کالای {شهر}» */
+export function buildGoodsMapSpecialtyTitle(cityName) {
+  const name = String(cityName || '').trim();
+  return name ? `نقشه کالای ${name}` : 'نقشه بازار کالا';
+}
 
 export function merchantMapExplorerSummaryCopy({ stats, loading, filterMode = 'service' }) {
   if (loading) {
@@ -161,6 +228,40 @@ export function goodsNeedMapExplorerSummaryCopy({ stats, loading, filterMode = '
   return {
     tone: 'success',
     title: onMap === 1 ? '۱ نیاز کالا روی نقشه' : `${onMap} نیاز کالا روی نقشه`,
+    detail: '',
+  };
+}
+
+export function goodsSupplyMapExplorerSummaryCopy({ stats, loading, filterMode = 'service' }) {
+  if (loading) {
+    return { tone: 'muted', title: 'در حال بارگذاری عرضه‌های کالا…', detail: '' };
+  }
+
+  const { requestCount, requestsOnMap } = stats || {};
+  const onMap = requestsOnMap > 0 ? requestsOnMap : 0;
+
+  if (!requestCount) {
+    if (filterMode === 'all') {
+      return { tone: 'empty', title: 'عرضه کالای باز در این محدوده نیست', detail: '' };
+    }
+    return {
+      tone: 'empty',
+      title: filterMode === 'parent' ? 'در این دسته عرضه‌ای نیست' : 'در این زیردسته عرضه‌ای نیست',
+      detail: '',
+    };
+  }
+
+  if (onMap === 0) {
+    return {
+      tone: 'muted',
+      title: `${requestCount} عرضه · بدون موقعیت روی نقشه`,
+      detail: '',
+    };
+  }
+
+  return {
+    tone: 'success',
+    title: onMap === 1 ? '۱ عرضه کالا روی نقشه' : `${onMap} عرضه کالا روی نقشه`,
     detail: '',
   };
 }

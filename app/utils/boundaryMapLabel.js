@@ -1,5 +1,6 @@
-/** از این زوم به بالا نام هر مرز جداگانه نمایش داده می‌شود (نه خوشه) */
-export const BOUNDARY_LABEL_UNCLUSTER_AT_ZOOM = 10;
+/** از این زوم به بالا supercluster برچسب‌ها را ریزتر می‌کند (نه cutoff ناگهانی) */
+export const BOUNDARY_CLUSTER_MAX_ZOOM = 16;
+export const BOUNDARY_CLUSTER_SECTION_MAX_ZOOM = 17;
 
 /** حداکثر تعداد برچسب بدون خوشه‌بندی */
 export const BOUNDARY_LABEL_DIRECT_RENDER_LIMIT = 32;

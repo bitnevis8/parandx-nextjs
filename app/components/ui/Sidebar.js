@@ -9,6 +9,7 @@ import UserAvatar from './UserAvatar';
 import { RoleBadge } from './dashboard/DashboardUi';
 import DashboardNavLinks, { useSidebarMarketTab } from './dashboard/DashboardNavLinks';
 import {
+  buildDivarNavGroups,
   buildFixedBottomNavGroups,
   buildFixedTopNavGroups,
   buildMarketNavGroups,
@@ -34,7 +35,9 @@ function CollapsedNavIcon({ item, active, onClick, theme = 'default' }) {
       ? 'text-gray-500 hover:bg-amber-50 hover:text-amber-700'
       : theme === 'services'
         ? 'text-gray-500 hover:bg-teal-50 hover:text-teal-700'
-        : 'text-gray-500 hover:bg-gray-100 hover:text-teal-600';
+        : theme === 'divar'
+          ? 'text-gray-500 hover:bg-violet-50 hover:text-violet-700'
+          : 'text-gray-500 hover:bg-gray-100 hover:text-teal-600';
 
   return (
     <Link
@@ -60,6 +63,7 @@ function SidebarCollapsedNav({ onLinkClick }) {
   const isActive = (path, exact) => matchDashboardPath(pathname, searchParams, path, exact);
 
   const topGroups = useMemo(() => buildFixedTopNavGroups(), []);
+  const divarGroups = useMemo(() => buildDivarNavGroups(), []);
   const marketGroups = useMemo(
     () => buildMarketNavGroups(activeMarket, userRole),
     [activeMarket, userRole]
@@ -84,10 +88,20 @@ function SidebarCollapsedNav({ onLinkClick }) {
         />
       ))}
 
+      {flatItems(divarGroups).map((item) => (
+        <CollapsedNavIcon
+          key={item.path}
+          item={item}
+          active={isActive(item.path, item.exact)}
+          onClick={onLinkClick}
+          theme="divar"
+        />
+      ))}
+
       <div className="my-2 space-y-1 border-y border-gray-100 py-2">
         <button
           type="button"
-          title={DASHBOARD_MARKET_TABS.services === activeMarket ? 'بازار خدمات' : 'رفتن به بازار خدمات'}
+          title={DASHBOARD_MARKET_TABS.services === activeMarket ? 'خدمات' : 'رفتن به خدمات'}
           onClick={() => setActiveMarket(DASHBOARD_MARKET_TABS.services)}
           className={`flex w-full justify-center rounded-xl p-2 text-[10px] font-bold ${
             activeMarket === DASHBOARD_MARKET_TABS.services
@@ -99,7 +113,7 @@ function SidebarCollapsedNav({ onLinkClick }) {
         </button>
         <button
           type="button"
-          title={DASHBOARD_MARKET_TABS.goods === activeMarket ? 'بازار کالا' : 'رفتن به بازار کالا'}
+          title={DASHBOARD_MARKET_TABS.goods === activeMarket ? 'کالا' : 'رفتن به کالا'}
           onClick={() => setActiveMarket(DASHBOARD_MARKET_TABS.goods)}
           className={`flex w-full justify-center rounded-xl p-2 text-[10px] font-bold ${
             activeMarket === DASHBOARD_MARKET_TABS.goods

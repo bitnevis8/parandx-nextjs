@@ -112,9 +112,10 @@ function createApiEndpoints(API_BASE_URL) {
   // دسته‌بندی‌ها - حذف شده
   categories: {
     base: `${API_BASE_URL}/category`,
-    getAll: (marketplaceType = 'services') => {
+    getAll: (marketplaceType = 'services', categoryUsage) => {
       const params = new URLSearchParams();
       if (marketplaceType) params.set('marketplaceType', marketplaceType);
+      if (categoryUsage) params.set('categoryUsage', categoryUsage);
       const query = params.toString();
       return `${API_BASE_URL}/category${query ? `?${query}` : ''}`;
     },
@@ -126,7 +127,13 @@ function createApiEndpoints(API_BASE_URL) {
     uploadMapModel: (id) => `${API_BASE_URL}/category/admin/${id}/map-model/upload`,
     deleteMapModelFile: (id) => `${API_BASE_URL}/category/admin/${id}/map-model/file`,
     getById: (id) => `${API_BASE_URL}/category/${id}`,
-    getBySlug: (slug) => `${API_BASE_URL}/category/slug/${slug}`,
+    getBySlug: (slug, { marketplaceType, categoryUsage } = {}) => {
+      const params = new URLSearchParams();
+      if (marketplaceType) params.set('marketplaceType', marketplaceType);
+      if (categoryUsage) params.set('categoryUsage', categoryUsage);
+      const query = params.toString();
+      return `${API_BASE_URL}/category/slug/${slug}${query ? `?${query}` : ''}`;
+    },
     create: `${API_BASE_URL}/category`,
     update: (id) => `${API_BASE_URL}/category/${id}`,
     delete: (id) => `${API_BASE_URL}/category/${id}`,
@@ -229,6 +236,7 @@ function createApiEndpoints(API_BASE_URL) {
     registerProfile: `${API_BASE_URL}/merchant/profile/register`,
     getCurrentProfile: `${API_BASE_URL}/merchant/profile/current`,
     getUserProfile: `${API_BASE_URL}/merchant/profile/user`,
+    getPublicProfile: (slugOrId) => `${API_BASE_URL}/merchant/public/${encodeURIComponent(slugOrId)}`,
     updateCurrentProfile: `${API_BASE_URL}/merchant/profile/current`,
     updateUserProfile: (userId) =>
       `${API_BASE_URL}/merchant/profile/user?userId=${encodeURIComponent(userId)}`,
@@ -242,6 +250,27 @@ function createApiEndpoints(API_BASE_URL) {
       if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
       return url;
     },
+    getBrowse: (cityId, categorySlug, limit = 50) => {
+      let url = `${API_BASE_URL}/merchant/browse?limit=${limit}`;
+      if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+      if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
+      return url;
+    },
+    getBrowseCount: (cityId, categorySlug) => {
+      let url = `${API_BASE_URL}/merchant/browse?countOnly=true`;
+      if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+      if (categorySlug) url += `&category=${encodeURIComponent(categorySlug)}`;
+      return url;
+    },
+  },
+  shopProducts: {
+    mine: `${API_BASE_URL}/shop-product/mine`,
+    byMerchant: (merchantId) => `${API_BASE_URL}/shop-product?merchantId=${merchantId}`,
+    create: `${API_BASE_URL}/shop-product`,
+    update: (id) => `${API_BASE_URL}/shop-product/${id}`,
+    remove: (id) => `${API_BASE_URL}/shop-product/${id}`,
+    publishToDivar: (id) => `${API_BASE_URL}/shop-product/${id}/publish-to-divar`,
+    unpublishFromDivar: (id) => `${API_BASE_URL}/shop-product/${id}/publish-to-divar`,
   },
   requests: {
     base: `${API_BASE_URL}/request`,
@@ -255,9 +284,10 @@ function createApiEndpoints(API_BASE_URL) {
       if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
       return url;
     },
-    getForMap: (cityId, limit = 200, marketplaceType = 'services') => {
+    getForMap: (cityId, limit = 200, marketplaceType = 'services', requestKind) => {
       let url = `${API_BASE_URL}/request/map?limit=${limit}&marketplaceType=${marketplaceType}`;
       if (cityId) url += `&cityId=${encodeURIComponent(cityId)}`;
+      if (requestKind) url += `&requestKind=${encodeURIComponent(requestKind)}`;
       return url;
     },
     getById: (id) => `${API_BASE_URL}/request/${id}`,
@@ -268,13 +298,37 @@ function createApiEndpoints(API_BASE_URL) {
     alerts: `${API_BASE_URL}/request/alerts`,
     alertCount: `${API_BASE_URL}/request/alerts/count`,
     dismissAlert: (id) => `${API_BASE_URL}/request/alerts/${id}/dismiss`,
-    mine: (marketplaceType) => {
-      let url = `${API_BASE_URL}/request/mine`;
-      if (marketplaceType) url += `?marketplaceType=${encodeURIComponent(marketplaceType)}`;
-      return url;
+    mine: (marketplaceType, requestKind) => {
+      const params = new URLSearchParams();
+      if (marketplaceType) params.set('marketplaceType', marketplaceType);
+      if (requestKind) params.set('requestKind', requestKind);
+      const qs = params.toString();
+      return qs ? `${API_BASE_URL}/request/mine?${qs}` : `${API_BASE_URL}/request/mine`;
     },
     createGoodsNeed: `${API_BASE_URL}/request`,
+    createGoodsSupply: `${API_BASE_URL}/request`,
     expertInvolvements: `${API_BASE_URL}/request/expert/involvements`,
+    merchantInvolvements: `${API_BASE_URL}/request/merchant/involvements`,
+    dismissMerchantAlert: (id) => `${API_BASE_URL}/request/merchant-alerts/${id}/dismiss`,
+    buyerInvolvements: `${API_BASE_URL}/request/buyer/involvements`,
+    dismissBuyerSupplyAlert: (id) => `${API_BASE_URL}/request/buyer-supply-alerts/${id}/dismiss`,
+  },
+  listings: {
+    base: `${API_BASE_URL}/listing`,
+    getAll: ({ cityId, categoryId, subCategoryId, subCategorySlug, limit } = {}) => {
+      const params = new URLSearchParams();
+      if (cityId) params.set('cityId', String(cityId));
+      if (categoryId) params.set('categoryId', String(categoryId));
+      if (subCategoryId) params.set('subCategoryId', String(subCategoryId));
+      if (subCategorySlug) params.set('subCategorySlug', subCategorySlug);
+      if (limit) params.set('limit', String(limit));
+      const qs = params.toString();
+      return `${API_BASE_URL}/listing${qs ? `?${qs}` : ''}`;
+    },
+    getById: (id) => `${API_BASE_URL}/listing/${id}`,
+    create: `${API_BASE_URL}/listing`,
+    mine: `${API_BASE_URL}/listing/mine`,
+    updateStatus: (id) => `${API_BASE_URL}/listing/${id}/status`,
   },
   bids: {
     base: `${API_BASE_URL}/bid`,
@@ -372,6 +426,16 @@ function createApiEndpoints(API_BASE_URL) {
     delete: (id) => `${API_BASE_URL}/__removed_articles__/class-tags/delete/${id}`,
     classifyTags: `${API_BASE_URL}/__removed_articles__/class-tags/classify-tags`,
     fixParentClasses: `${API_BASE_URL}/__removed_articles__/class-tags/fix-parent-classes`,
+  },
+  siteSetting: {
+    homeRequestBanner: `${API_BASE_URL}/site-setting/home-request-banner`,
+    adminHomeRequestBanner: `${API_BASE_URL}/site-setting/admin/home-request-banner`,
+    homeRequestTypewriter: `${API_BASE_URL}/site-setting/home-request-typewriter`,
+    adminHomeRequestTypewriter: `${API_BASE_URL}/site-setting/admin/home-request-typewriter`,
+    nightSkyStars: `${API_BASE_URL}/site-setting/night-sky-stars`,
+    adminNightSkyStars: `${API_BASE_URL}/site-setting/admin/night-sky-stars`,
+    homeRequestFloatingQuotes: `${API_BASE_URL}/site-setting/home-request-floating-quotes`,
+    adminHomeRequestFloatingQuotes: `${API_BASE_URL}/site-setting/admin/home-request-floating-quotes`,
   },
   };
 }

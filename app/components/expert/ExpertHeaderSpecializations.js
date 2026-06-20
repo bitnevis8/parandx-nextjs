@@ -9,7 +9,7 @@ export default function ExpertHeaderSpecializations({ categories, className = ''
       {categories.map((cat) => (
         <li key={cat.id}>
           <span
-            className="inline-flex max-w-full items-center gap-1 rounded-md bg-white px-2 py-1 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200/90 sm:text-xs"
+            className="inline-flex max-w-full items-center gap-1 rounded-md bg-white px-2 py-1 text-[11px] font-medium text-slate-700 ring-1 ring-slate-200/90 dark:bg-sky-900 dark:text-sky-200 dark:ring-sky-700 sm:text-xs"
             title={cat.title}
           >
             {cat.icon ? (

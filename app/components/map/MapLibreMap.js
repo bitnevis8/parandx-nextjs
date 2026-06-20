@@ -10,7 +10,11 @@ import {
   createBoundaryLabelSpan,
 } from '../../utils/boundaryMapLabel';
 import { fitMapToGeoData } from '../../utils/mapLibreBounds';
-import { createPointIndex, getClustersForViewport } from '../../utils/mapSupercluster';
+import {
+  BOUNDARY_CLUSTER_MAX_ZOOM,
+  BOUNDARY_CLUSTER_SECTION_MAX_ZOOM,
+} from '../../utils/boundaryMapLabel';
+import { createPointIndex, getClusterExpansionTargetZoom, getClustersForViewport, resolveBoundaryClusterRadius } from '../../utils/mapSupercluster';
 import {
   getMapView,
   MAP_2D_BEARING,
@@ -966,18 +970,18 @@ export default function MapLibreMap({
       };
 
       const useDirectLabels =
-        singles.length > 0 &&
-        singles.length <= BOUNDARY_LABEL_DIRECT_RENDER_LIMIT;
+        singles.length > 0 && singles.length <= BOUNDARY_LABEL_DIRECT_RENDER_LIMIT;
 
       if (useDirectLabels) {
         singles.forEach(({ lng, lat, name }) => addBoundaryLabelMarker(lng, lat, name, false));
       } else if (singles.length > 0) {
+        const mapZoom = map.getZoom();
         const index = createPointIndex(singles, {
-          radius: boundaryClusterMaxZoom >= 16 ? 50 : 70,
+          radius: resolveBoundaryClusterRadius(mapZoom),
           maxZoom: boundaryClusterMaxZoom,
         });
 
-        const clusters = getClustersForViewport(index, map, boundaryClusterMaxZoom);
+        const clusters = getClustersForViewport(index, map);
 
         clusters.forEach((feature) => {
           const [lng, lat] = feature.geometry.coordinates;
@@ -989,10 +993,7 @@ export default function MapLibreMap({
             element.addEventListener('click', (event) => {
               event.preventDefault();
               event.stopPropagation();
-              const expansionZoom = Math.min(
-                index.getClusterExpansionZoom(props.cluster_id),
-                boundaryClusterMaxZoom + 2
-              );
+              const expansionZoom = getClusterExpansionTargetZoom(index, props.cluster_id, map);
               map.easeTo({ center: [lng, lat], zoom: expansionZoom, duration: 350 });
             });
           } else {
@@ -1027,7 +1028,7 @@ export default function MapLibreMap({
         { radius: 52, maxZoom: 16 }
       );
 
-      const clusters = getClustersForViewport(index, map, 16);
+      const clusters = getClustersForViewport(index, map);
 
       clusters.forEach((feature) => {
         const [lng, lat] = feature.geometry.coordinates;
@@ -1041,7 +1042,7 @@ export default function MapLibreMap({
           element.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            const expansionZoom = index.getClusterExpansionZoom(props.cluster_id);
+            const expansionZoom = getClusterExpansionTargetZoom(index, props.cluster_id, map);
             map.easeTo({ center: [lng, lat], zoom: expansionZoom, duration: 350 });
           });
         } else {
@@ -1086,7 +1087,7 @@ export default function MapLibreMap({
         { radius: 55, maxZoom: 16 }
       );
 
-      const clusters = getClustersForViewport(index, map, 16);
+      const clusters = getClustersForViewport(index, map);
 
       clusters.forEach((feature) => {
         const [lng, lat] = feature.geometry.coordinates;
@@ -1101,7 +1102,7 @@ export default function MapLibreMap({
           element.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
-            const expansionZoom = index.getClusterExpansionZoom(props.cluster_id);
+            const expansionZoom = getClusterExpansionTargetZoom(index, props.cluster_id, map);
             map.easeTo({ center: [lng, lat], zoom: expansionZoom, duration: 350 });
           });
         } else {
@@ -1150,17 +1151,31 @@ export default function MapLibreMap({
       map.once('idle', updateMarkers);
     };
 
+    let markerUpdateRaf = null;
+    const scheduleUpdateOnZoom = () => {
+      if (markerUpdateRaf != null) return;
+      markerUpdateRaf = window.requestAnimationFrame(() => {
+        markerUpdateRaf = null;
+        scheduleUpdate();
+      });
+    };
+
     scheduleUpdate();
-    map.on('moveend', updateMarkers);
-    map.on('zoomend', updateMarkers);
-    map.on('pitchend', updateMarkers);
-    map.on('rotateend', updateMarkers);
+    map.on('zoom', scheduleUpdateOnZoom);
+    map.on('moveend', scheduleUpdate);
+    map.on('zoomend', scheduleUpdate);
+    map.on('pitchend', scheduleUpdate);
+    map.on('rotateend', scheduleUpdate);
 
     return () => {
-      map.off('moveend', updateMarkers);
-      map.off('zoomend', updateMarkers);
-      map.off('pitchend', updateMarkers);
-      map.off('rotateend', updateMarkers);
+      if (markerUpdateRaf != null) {
+        window.cancelAnimationFrame(markerUpdateRaf);
+      }
+      map.off('zoom', scheduleUpdateOnZoom);
+      map.off('moveend', scheduleUpdate);
+      map.off('zoomend', scheduleUpdate);
+      map.off('pitchend', scheduleUpdate);
+      map.off('rotateend', scheduleUpdate);
       clearMarkers(boundaryMarkersRef);
       clearMarkers(expertMarkersRef);
       clearMarkers(requestMarkersRef);

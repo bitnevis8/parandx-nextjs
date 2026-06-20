@@ -102,12 +102,12 @@ export function ContactNumberInline({
   return (
     <div className={className}>
       {showLabel && label ? (
-        <p className="mb-0.5 text-[11px] font-medium text-slate-500">{label}</p>
+        <p className="mb-0.5 text-[11px] font-medium text-slate-500 dark:text-sky-400">{label}</p>
       ) : null}
       {linkable ? (
         <a
           href={`tel:${item.number}`}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums text-teal-700 transition hover:text-teal-900"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums text-teal-700 transition hover:text-teal-900 dark:text-teal-300 dark:hover:text-teal-200"
           dir="ltr"
         >
           <KindIcon className="h-4 w-4 shrink-0" aria-hidden />
@@ -115,10 +115,10 @@ export function ContactNumberInline({
         </a>
       ) : (
         <p
-          className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums text-slate-900"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums text-slate-900 dark:text-sky-100"
           dir="ltr"
         >
-          <KindIcon className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+          <KindIcon className="h-4 w-4 shrink-0 text-slate-400 dark:text-sky-500" aria-hidden />
           {displayNumber}
         </p>
       )}

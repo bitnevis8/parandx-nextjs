@@ -11,18 +11,21 @@ const Input = ({
   onChange,
   ...props
 }) => {
-  const baseStyles = "w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 text-gray-900 placeholder-gray-500";
+  const baseStyles =
+    'w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 text-gray-900 placeholder-gray-500 dark:border-sky-700 dark:bg-sky-900 dark:text-sky-100 dark:placeholder:text-sky-500 dark:focus:ring-teal-500/30 dark:focus:ring-offset-sky-950';
   
   const classes = [
     baseStyles,
-    !error ? "border-gray-300 focus:border-blue-500 focus:ring-blue-500" : "border-red-500 focus:border-red-500 focus:ring-red-500",
+    !error
+      ? 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:focus:border-teal-500'
+      : 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500/70',
     className
-  ].filter(Boolean).join(" ");
+  ].filter(Boolean).join(' ');
 
   return (
     <div className="w-full">
       {label && (
-        <label className="block mb-2 text-sm font-medium text-gray-700">
+        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-sky-200">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -37,7 +40,7 @@ const Input = ({
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
     </div>
   );

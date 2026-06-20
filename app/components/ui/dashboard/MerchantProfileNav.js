@@ -12,6 +12,7 @@ export const MERCHANT_SECTION_IDS = {
   presence: 'merchant-presence',
   portfolio: 'merchant-portfolio',
   verification: 'merchant-verification',
+  vitrine: 'merchant-vitrine',
 };
 
 /** سازگاری با لینک‌های قدیمی */
@@ -32,10 +33,12 @@ export const MERCHANT_SECTION_LABELS = {
   [MERCHANT_SECTION_IDS.presence]: 'حضور و ساعات',
   [MERCHANT_SECTION_IDS.portfolio]: 'نمونه‌کارها',
   [MERCHANT_SECTION_IDS.verification]: 'احراز و مدارک',
+  [MERCHANT_SECTION_IDS.vitrine]: 'ویترین',
 };
 
 export const MERCHANT_NAV_ITEMS = [
   { id: MERCHANT_SECTION_OVERVIEW, label: MERCHANT_SECTION_LABELS[MERCHANT_SECTION_OVERVIEW] },
+  { id: MERCHANT_SECTION_IDS.vitrine, label: MERCHANT_SECTION_LABELS[MERCHANT_SECTION_IDS.vitrine] },
   { id: MERCHANT_SECTION_IDS.subcategories, label: MERCHANT_SECTION_LABELS[MERCHANT_SECTION_IDS.subcategories] },
   { id: MERCHANT_SECTION_IDS.identity, label: MERCHANT_SECTION_LABELS[MERCHANT_SECTION_IDS.identity] },
   { id: MERCHANT_SECTION_IDS.contacts, label: MERCHANT_SECTION_LABELS[MERCHANT_SECTION_IDS.contacts] },

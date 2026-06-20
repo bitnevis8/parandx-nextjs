@@ -6,6 +6,7 @@ import HomeLatestExperts from './HomeLatestExperts';
 import HomeExpertSignupCta from './HomeExpertSignupCta';
 import LatestExpertsIllustration from './LatestExpertsIllustration';
 import HomeSectionHeader from './HomeSectionHeader';
+import ExpertCommunityMobileHeader from './ExpertCommunityMobileHeader';
 import { EXPERT_BLOCK_SHELL } from './homeExpertTheme';
 
 /** بلوک یکپارچه: آخرین متخصصین + دعوت به ثبت‌نام */
@@ -14,16 +15,19 @@ export default function HomeExpertCommunityBlock({ city, cityName }) {
 
   return (
     <div id="home-path-expert" className={`${EXPERT_BLOCK_SHELL} scroll-mt-28`}>
+      <ExpertCommunityMobileHeader cityName={cityName || city?.name} />
+
       <HomeSectionHeader
         icon={SparklesIcon}
         title={EXPERT_COMMUNITY_HEADER.title}
         description={EXPERT_COMMUNITY_HEADER.description}
+        className="hidden sm:block"
       />
 
       <HomeLatestExperts city={city} embedded />
       <div className="relative">
         <LatestExpertsIllustration />
-        <HomeExpertSignupCta cityName={cityName} embedded />
+        <HomeExpertSignupCta embedded />
       </div>
     </div>
   );

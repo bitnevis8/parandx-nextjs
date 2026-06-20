@@ -19,7 +19,7 @@ export default function GoodsMapCategorySearch({
   const isToolbar = variant === 'toolbar';
 
   const shellClass = isToolbar
-    ? 'min-w-0 flex-1'
+    ? 'min-w-0 w-full'
     : isNavbar
       ? 'border-b border-amber-100/80 bg-gradient-to-b from-amber-50/80 via-amber-50/30 to-white px-3 py-2 sm:px-4 sm:py-2.5'
       : isCompact

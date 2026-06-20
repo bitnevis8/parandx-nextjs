@@ -2,6 +2,13 @@
 
 export const DEFAULT_MAP_STYLE_ID = 'liberty';
 
+/** پیش‌فرض در تم تاریک */
+export const DARK_DEFAULT_MAP_STYLE_ID = 'fiord';
+
+export function resolveDefaultMapStyleId(isDark = false) {
+  return isDark ? DARK_DEFAULT_MAP_STYLE_ID : DEFAULT_MAP_STYLE_ID;
+}
+
 export const MAP_STYLE_PRESETS = [
   {
     id: 'liberty',

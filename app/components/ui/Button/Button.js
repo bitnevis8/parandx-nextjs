@@ -11,12 +11,16 @@ const Button = ({
   loading,
   ...props
 }) => {
-  const baseStyles = "rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const baseStyles =
+    'rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-sky-950';
   
   const variants = {
-    primary: "bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500",
-    secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500",
-    danger: "bg-rose-100 text-rose-700 hover:bg-rose-200 focus:ring-rose-500",
+    primary:
+      'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500 dark:bg-teal-600 dark:hover:bg-teal-500 dark:focus:ring-teal-400/40',
+    secondary:
+      'bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500 dark:bg-sky-900 dark:text-sky-200 dark:hover:bg-sky-800 dark:focus:ring-sky-600',
+    danger:
+      'bg-rose-100 text-rose-700 hover:bg-rose-200 focus:ring-rose-500 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60 dark:focus:ring-red-500/40',
   };
 
   const sizes = {

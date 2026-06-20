@@ -143,6 +143,16 @@ export default function HomeMapDesktopFilterBar({
 
   const hasLayer = Boolean(layerToolbar || layerControl);
 
+  if (!cells.length && !summary && hasLayer) {
+    return (
+      <div className={`hidden md:block ${MAP_FILTER_TOOLBAR}`}>
+        <div className={MAP_FILTER_TOOLBAR_PAD}>
+          <div className="w-full">{layerToolbar || layerControl}</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!cells.length && !hasLayer && !summary) return null;
 
   return (

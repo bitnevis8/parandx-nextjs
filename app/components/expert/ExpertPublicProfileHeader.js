@@ -14,7 +14,7 @@ import {
 } from '../../utils/expertProfileUtils';
 
 const MSG_BTN =
-  'inline-flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-teal-200 hover:bg-slate-50 sm:h-9 sm:text-xs';
+  'inline-flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-teal-200 hover:bg-slate-50 dark:border-sky-700 dark:bg-sky-900 dark:text-sky-100 dark:hover:border-teal-600 dark:hover:bg-sky-800 sm:h-9 sm:text-xs';
 
 export default function ExpertPublicProfileHeader({
   expert,
@@ -43,7 +43,7 @@ export default function ExpertPublicProfileHeader({
   const showSectionNav = sections.length > 0 && typeof onSectionClick === 'function';
 
   return (
-    <header className="bg-slate-100/80">
+    <header className="bg-slate-100/80 dark:bg-sky-950">
       <div className="relative isolate overflow-hidden bg-gradient-to-bl from-teal-900 via-teal-700 to-emerald-600">
         <div
           className="absolute inset-0 opacity-[0.12]"
@@ -65,7 +65,7 @@ export default function ExpertPublicProfileHeader({
       </div>
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6">
-        <div className="-mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md sm:-mt-11">
+        <div className="-mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md dark:border-sky-800 dark:bg-sky-900 dark:shadow-none sm:-mt-11">
           <div className="relative px-4 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-4">
             <div
               className="absolute left-3 top-3 z-10 flex w-[7.25rem] flex-col gap-1.5 sm:left-4 sm:top-4 sm:w-[8rem]"
@@ -88,10 +88,10 @@ export default function ExpertPublicProfileHeader({
                 verified={isApproved}
               />
               <div className="min-w-0 flex-1 pt-0.5">
-                <h1 className="text-base font-bold leading-snug text-slate-900 sm:text-xl">
+                <h1 className="text-base font-bold leading-snug text-slate-900 dark:text-sky-50 sm:text-xl">
                   {publicName}
                   {accountLabel ? (
-                    <span className="ms-1.5 text-[0.72em] font-medium text-slate-500">
+                    <span className="ms-1.5 text-[0.72em] font-medium text-slate-500 dark:text-sky-400">
                       ({accountLabel})
                     </span>
                   ) : null}
@@ -113,7 +113,7 @@ export default function ExpertPublicProfileHeader({
 
           {showSectionNav ? (
             <nav
-              className="border-t border-slate-100 bg-slate-50/80 px-2 py-2 sm:px-4"
+              className="border-t border-slate-100 bg-slate-50/80 px-2 py-2 dark:border-sky-800 dark:bg-sky-950/80 sm:px-4"
               aria-label="بخش‌های پروفایل"
             >
               <ul className="flex gap-1.5 overflow-x-auto scrollbar-thin sm:flex-wrap sm:justify-center">
@@ -127,7 +127,7 @@ export default function ExpertPublicProfileHeader({
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                           active
                             ? 'bg-teal-600 text-white shadow-sm'
-                            : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                            : 'text-slate-600 hover:bg-white hover:text-slate-900 dark:text-sky-300 dark:hover:bg-sky-800 dark:hover:text-sky-50'
                         }`}
                       >
                         {label}

@@ -47,6 +47,8 @@ import {
   defaultMerchantActivityTypes,
   normalizeMerchantActivityTypes,
   defaultMerchantStoreName,
+  normalizeMerchantStoreSlug,
+  isValidMerchantStoreSlug,
   normalizePortfolio,
 } from '../../utils/merchantProfileUtils';
 import {
@@ -80,6 +82,7 @@ export default function MerchantEdit({
   const [formData, setFormData] = useState({
     accountType: 'individual',
     storeName: '',
+    storeSlug: '',
     description: '',
     experience: '',
     logo: '',
@@ -110,6 +113,7 @@ export default function MerchantEdit({
     setFormData({
       accountType: normalizeAccountType(data.accountType, data),
       storeName: defaultMerchantStoreName(data),
+      storeSlug: data.storeSlug || '',
       description: data.description || '',
       experience: data.experience || '',
       logo: data.logo || '',
@@ -227,10 +231,24 @@ export default function MerchantEdit({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.accountType === 'business' && !formData.companyName.trim()) {
-      setSaveMessage({ type: 'error', text: 'نام شرکت الزامی است' });
+    if (!formData.storeName.trim()) {
+      setSaveMessage({ type: 'error', text: 'نام فروشگاه الزامی است' });
       return;
     }
+
+    const normalizedStoreSlug = normalizeMerchantStoreSlug(formData.storeSlug);
+    if (formData.storeSlug.trim() && !isValidMerchantStoreSlug(formData.storeSlug)) {
+      setSaveMessage({
+        type: 'error',
+        text: 'آدرس صفحه فقط باید حروف انگلیسی، عدد و خط‌تیره باشد',
+      });
+      return;
+    }
+
+    const resolvedCompanyName =
+      formData.accountType === 'business'
+        ? formData.companyName.trim() || formData.storeName.trim()
+        : formData.companyName.trim() || null;
 
     try {
       setSaving(true);
@@ -239,11 +257,12 @@ export default function MerchantEdit({
       const body = {
         accountType: formData.accountType,
         storeName: formData.storeName.trim() || null,
+        storeSlug: normalizedStoreSlug || null,
         description: formData.description.trim() || null,
         experience: formData.experience.trim() || null,
         portfolio: formData.portfolio,
         logo: formData.logo.trim() || null,
-        companyName: formData.companyName.trim() || null,
+        companyName: resolvedCompanyName,
         companyLogo: formData.companyLogo.trim() || null,
         registrationNumber: formData.registrationNumber.trim() || null,
         companyNationalId: formData.companyNationalId.trim() || null,

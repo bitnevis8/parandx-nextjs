@@ -12,17 +12,25 @@ export default function MapGoodsLayerToolbar({
   onNeedsMineOnlyChange,
   needScopeLoading = false,
   stretch = false,
+  variant = 'default',
 }) {
   const showScope = showNeedScope && layer === MAP_GOODS_LAYERS.needs;
+  const isMobileBanner = variant === 'mobileBanner';
 
   return (
-    <div className="flex w-full items-center gap-2">
-      <div className="min-w-0 flex-1">
-        <MapGoodsLayerToggle compact stretch={stretch} value={layer} onChange={onLayerChange} />
+    <div className={`flex w-full ${isMobileBanner ? 'flex-col gap-2' : 'items-center gap-2'}`}>
+      <div className={isMobileBanner ? 'w-full' : 'min-w-0 flex-1'}>
+        <MapGoodsLayerToggle
+          compact={!isMobileBanner}
+          stretch={stretch && !isMobileBanner}
+          value={layer}
+          onChange={onLayerChange}
+        />
       </div>
       {showScope ? (
         <MapGoodsNeedScopeToggle
           compact
+          fullWidth={isMobileBanner}
           mineOnly={needsMineOnly}
           onChange={onNeedsMineOnlyChange}
           disabled={needScopeLoading}

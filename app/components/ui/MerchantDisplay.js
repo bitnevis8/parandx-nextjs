@@ -39,6 +39,7 @@ import { resolveGoodsGlbModel } from '../../config/mapGoods3dIcons';
 import { useCategoryMapModels } from '../../hooks/useCategoryMapModels';
 import { useProfileTarget } from '../../hooks/useProfileTarget';
 import { ManagedUserBanner } from './dashboard/ManagedUserBanner';
+import ShopVitrineSection from '../vitrine/ShopVitrineSection';
 
 const CityAddressMap = dynamic(() => import('./CityAddressMap'), { ssr: false });
 
@@ -55,6 +56,8 @@ export default function MerchantDisplay({
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [vitrineProducts, setVitrineProducts] = useState([]);
+  const [vitrineLoading, setVitrineLoading] = useState(false);
 
   useEffect(() => {
     fetch(API_ENDPOINTS.cities.getAll)
@@ -87,6 +90,17 @@ export default function MerchantDisplay({
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection !== MERCHANT_SECTION_IDS.vitrine && activeSection !== MERCHANT_SECTION_OVERVIEW) return;
+    if (!profile?.id) return;
+    setVitrineLoading(true);
+    fetch(API_ENDPOINTS.shopProducts.byMerchant(profile.id))
+      .then((r) => r.json())
+      .then((res) => { if (res.success) setVitrineProducts(res.data || []); })
+      .catch(console.error)
+      .finally(() => setVitrineLoading(false));
+  }, [activeSection, profile?.id]);
 
   const addresses = useMemo(() => {
     if (!profile) return [];
@@ -254,6 +268,16 @@ export default function MerchantDisplay({
             </ProfilePanelGroup>
           </ProfilePanel>
         );
+      case MERCHANT_SECTION_IDS.vitrine:
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-800">ویترین فروشگاه</h3>
+              <span className="text-xs text-gray-400">{vitrineProducts.length} محصول</span>
+            </div>
+            <ShopVitrineSection products={vitrineProducts} loading={vitrineLoading} />
+          </div>
+        );
       default:
         return null;
     }
@@ -291,19 +315,28 @@ export default function MerchantDisplay({
       {isOverview ? (
         <MerchantPageLayout
           sidebar={
-            <MerchantSidebarCard
-              id={MERCHANT_SECTION_IDS.subcategories}
-              title="زیردسته‌های کالا"
-              description="زیردسته‌های فعال فروشگاه"
-            >
-              <StoreCategoriesPicker
-                targetUserId={targetUserId}
-                readOnly
-                displayMode
-                layout="sidebar"
-                showSection={false}
-              />
-            </MerchantSidebarCard>
+            <div className="space-y-4">
+              <MerchantSidebarCard
+                id={MERCHANT_SECTION_IDS.vitrine}
+                title="ویترین فروشگاه"
+                description={`${vitrineProducts.length} محصول`}
+              >
+                <ShopVitrineSection products={vitrineProducts.slice(0, 6)} loading={vitrineLoading} />
+              </MerchantSidebarCard>
+              <MerchantSidebarCard
+                id={MERCHANT_SECTION_IDS.subcategories}
+                title="زیردسته‌های کالا"
+                description="زیردسته‌های فعال فروشگاه"
+              >
+                <StoreCategoriesPicker
+                  targetUserId={targetUserId}
+                  readOnly
+                  displayMode
+                  layout="sidebar"
+                  showSection={false}
+                />
+              </MerchantSidebarCard>
+            </div>
           }
         >
           {renderOverviewContent()}

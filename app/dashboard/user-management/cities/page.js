@@ -4,11 +4,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import ProtectedRoute from '../../../components/ProtectedRoute';
 import { API_ENDPOINTS } from '../../../config/api';
 import { clearCityBoundaryCache } from '../../../utils/loadCityBoundary';
-import { getCityMapViewPreset } from '../../../utils/cityMapConfig';
+import { getCityMapFormDefaults } from '../../../utils/cityMapConfig';
 import { readTriStateBool } from '../../../utils/mapBuildingExtrusion';
 import CityMapSettingsFields from './CityMapSettingsFields';
 
 const fetchOpts = { credentials: 'include' };
+
+function parseOptionalMapZoom(value) {
+  if (value === '' || value == null) return 13;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 13;
+  return Math.min(20, Math.max(4, n));
+}
 
 function StatusBadge({ active }) {
   return (
@@ -241,10 +248,7 @@ function LocationsManagementContent() {
       item: city,
       form: city
         ? (() => {
-            const preset = getCityMapViewPreset(city);
-            const usePresetForm =
-              preset && !readTriStateBool(city.mapUseConfiguredView, false);
-            const src = usePresetForm ? { ...city, ...preset } : city;
+            const mapDefaults = getCityMapFormDefaults(city);
             return {
             id: city.id,
             name: city.name,
@@ -252,15 +256,16 @@ function LocationsManagementContent() {
             provinceId: city.provinceId,
             isActive: city.isActive,
             order: city.order || 0,
-            latitude: src.latitude ?? '',
-            longitude: src.longitude ?? '',
-            mapZoom: src.mapZoom ?? 13,
+            latitude: mapDefaults?.latitude ?? city.latitude ?? '',
+            longitude: mapDefaults?.longitude ?? city.longitude ?? '',
+            mapZoom: mapDefaults?.mapZoom ?? city.mapZoom ?? 13,
+            mapZoomMobile: mapDefaults?.mapZoomMobile ?? city.mapZoomMobile ?? '',
             defaultSectionId: city.defaultSectionId || '',
             defaultNeighborhoodId: city.defaultNeighborhoodId || '',
-            mapShow3D: readTriStateBool(src.mapShow3D, true),
-            mapPitch: src.mapPitch ?? 60,
-            mapBearing: src.mapBearing ?? 0,
-            mapUseConfiguredView: Boolean(src.mapUseConfiguredView),
+            mapShow3D: mapDefaults?.mapShow3D ?? readTriStateBool(city.mapShow3D, true),
+            mapPitch: mapDefaults?.mapPitch ?? city.mapPitch ?? 60,
+            mapBearing: mapDefaults?.mapBearing ?? city.mapBearing ?? 0,
+            mapUseConfiguredView: mapDefaults?.mapUseConfiguredView ?? Boolean(city.mapUseConfiguredView),
             mapBuildingUseMapDefault: readTriStateBool(city.mapBuildingUseMapDefault, true),
             mapBuildingDefaultHeight: city.mapBuildingDefaultHeight ?? 12,
             mapMaxBoundsPaddingKm: city.mapMaxBoundsPaddingKm ?? 0,
@@ -279,6 +284,7 @@ function LocationsManagementContent() {
             latitude: '',
             longitude: '',
             mapZoom: 13,
+            mapZoomMobile: '',
             defaultSectionId: '',
             defaultNeighborhoodId: '',
             mapShow3D: true,
@@ -320,7 +326,11 @@ function LocationsManagementContent() {
           id: parseInt(form.id, 10),
           provinceId: parseInt(form.provinceId, 10),
           order: parseInt(form.order, 10) || 0,
-          mapZoom: parseInt(form.mapZoom, 10) || 13,
+          mapZoom: parseOptionalMapZoom(form.mapZoom),
+          mapZoomMobile:
+            form.mapZoomMobile !== '' && form.mapZoomMobile != null
+              ? parseOptionalMapZoom(form.mapZoomMobile)
+              : null,
           latitude: form.latitude !== '' ? form.latitude : null,
           longitude: form.longitude !== '' ? form.longitude : null,
           defaultSectionId: form.defaultSectionId || null,

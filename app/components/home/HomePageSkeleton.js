@@ -1,14 +1,14 @@
 'use client';
 
 function Pulse({ className }) {
-  return <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />;
+  return <div className={`animate-pulse bg-gray-200 dark:bg-sky-800 rounded-lg ${className}`} />;
 }
 
 export default function HomePageSkeleton() {
   return (
-    <div className="min-h-screen bg-white w-full overflow-x-hidden">
+    <div className="min-h-screen w-full overflow-x-hidden bg-white dark:bg-transparent">
       {/* Hero skeleton */}
-      <Pulse className="w-full h-52 sm:h-60 md:h-72 border-b border-gray-100 rounded-none" />
+      <Pulse className="w-full h-52 sm:h-60 md:h-72 border-b border-gray-100 dark:border-sky-800 rounded-none" />
       <div className="py-10 px-4">
         <div className="container mx-auto max-w-4xl text-center space-y-4">
           <Pulse className="h-10 w-3/4 max-w-md mx-auto" />
@@ -22,11 +22,11 @@ export default function HomePageSkeleton() {
       </div>
 
       {/* Categories skeleton */}
-      <div className="bg-gray-50 py-12 px-4">
+      <div className="bg-gray-50 py-12 px-4 dark:bg-sky-950">
         <div className="container mx-auto max-w-6xl space-y-6">
           <Pulse className="h-8 w-48 mx-auto mb-8" />
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl border border-gray-100 bg-white p-4 space-y-4">
+            <div key={i} className="rounded-2xl border border-gray-100 bg-white p-4 space-y-4 dark:border-sky-800 dark:bg-sky-900">
               <Pulse className="h-6 w-40" />
               <div className="flex gap-3 overflow-hidden">
                 {[1, 2, 3, 4, 5].map((j) => (

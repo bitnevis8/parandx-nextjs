@@ -1,4 +1,5 @@
 import { resolveMerchantGlbModel } from '../config/mapGoods3dIcons';
+import { merchantStorePublicHref } from './merchantDisplayUtils';
 import { getPinFromAddressData } from './profileAddressUtils';
 import {
   addressMatchesCity,
@@ -12,6 +13,7 @@ function coordsKey(lat, lng) {
 export const MAP_GOODS_LAYERS = {
   merchants: 'merchants',
   needs: 'needs',
+  supplies: 'supplies',
 };
 
 export function merchantProvidesCategory(merchant, categorySlug) {
@@ -151,11 +153,6 @@ export function collectMerchantMapMarkers(
   const cityMatchOpts = { mapCityId };
 
   (merchants || []).forEach((merchant) => {
-    const name =
-      String(merchant.storeName || '').trim() ||
-      String(merchant.companyName || '').trim() ||
-      'فروشگاه';
-
     const candidates = [];
 
     if (merchant.lat != null && merchant.lng != null) {
@@ -213,12 +210,11 @@ export function collectMerchantMapMarkers(
       expertId: merchant.id,
       lat: Number(chosen.pin.lat),
       lng: Number(chosen.pin.lng),
-      name,
-      href: `/dashboard?tab=merchant-display`,
-      avatarUrl: merchant.logo || null,
+      href: merchantStorePublicHref(merchant),
       categoryIcon: categoryDisplay.icon,
       categoryTitle: categoryDisplay.title,
       categoryTone: categoryDisplay.tone,
+      popupLinkLabel: 'مشاهده فروشگاه',
       ...(glbEntry
         ? { glbModel: glbEntry.url, glbModelConfig: glbEntry }
         : {}),
@@ -251,4 +247,5 @@ export {
 export {
   merchantMapExplorerSummaryCopy as getMerchantMapExplorerSummaryCopy,
   goodsNeedMapExplorerSummaryCopy as getGoodsNeedMapExplorerSummaryCopy,
+  goodsSupplyMapExplorerSummaryCopy as getGoodsSupplyMapExplorerSummaryCopy,
 } from '../copy/goodsPageFa';

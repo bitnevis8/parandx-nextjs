@@ -24,8 +24,8 @@ export default function ExpertHeaderProfileMeta({ expert }) {
       ) : null}
 
       {hasCategories ? (
-        <section className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 sm:px-3.5 sm:py-3">
-          <h2 className="mb-2 text-[11px] font-semibold text-slate-500 sm:text-xs">تخصص‌ها</h2>
+        <section className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-sky-800 dark:bg-sky-950/60 sm:px-3.5 sm:py-3">
+          <h2 className="mb-2 text-[11px] font-semibold text-slate-500 dark:text-sky-400 sm:text-xs">تخصص‌ها</h2>
           <ExpertHeaderSpecializations categories={expert.categories} />
         </section>
       ) : null}

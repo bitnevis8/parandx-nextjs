@@ -28,7 +28,7 @@ export default function HomeCustomerPaths() {
   }, []);
 
   return (
-    <nav className="w-full text-right" aria-label="راه‌های پیدا کردن متخصص در بازار خدمات">
+    <nav className="hidden w-full text-right md:block" aria-label="راه‌های پیدا کردن متخصص در بازار خدمات">
       <p className="mb-3 text-xs leading-relaxed text-gray-500 sm:text-[13px]">
         {SERVICES_CUSTOMER_PATHS_INTRO}
       </p>

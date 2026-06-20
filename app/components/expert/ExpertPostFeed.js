@@ -38,15 +38,15 @@ function PostCard({ post, isOwner, onDelete }) {
   };
 
   return (
-    <article className="border-b border-slate-100 px-4 py-4 last:border-b-0 sm:px-5">
+    <article className="border-b border-slate-100 px-4 py-4 last:border-b-0 dark:border-sky-800 sm:px-5">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-sky-400">
           <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)}</time>
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
               post.visibility === 'followers'
-                ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-100'
-                : 'bg-slate-100 text-slate-600'
+                ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-100 dark:bg-amber-950/50 dark:text-amber-200 dark:ring-amber-800/60'
+                : 'bg-slate-100 text-slate-600 dark:bg-sky-950 dark:text-sky-300'
             }`}
           >
             {post.visibility === 'followers' ? (
@@ -67,14 +67,14 @@ function PostCard({ post, isOwner, onDelete }) {
             type="button"
             onClick={handleDelete}
             disabled={deleting}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 disabled:opacity-50"
           >
             <TrashIcon className="h-4 w-4" aria-hidden />
             حذف
           </button>
         ) : null}
       </div>
-      <p className="whitespace-pre-wrap text-sm leading-7 text-slate-800">{post.content}</p>
+      <p className="whitespace-pre-wrap text-sm leading-7 text-slate-800 dark:text-sky-100">{post.content}</p>
     </article>
   );
 }
@@ -152,7 +152,7 @@ export default function ExpertPostFeed({ expertId }) {
       {loading ? (
         <div className="space-y-3 p-4 sm:p-5">
           {[1, 2].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100" />
+            <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-sky-800" />
           ))}
         </div>
       ) : posts.length > 0 ? (
@@ -162,7 +162,7 @@ export default function ExpertPostFeed({ expertId }) {
           ))}
         </div>
       ) : (
-        <p className="px-4 py-10 text-center text-sm text-slate-500 sm:px-5">
+        <p className="px-4 py-10 text-center text-sm text-slate-500 dark:text-sky-400 sm:px-5">
           {hint || 'هنوز پستی منتشر نشده است.'}
         </p>
       )}

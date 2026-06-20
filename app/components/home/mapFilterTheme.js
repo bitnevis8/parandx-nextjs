@@ -10,22 +10,25 @@ export const MAP_FILTER_FIELD =
   'w-full rounded-lg border border-gray-200/90 bg-white text-[13px] text-gray-900 shadow-sm transition ' +
   'placeholder:text-gray-400 hover:border-gray-300 ' +
   'focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 ' +
-  'disabled:cursor-not-allowed disabled:border-gray-100 disabled:bg-gray-50 disabled:text-gray-400';
+  'disabled:cursor-not-allowed disabled:border-gray-100 disabled:bg-gray-50 disabled:text-gray-400 ' +
+  'dark:border-sky-700 dark:bg-sky-900 dark:text-sky-100 dark:placeholder:text-sky-500 ' +
+  'dark:hover:border-sky-600 dark:focus:border-teal-500 ' +
+  'dark:disabled:border-sky-800 dark:disabled:bg-sky-950 dark:disabled:text-sky-600';
 
 export const MAP_FILTER_LABEL =
-  'mb-1.5 block text-[11px] font-semibold leading-none text-gray-500';
+  'mb-1.5 block text-[11px] font-semibold leading-none text-gray-500 dark:text-sky-400';
 
 export const MAP_FILTER_SECTION =
-  'text-[11px] font-bold leading-none text-gray-700';
+  'text-[11px] font-bold leading-none text-gray-700 dark:text-sky-200';
 
 export const MAP_FILTER_TOOLBAR =
-  'shrink-0 border-b border-gray-200/80 bg-gradient-to-b from-slate-50/95 via-white to-white';
+  'shrink-0 border-b border-gray-200/80 bg-gradient-to-b from-slate-50/95 via-white to-white dark:border-sky-800 dark:from-sky-950 dark:via-sky-900 dark:to-sky-900';
 
 export const MAP_FILTER_TOOLBAR_PAD = 'px-3 py-2 sm:px-4 lg:px-4';
 
 /** نوار ابزار بالای نقشه کالا — پس‌زمینه خنثی یکپارچه */
 export const GOODS_MAP_TOOLBAR =
-  'border-b border-gray-200/90 bg-gray-50/95';
+  'border-b border-gray-200/90 bg-gray-50/95 dark:border-sky-800 dark:bg-sky-950/95';
 export const GOODS_MAP_TOOLBAR_PAD = MAP_FILTER_TOOLBAR_PAD;
 
 export function mapFilterFieldClass(sizeClass = '') {

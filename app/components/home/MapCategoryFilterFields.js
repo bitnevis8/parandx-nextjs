@@ -3,10 +3,14 @@
 import { useMemo } from 'react';
 import {
   flattenMainCategoryOptions,
+  flattenProfessionSearchOptions,
   flattenServiceOptions,
   flattenSubcategoryOptions,
+  encodeProfessionSearchValue,
+  applyProfessionSearchSelection,
 } from '../../utils/expertMapUtils';
 import ServiceSearchSelect from './ServiceSearchSelect';
+import MapGlassSearchSelect from '../map/MapGlassSearchSelect';
 
 const ALL_MAIN_OPTION = {
   id: 'all-main',
@@ -101,12 +105,69 @@ export function MapSubcategorySelect({
   );
 }
 
-/** موبایل — هر دو فیلد پشت‌سرهم */
-export default function MapCategoryFilterFields(props) {
-  return (
-    <>
-      <MapMainCategorySelect {...props} />
-      <MapSubcategorySelect {...props} />
-    </>
+/** جستجوی یکپارچه — دسته اصلی و زیردسته */
+export function MapProfessionSearchSelect({
+  categories = [],
+  parentSlug = '',
+  serviceSlug = '',
+  onParentChange,
+  onServiceChange,
+  mapToolbar = true,
+  size = 'md',
+  mobileTopPicker = false,
+  inputId = 'map-profession-search',
+  mapGlassCorner = false,
+}) {
+  const options = useMemo(() => flattenProfessionSearchOptions(categories), [categories]);
+  const glassOptions = useMemo(
+    () =>
+      options.map((opt) => ({
+        value: opt.slug,
+        label: opt.title,
+        detail: opt.parentTitle,
+        searchText: opt.searchText,
+      })),
+    [options]
   );
+  const value = encodeProfessionSearchValue(parentSlug, serviceSlug);
+
+  const handleChange = (slug) => {
+    applyProfessionSearchSelection(slug, categories, { onParentChange, onServiceChange });
+  };
+
+  if (mapGlassCorner) {
+    return (
+      <MapGlassSearchSelect
+        label="جستجو"
+        value={value}
+        onChange={handleChange}
+        options={glassOptions}
+        disabled={!options.length}
+        searchPlaceholder="جستجوی حرفه…"
+        emptyHint="حرفه یا دسته‌ای پیدا نشد"
+      />
+    );
+  }
+
+  return (
+    <ServiceSearchSelect
+      options={options}
+      value={value || null}
+      onChange={handleChange}
+      disabled={!options.length}
+      mapToolbar={mapToolbar}
+      size={size}
+      mobileTopPicker={mobileTopPicker}
+      inputId={inputId}
+      mobileDialogLabel="جستجوی حرفه یا دسته"
+      placeholder="جستجوی حرفه یا دسته…"
+      emptyHint="حرفه یا دسته‌ای پیدا نشد"
+      showParentInList
+    />
+  );
+}
+
+/** موبایل — یک فیلد جستجو */
+export default function MapCategoryFilterFields(props) {
+  return <MapProfessionSearchSelect {...props} />;
 }

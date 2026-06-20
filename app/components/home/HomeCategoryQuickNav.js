@@ -5,8 +5,6 @@ import {
   AcademicCapIcon,
   BoltIcon,
   BuildingOffice2Icon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   ComputerDesktopIcon,
   HomeModernIcon,
   MagnifyingGlassIcon,
@@ -19,8 +17,10 @@ import {
   TruckIcon,
   WrenchScrewdriverIcon,
   XMarkIcon,
+  ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import { pickPopularCategories } from '../../config/goodsPopularCategories';
+import CategoryScrollRow from './CategoryScrollRow';
 
 const HEADER_SCROLL_OFFSET = 128;
 const SEARCH_MODE = {
@@ -80,11 +80,19 @@ function CategoryButton({
   hoverText,
   focusRing,
   onSelect,
+  drillDownSubcategories = false,
+  onDrillDown = null,
 }) {
+  const subs = category.subcategories || [];
+
   return (
     <button
       type="button"
       onClick={() => {
+        if (drillDownSubcategories && subs.length > 0) {
+          onDrillDown?.(category);
+          return;
+        }
         if (onSelect) onSelect(category);
         else scrollToCategory(category.slug);
       }}
@@ -134,6 +142,115 @@ function searchCategoriesDeep(categories = [], query = '') {
   });
 
   return { mains, subs };
+}
+
+function SubcategoryDrillButton({
+  subcategory,
+  parent,
+  useEmojiIcons,
+  hoverRing,
+  hoverText,
+  focusRing,
+  onSelect,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (onSelect) onSelect(subcategory);
+        else scrollToCategory(parent.slug);
+      }}
+      className={`group flex max-sm:w-[calc((100%-2.25rem)/4.15)] shrink-0 snap-start flex-col items-center gap-1.5 rounded-lg px-0.5 focus:outline-none focus-visible:ring-2 ${focusRing} focus-visible:ring-offset-2 max-sm:min-w-0 sm:w-full sm:min-w-0 sm:shrink sm:gap-2 sm:rounded-xl sm:px-1 sm:py-1`}
+    >
+      <span
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-dashed border-gray-200 bg-white shadow-sm transition-all duration-200 group-active:scale-95 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-[3.25rem] lg:w-[3.25rem] xl:h-14 xl:w-14 ${hoverRing}`}
+      >
+        <CategoryIcon
+          slug={parent.slug}
+          emoji={subcategory.icon || parent.icon}
+          useEmojiIcons={useEmojiIcons}
+        />
+      </span>
+      <span
+        className={`flex min-h-[2rem] w-full items-center justify-center px-0.5 text-center text-[10px] font-medium leading-snug text-gray-700 line-clamp-2 sm:min-h-[2.35rem] sm:px-1 sm:text-xs lg:text-[10px] xl:text-xs ${hoverText}`}
+      >
+        {subcategory.title}
+      </span>
+    </button>
+  );
+}
+
+function DrillDownSubcategoryPanel({
+  parent,
+  useEmojiIcons,
+  hoverRing,
+  hoverText,
+  focusRing,
+  onBack,
+  onSelectSubcategory,
+  gridClass,
+  isAmber,
+}) {
+  const subs = parent.subcategories || [];
+  if (!subs.length) return null;
+
+  return (
+    <div
+      className="animate-in fade-in slide-in-from-top-2 duration-300"
+      role="region"
+      aria-label={`زیردسته‌های ${parent.title}`}
+    >
+      <div
+        className={`mb-3 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 sm:mb-4 sm:px-4 ${
+          isAmber
+            ? 'border-amber-100 bg-amber-50/80'
+            : 'border-teal-100 bg-teal-50/70'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={onBack}
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+            isAmber
+              ? 'text-amber-900 hover:bg-amber-100 focus-visible:ring-amber-500'
+              : 'text-teal-900 hover:bg-teal-100 focus-visible:ring-teal-500'
+          }`}
+        >
+          <ArrowRightIcon className="h-4 w-4 shrink-0" aria-hidden />
+          بازگشت
+        </button>
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-white shadow-sm sm:h-10 sm:w-10 ${
+              isAmber ? 'border-amber-200' : 'border-teal-200'
+            }`}
+          >
+            <CategoryIcon slug={parent.slug} emoji={parent.icon} useEmojiIcons={useEmojiIcons} />
+          </span>
+          <span className="truncate text-sm font-bold text-gray-900 sm:text-base">{parent.title}</span>
+        </div>
+      </div>
+
+      <CategoryScrollRow
+        className={gridClass}
+        showHint={!isAmber}
+        accent={isAmber ? 'amber' : 'teal'}
+      >
+        {subs.map((subcategory) => (
+          <SubcategoryDrillButton
+            key={subcategory.id}
+            subcategory={subcategory}
+            parent={parent}
+            useEmojiIcons={useEmojiIcons}
+            hoverRing={hoverRing}
+            hoverText={hoverText}
+            focusRing={focusRing}
+            onSelect={onSelectSubcategory}
+          />
+        ))}
+      </CategoryScrollRow>
+    </div>
+  );
 }
 
 function SubcategoryMatchButton({
@@ -379,31 +496,15 @@ function CategoryQuickNavSearch({
   );
 }
 
-function ExpandCategoryTab({ expanded, onToggle, isAmber }) {
-  const label = expanded ? 'نمایش کمتر' : 'نمایش بیشتر';
-  const Icon = expanded ? ChevronUpIcon : ChevronDownIcon;
-
-  const iconClass = isAmber
-    ? 'text-amber-600 group-hover:text-teal-600'
-    : 'text-teal-600 group-hover:text-teal-700';
-
+function ExpandCategoryBorderButton({ expanded, onToggle }) {
   return (
     <button
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      className="group absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 translate-y-1/2 flex-col items-center gap-0.5 bg-transparent px-1 py-0 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-2 sm:gap-1"
+      className="absolute bottom-0 left-1/2 z-10 -translate-x-1/2 translate-y-1/2 rounded-full border border-gray-200 bg-white px-3.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 sm:px-4 sm:text-xs"
     >
-      <span
-        className="rounded-t-md border border-b-0 border-gray-200 bg-white px-2.5 py-0.5 text-[11px] font-medium leading-snug text-gray-700 shadow-[0_-2px_6px_rgba(15,23,42,0.06)] transition-colors group-hover:border-teal-200 group-hover:text-teal-700 group-hover:shadow-[0_-3px_10px_rgba(20,184,166,0.18)] sm:rounded-t-lg sm:px-3 sm:py-1 sm:text-xs"
-      >
-        {label}
-      </span>
-      <Icon
-        className={`h-4 w-4 motion-safe:animate-bounce transition-colors sm:h-[1.125rem] sm:w-[1.125rem] ${iconClass}`}
-        strokeWidth={2}
-        aria-hidden
-      />
+      {expanded ? 'نمایش کمتر' : 'نمایش بیشتر'}
     </button>
   );
 }
@@ -413,6 +514,7 @@ export default function HomeCategoryQuickNav({
   useEmojiIcons = false,
   popularSlugs = null,
   expandable = false,
+  drillDownSubcategories = false,
   accent = 'teal',
   onSelectCategory = null,
   onSelectSubcategory = null,
@@ -421,6 +523,7 @@ export default function HomeCategoryQuickNav({
   const [expanded, setExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState(SEARCH_MODE.deep);
+  const [drillDownParent, setDrillDownParent] = useState(null);
 
   const popularCategories = useMemo(
     () => (popularSlugs ? pickPopularCategories(categories, popularSlugs) : []),
@@ -428,10 +531,18 @@ export default function HomeCategoryQuickNav({
   );
 
   useEffect(() => {
-    if (!expanded) setSearchQuery('');
+    if (!expanded) {
+      setSearchQuery('');
+      setDrillDownParent(null);
+    }
   }, [expanded]);
 
+  useEffect(() => {
+    if (!drillDownSubcategories) setDrillDownParent(null);
+  }, [drillDownSubcategories, categories]);
+
   const isAmber = accent === 'amber';
+  const isDrillDownView = drillDownSubcategories && Boolean(drillDownParent);
   const canExpand = expandable && popularCategories.length > 0 && categories.length > popularCategories.length;
   const baseCategories = canExpand && !expanded ? popularCategories : categories;
 
@@ -479,20 +590,30 @@ export default function HomeCategoryQuickNav({
 
   if (!categories.length) return null;
 
-  const gridClass =
-    'flex flex-nowrap items-start gap-3 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory -mx-4 px-5 sm:mx-0 sm:grid sm:grid-cols-5 sm:gap-x-3 sm:gap-y-5 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-10 lg:gap-x-2 xl:gap-x-4 lg:gap-y-4';
-
   const hoverRing = isAmber
     ? 'group-hover:border-amber-300 group-hover:bg-amber-50'
     : 'group-hover:border-teal-300 group-hover:bg-teal-50 group-hover:shadow-md';
   const hoverText = isAmber ? 'group-hover:text-amber-800' : 'group-hover:text-teal-700';
   const focusRing = isAmber ? 'focus-visible:ring-amber-500' : 'focus-visible:ring-teal-500';
 
-  const handleToggleExpand = () => setExpanded((prev) => !prev);
+  const handleToggleExpand = () => {
+    setDrillDownParent(null);
+    setExpanded((prev) => !prev);
+  };
+
+  const handleDrillDown = (category) => {
+    setSearchQuery('');
+    setDrillDownParent(category);
+  };
+
+  const handleDrillBack = () => setDrillDownParent(null);
+
+  const gridClass =
+    'flex flex-nowrap items-start gap-3 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory -mx-4 px-5 sm:mx-0 sm:grid sm:grid-cols-5 sm:gap-x-3 sm:gap-y-5 sm:overflow-visible sm:px-0 sm:py-0 lg:grid-cols-10 lg:gap-x-2 xl:gap-x-4 lg:gap-y-4';
 
   return (
-    <div className={`w-full sm:px-0 ${className}`.trim()}>
-      {expanded && canExpand ? (
+    <div className={`relative w-full ${canExpand && !isDrillDownView ? 'pb-3' : ''} sm:px-0 ${className}`.trim()}>
+      {expanded && canExpand && !isDrillDownView ? (
         <CategoryQuickNavSearch
           value={searchQuery}
           onChange={setSearchQuery}
@@ -502,49 +623,74 @@ export default function HomeCategoryQuickNav({
         />
       ) : null}
 
-      <div className={gridClass} dir="rtl">
-        {hasVisibleResults ? (
-          <>
-            {visibleMainCategories.map((category) => (
-              <CategoryButton
-                key={`main-${category.id}`}
-                category={category}
-                useEmojiIcons={useEmojiIcons}
-                hoverRing={hoverRing}
-                hoverText={hoverText}
-                focusRing={focusRing}
-                onSelect={onSelectCategory}
-              />
-            ))}
-            {hasActiveSearch && isDeepMode
-              ? deepSearchResults.subs.map(({ subcategory, parent }) => (
-                  <SubcategoryMatchButton
-                    key={`sub-${subcategory.id}`}
-                    subcategory={subcategory}
-                    parent={parent}
-                    useEmojiIcons={useEmojiIcons}
-                    hoverRing={hoverRing}
-                    hoverText={hoverText}
-                    focusRing={focusRing}
-                    onSelect={onSelectSubcategory}
-                  />
-                ))
-              : null}
-          </>
-        ) : (
-          <p className="col-span-full w-full py-6 text-center text-sm text-gray-500 sm:col-span-5 lg:col-span-10">
-            {isDeepMode ? 'دسته یا زیرمجموعه‌ای' : 'دسته اصلی‌ای'} با «{searchQuery.trim()}» پیدا نشد —
-            عبارت دیگری امتحان کنید یا محدوده جستجو را عوض کنید.
-          </p>
-        )}
+      <div
+        className={`transition-all duration-300 ease-out ${
+          isDrillDownView
+            ? 'pointer-events-none max-h-0 overflow-hidden opacity-0'
+            : 'max-h-[2000px] opacity-100'
+        }`}
+        aria-hidden={isDrillDownView}
+      >
+        <CategoryScrollRow
+          className={gridClass}
+          showHint={!isAmber}
+          accent={isAmber ? 'amber' : 'teal'}
+        >
+          {hasVisibleResults ? (
+            <>
+              {visibleMainCategories.map((category) => (
+                <CategoryButton
+                  key={`main-${category.id}`}
+                  category={category}
+                  useEmojiIcons={useEmojiIcons}
+                  hoverRing={hoverRing}
+                  hoverText={hoverText}
+                  focusRing={focusRing}
+                  onSelect={onSelectCategory}
+                  drillDownSubcategories={drillDownSubcategories}
+                  onDrillDown={handleDrillDown}
+                />
+              ))}
+              {hasActiveSearch && isDeepMode
+                ? deepSearchResults.subs.map(({ subcategory, parent }) => (
+                    <SubcategoryMatchButton
+                      key={`sub-${subcategory.id}`}
+                      subcategory={subcategory}
+                      parent={parent}
+                      useEmojiIcons={useEmojiIcons}
+                      hoverRing={hoverRing}
+                      hoverText={hoverText}
+                      focusRing={focusRing}
+                      onSelect={onSelectSubcategory}
+                    />
+                  ))
+                : null}
+            </>
+          ) : (
+            <p className="col-span-full w-full py-6 text-center text-sm text-gray-500 sm:col-span-5 lg:col-span-10">
+              {isDeepMode ? 'دسته یا زیرمجموعه‌ای' : 'دسته اصلی‌ای'} با «{searchQuery.trim()}» پیدا نشد —
+              عبارت دیگری امتحان کنید یا محدوده جستجو را عوض کنید.
+            </p>
+          )}
+        </CategoryScrollRow>
       </div>
 
-      {canExpand ? (
-        <ExpandCategoryTab
-          expanded={expanded}
-          onToggle={handleToggleExpand}
+      {isDrillDownView ? (
+        <DrillDownSubcategoryPanel
+          parent={drillDownParent}
+          useEmojiIcons={useEmojiIcons}
+          hoverRing={hoverRing}
+          hoverText={hoverText}
+          focusRing={focusRing}
+          onBack={handleDrillBack}
+          onSelectSubcategory={onSelectSubcategory}
+          gridClass={gridClass}
           isAmber={isAmber}
         />
+      ) : null}
+
+      {canExpand && !isDrillDownView ? (
+        <ExpandCategoryBorderButton expanded={expanded} onToggle={handleToggleExpand} />
       ) : null}
     </div>
   );

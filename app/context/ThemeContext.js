@@ -22,12 +22,15 @@ function applyTheme(theme) {
   }
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', theme === 'dark' ? '#082f49' : '#0d9488');
+    meta.setAttribute('content', theme === 'dark' ? '#020617' : '#0d9488');
   }
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState('light');
+  const [theme, setThemeState] = useState(() => {
+    if (typeof document === 'undefined') return 'light';
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  });
 
   useEffect(() => {
     let stored = 'light';

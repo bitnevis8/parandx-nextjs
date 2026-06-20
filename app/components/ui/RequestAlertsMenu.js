@@ -12,7 +12,7 @@ import { API_ENDPOINTS } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
 import { useRole } from "../../hooks/useRole";
 
-export default function RequestAlertsMenu() {
+export default function RequestAlertsMenu({ variant = 'desktop' }) {
   const [count, setCount] = useState(0);
   const [alerts, setAlerts] = useState([]);
   const [open, setOpen] = useState(false);
@@ -93,28 +93,57 @@ export default function RequestAlertsMenu() {
     router.push(`/requests/${requestId}`);
   };
 
-  if (!isAuthenticated || !expertAccess) return null;
+  const isMobile = variant === 'mobile';
+  const wrapperClass = isMobile ? 'relative md:hidden' : 'relative hidden md:block';
+  const buttonClass = isMobile
+    ? 'relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-amber-50 hover:text-amber-600 active:bg-gray-100'
+    : 'relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-amber-50 hover:text-amber-600';
+  const iconClass = isMobile ? 'h-[1.35rem] w-[1.35rem] shrink-0' : 'h-5 w-5 shrink-0';
+  const badgePos = isMobile ? 'top-1 left-1' : 'top-1.5 left-1.5';
+
+  if (!isAuthenticated || !expertAccess) {
+    if (!isMobile) return null;
+    return (
+      <Link
+        href="/auth"
+        scroll={false}
+        className={buttonClass}
+        title="اعلان‌ها"
+        aria-label="اعلان‌ها — ورود"
+      >
+        <BellAlertIcon className={iconClass} strokeWidth={1.75} aria-hidden />
+      </Link>
+    );
+  }
 
   return (
-    <div className="relative hidden md:block" ref={ref}>
+    <div className={wrapperClass} ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-amber-50 hover:text-amber-600"
+        className={buttonClass}
         title="کارهای جدید"
         aria-label="کارهای جدید"
         aria-expanded={open}
       >
-        <BellAlertIcon className="h-5 w-5 shrink-0" aria-hidden />
+        <BellAlertIcon className={iconClass} aria-hidden />
         {count > 0 && (
-          <span className="absolute top-1.5 left-1.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
-            {count > 99 ? "99+" : count}
+          <span
+            className={`absolute ${badgePos} flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-bold text-white md:h-[1.125rem] md:min-w-[1.125rem] md:px-1 md:text-[10px]`}
+          >
+            {count > 99 ? '99+' : count}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-[10000] mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
+        <div
+          className={`absolute z-[10000] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60 ${
+            isMobile
+              ? 'fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] top-auto left-auto mt-0 w-auto max-h-[min(70vh,24rem)]'
+              : 'left-0 top-full mt-2 w-[min(22rem,calc(100vw-2rem))]'
+          }`}
+        >
           <div className="flex items-center justify-between border-b border-gray-100 bg-amber-50/60 px-4 py-3">
             <div>
               <p className="text-sm font-semibold text-gray-800">سفارش‌های جدید</p>

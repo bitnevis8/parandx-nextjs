@@ -9,17 +9,24 @@ import {
   getGeometryCentroid,
   resolveCityBoundaryFeature,
 } from '../../utils/geojsonBoundary';
-import { BOUNDARY_LABEL_UNCLUSTER_AT_ZOOM } from '../../utils/boundaryMapLabel';
+import {
+  BOUNDARY_CLUSTER_MAX_ZOOM,
+  BOUNDARY_CLUSTER_SECTION_MAX_ZOOM,
+} from '../../utils/boundaryMapLabel';
 import { getMaxBoundsFromGeoData } from '../../utils/mapLibreBounds';
-import { DEFAULT_MAP_STYLE_ID } from '../../utils/mapStylePresets';
+import { resolveDefaultMapStyleId } from '../../utils/mapStylePresets';
 import { resolveCityMapConfig, resolveCityMapView } from '../../utils/cityMapConfig';
 import { resolveCityExpertMarkerStyle } from '../../utils/mapExpertMarkerConfig';
+import { useTheme } from '../../context/ThemeContext';
 import HomeMapMobileBottomBar from '../home/HomeMapMobileBottomBar';
 import HomeMapMobileControlsSheet from '../home/HomeMapMobileControlsSheet';
-import HomeMapDesktopFilterBar from '../home/HomeMapDesktopFilterBar';
+import HomeMapMobileFullscreenSheet from '../home/HomeMapMobileFullscreenSheet';
 import HomeMapMobilePreviewOverlay from '../home/HomeMapMobilePreviewOverlay';
+import HomeMapDesktopFilterBar from '../home/HomeMapDesktopFilterBar';
 import HomeMapExpandHintBar from '../home/HomeMapExpandHintBar';
+import { MAP_INTRO } from '../../copy/friendlyFa';
 import HomeMapMobileTopBar from '../home/HomeMapMobileTopBar';
+import MapExplorerSummaryTypewriter from '../home/MapExplorerSummaryTypewriter';
 import { useIsMobileViewport } from '../../hooks/useIsMobileViewport';
 import {
   MAP_FILTER_FIELD,
@@ -35,6 +42,7 @@ import MapPinCoordinatesBar from '../map/MapPinCoordinatesBar';
 
 const MapLibreMap = dynamic(() => import('../map/MapLibreMap'), { ssr: false });
 const MapCornerControls = dynamic(() => import('../map/MapCornerControls'), { ssr: false });
+const MapGlassSearchSelect = dynamic(() => import('../map/MapGlassSearchSelect'), { ssr: false });
 const MapUserLocationControl = dynamic(() => import('../map/MapUserLocationControl'), { ssr: false });
 const MapPlaceSearchControl = dynamic(() => import('../map/MapPlaceSearchControl'), { ssr: false });
 
@@ -126,7 +134,12 @@ function getFeatureDisplayName(feature) {
 }
 
 function getClusterHint(data, sectionId) {
-  if (!sectionId) return 'بخش';
+  if (!sectionId) {
+    const hasNeighborhoods =
+      Boolean(data?.hasNeighborhoods) &&
+      (data?.sections || []).some((section) => (section.neighborhoods?.length ?? 0) > 0);
+    return hasNeighborhoods ? 'محله' : 'بخش';
+  }
   const section = data?.sections?.find((s) => s.featureId === sectionId);
   return (section?.neighborhoods?.length ?? 0) > 0 ? 'محله' : 'منطقه';
 }
@@ -150,6 +163,7 @@ export default function AhvazAddressPicker({
   enableGestures = false,
   headerControls = null,
   mainCategoryControl = null,
+  mapCornerCategoryControl = null,
   subCategoryControl = null,
   mobileCategoryControls = null,
   serviceSummary = null,
@@ -196,6 +210,8 @@ export default function AhvazAddressPicker({
   expandHint = null,
   cornerControlsLayout = 'corner',
   showWalkExplorer = false,
+  expertMarkerStyleOverride = null,
+  skipMobileFullscreenSheet = false,
 }) {
   const cityMapView = useMemo(
     () => resolveCityMapView(city),
@@ -204,6 +220,7 @@ export default function AhvazAddressPicker({
       city?.latitude,
       city?.longitude,
       city?.mapZoom,
+      city?.mapZoomMobile,
       city?.mapShow3D,
       city?.mapPitch,
       city?.mapBearing,
@@ -231,9 +248,14 @@ export default function AhvazAddressPicker({
   const [mobileSheetExpanded, setMobileSheetExpanded] = useState(false);
   const mapInstanceRef = useRef(null);
   const isMobile = useIsMobileViewport();
+  const { isDark } = useTheme();
   const [mapViewStats, setMapViewStats] = useState(null);
   const [walkExplorerActive, setWalkExplorerActive] = useState(false);
-  const [mapStyleId, setMapStyleId] = useState(DEFAULT_MAP_STYLE_ID);
+  const mapStyleTouchedRef = useRef(false);
+  const [mapStyleId, setMapStyleId] = useState(() => {
+    if (typeof document === 'undefined') return resolveDefaultMapStyleId(false);
+    return resolveDefaultMapStyleId(document.documentElement.classList.contains('dark'));
+  });
   const show3DControlled = show3DProp !== undefined;
   const [internalShow3D, setInternalShow3D] = useState(() => cityMapView?.show3D ?? false);
   const [internalRecenterKey, setInternalRecenterKey] = useState(0);
@@ -245,6 +267,16 @@ export default function AhvazAddressPicker({
 
   const handleMapViewChange = useCallback((stats) => {
     setMapViewStats(stats);
+  }, []);
+
+  useEffect(() => {
+    if (mapStyleTouchedRef.current) return;
+    setMapStyleId(resolveDefaultMapStyleId(isDark));
+  }, [isDark]);
+
+  const handleMapStyleChange = useCallback((styleId) => {
+    mapStyleTouchedRef.current = true;
+    setMapStyleId(styleId);
   }, []);
 
   const handleMapReady = useCallback(
@@ -601,9 +633,16 @@ export default function AhvazAddressPicker({
     const activeSection = sectionId
       ? data.sections?.find((section) => section.featureId === sectionId)
       : null;
-    const neighborhoodItems = activeSection?.neighborhoods?.length
-      ? activeSection.neighborhoods
-      : null;
+
+    const allNeighborhoods = data.hasNeighborhoods
+      ? (data.sections || []).flatMap((section) => section.neighborhoods || [])
+      : [];
+
+    const neighborhoodItems = sectionId
+      ? activeSection?.neighborhoods || []
+      : allNeighborhoods.length
+        ? allNeighborhoods
+        : null;
 
     const labelTargets = neighborhoodItems?.length
       ? neighborhoodItems.map((item) => ({
@@ -660,9 +699,6 @@ export default function AhvazAddressPicker({
 
   const fitBoundsMode = neighborhoodId ? 'neighborhood' : sectionId ? 'section' : 'city';
   const boundaryClusterHint = getClusterHint(data, sectionId);
-  const boundaryClusterMaxZoom = sectionId
-    ? 16
-    : BOUNDARY_LABEL_UNCLUSTER_AT_ZOOM;
 
   const cityBoundaryFeature = useMemo(() => resolveCityBoundaryFeature(data), [data]);
 
@@ -679,13 +715,17 @@ export default function AhvazAddressPicker({
     return getMaxBoundsFromGeoData(cityBoundaryFeature, cityMapView?.maxBoundsPaddingKm);
   }, [cityBoundaryFeature, cityMapView?.maxBoundsPaddingKm]);
 
-  const mapConfig = useMemo(() => resolveCityMapConfig(city), [
+  const mapConfig = useMemo(
+    () => resolveCityMapConfig(city, { mobile: isMobile }),
+    [
     city?.id,
     city?.slug,
     city?.name,
     city?.latitude,
     city?.longitude,
     city?.mapZoom,
+    city?.mapZoomMobile,
+    isMobile,
   ]);
 
   const pinFocusActive = Boolean(
@@ -703,11 +743,15 @@ export default function AhvazAddressPicker({
     return mapConfig?.zoom ?? 6;
   }, [pinFocusActive, mapConfig]);
 
+  const boundaryClusterMaxZoom = sectionId
+    ? BOUNDARY_CLUSTER_SECTION_MAX_ZOOM
+    : BOUNDARY_CLUSTER_MAX_ZOOM;
+
   const resolvedMapPitch = mapViewPitch ?? cityMapView?.pitch ?? null;
   const resolvedMapBearing = mapViewBearing ?? cityMapView?.bearing ?? null;
   const expertMarkerStyle = useMemo(
-    () => resolveCityExpertMarkerStyle(city),
-    [city?.id, city?.mapExpertMarkerStyle]
+    () => expertMarkerStyleOverride || resolveCityExpertMarkerStyle(city),
+    [expertMarkerStyleOverride, city?.id, city?.mapExpertMarkerStyle]
   );
 
   const cityLabel = city?.name || data?.city?.name || 'شهر';
@@ -761,6 +805,14 @@ export default function AhvazAddressPicker({
 
   const isMapFullscreen = controlsLayout === 'fullscreen';
   const isMapBannerHeader = controlsLayout === 'banner-header';
+  const isEmbeddedMobileMapPreview = isMapBannerHeader && isMobile && !isMapFullscreen;
+  const isEmbeddedBannerPreview = isMapBannerHeader && !isMapFullscreen;
+  const hideEmbeddedPreviewMapControls = isEmbeddedMobileMapPreview && Boolean(expandHint);
+  const useFullscreenMapOverlayControls = isMapFullscreen && !pinMode && !isMobile;
+  const useGlassCornerControls = (isMapBannerHeader && !isMobile) || useFullscreenMapOverlayControls;
+  const showCornerMapGuide =
+    (isMapBannerHeader && !isMobile) || (useFullscreenMapOverlayControls && !isMobile);
+  const showCornerMapInfo = showCornerMapGuide;
   const isMapToolbarLayout = isMapFullscreen || isMapBannerHeader;
   const useGoodsRegionToolbar =
     !skipDesktopFilterBar &&
@@ -794,9 +846,19 @@ export default function AhvazAddressPicker({
       }
     : {};
 
+  const useCornerRegionFilters =
+    hasBoundaryLayers &&
+    canSelectOnMap &&
+    (data?.sections?.length ?? 0) > 0 &&
+    ((isMapBannerHeader &&
+      !isMobile &&
+      !hideEmbeddedPreviewMapControls &&
+      (mapFooter || showMapTools || hasMobileMapSettings)) ||
+      (useFullscreenMapOverlayControls && !isMobile));
+
   const sectionControl =
     hasBoundaryLayers && (data?.sections?.length ?? 0) > 0 && canSelectOnMap ? (
-      <div {...(isMapToolbarLayout ? {} : regionExpandHandlers)}>
+      <div {...(useCornerRegionFilters || isMapToolbarLayout ? {} : regionExpandHandlers)}>
         <BoundarySelect
           label="بخش"
           size={selectSize}
@@ -814,7 +876,7 @@ export default function AhvazAddressPicker({
 
   const neighborhoodControl =
     hasBoundaryLayers && (data?.sections?.length ?? 0) > 0 && canSelectOnMap ? (
-      <div {...(isMapToolbarLayout ? {} : regionExpandHandlers)}>
+      <div {...(useCornerRegionFilters || isMapToolbarLayout ? {} : regionExpandHandlers)}>
         <BoundarySelect
           label="محله"
           size={selectSize}
@@ -831,8 +893,37 @@ export default function AhvazAddressPicker({
       </div>
     ) : null;
 
+  const cornerRegionFilters = useCornerRegionFilters ? (
+    <>
+      <MapGlassSearchSelect
+          label="بخش"
+          value={sectionId}
+          onChange={(v) => applySelection(v, '')}
+          options={[
+            { value: '', label: `کل ${cityLabel}` },
+            ...(data?.sections || []).map((s) => ({ value: s.featureId, label: s.name })),
+          ]}
+          searchPlaceholder="جستجوی بخش…"
+        />
+        <MapGlassSearchSelect
+          label="محله"
+          value={neighborhoodId}
+          onChange={(v) => applySelection(sectionId, v)}
+          disabled={!sectionId}
+          options={[
+            { value: '', label: sectionId ? 'همه محله‌ها' : 'محله' },
+            ...neighborhoodOptions.map((n) => ({ value: n.featureId, label: n.name })),
+          ]}
+          searchPlaceholder="جستجوی محله…"
+      />
+    </>
+  ) : null;
+
+  const cornerCategorySearch =
+    useCornerRegionFilters && mapCornerCategoryControl ? mapCornerCategoryControl : null;
+
   const regionControls =
-    sectionControl || neighborhoodControl ? (
+    !useCornerRegionFilters && (sectionControl || neighborhoodControl) ? (
       <div
         className={
           controlsOutside
@@ -864,8 +955,8 @@ export default function AhvazAddressPicker({
     ? isFullscreenControls
       ? `relative w-full min-h-0 flex-1 overflow-hidden bg-gray-100 ${className}`
       : controlsLayout === 'banner-header'
-        ? `relative w-full overflow-hidden ${skipDesktopFilterBar ? '' : 'border-t border-gray-200/90'} bg-gray-100 ${className}`
-        : `relative w-full overflow-hidden rounded-2xl border border-gray-200 shadow-sm bg-gray-100 ${className}`
+        ? `relative w-full overflow-hidden bg-gray-100 dark:bg-sky-950/35 ${className}`
+        : `relative w-full overflow-hidden rounded-2xl border border-gray-200 shadow-sm bg-gray-100 dark:border-sky-800 dark:bg-sky-950/35 ${className}`
     : `relative w-full min-h-0 overflow-hidden bg-gray-100 ${mapViewportHeightClass} ${className}`;
 
   const mapClickEnabled =
@@ -873,16 +964,24 @@ export default function AhvazAddressPicker({
 
   const mapOverlay = (
     <>
-      {expandOnMapClick && onRequestExpand ? (
-        <HomeMapMobilePreviewOverlay onOpen={onRequestExpand} cityName={cityLabel} />
-      ) : null}
-
-      {expandHint && onRequestExpand ? (
-        <HomeMapExpandHintBar
-          onOpen={onRequestExpand}
-          label={expandHint.label}
-          ariaLabel={expandHint.ariaLabel}
-        />
+      {isEmbeddedBannerPreview && expandHint && onRequestExpand ? (
+        <>
+          {isEmbeddedMobileMapPreview ? (
+            <button
+              type="button"
+              className="absolute inset-0 z-[440] cursor-pointer touch-manipulation md:hidden"
+              aria-label={expandHint.ariaLabel || MAP_INTRO.mobileExpandHintAria}
+              onClick={onRequestExpand}
+            />
+          ) : null}
+          <HomeMapExpandHintBar
+            variant={isEmbeddedMobileMapPreview ? 'center' : 'bottom'}
+            onOpen={onRequestExpand}
+            label={expandHint.label}
+            ariaLabel={expandHint.ariaLabel}
+            mobileOnly={expandHint.mobileOnly}
+          />
+        </>
       ) : null}
 
       {!controlsOutside && regionControls}
@@ -980,34 +1079,78 @@ export default function AhvazAddressPicker({
   }
 
   const isMobileFullscreenMap = isFullscreenControls && isMobile && hasMobileMapSettings;
+  const showMapViewModeToggle =
+    Boolean(onMapSelect2D && onMapSelect3D) || Boolean(showViewModeToggle);
+  const showMapSummaryOverlay =
+    Boolean(mapExplorerSummaryCopy?.title) && !mapFooter && !isMobile && isMapBannerHeader;
+
+  const showMapCornerControls =
+    !hideEmbeddedPreviewMapControls &&
+    (useFullscreenMapOverlayControls ||
+      (!isMobileFullscreenMap && (mapFooter || showMapTools || hasMobileMapSettings)));
+
+  const hideMapViewportUserLocation = isMapFullscreen && isMobile;
+
+  const cornerControlsWrapperClass =
+    useFullscreenMapOverlayControls && isMobile
+      ? 'absolute bottom-[5.75rem] start-3 z-[1002] max-h-[min(52dvh,20rem)] overflow-y-auto overscroll-contain pb-1'
+      : 'absolute inset-y-3 start-3 z-[1002]';
+
+  const cornerControlsProps = {
+    mapStats: mapViewStats,
+    show3D,
+    mapStyleId,
+    onMapStyleChange: handleMapStyleChange,
+    showViewModeToggle: showMapViewModeToggle,
+    onSelect2D: handleMapSelect2D,
+    onSelect3D: handleMapSelect3D,
+    showBoundaries,
+    onShowBoundariesChange,
+    layout: cornerControlsLayout,
+    showMapGuide: showCornerMapGuide,
+    showMapViewInfo: showCornerMapInfo,
+    useGlass: useGlassCornerControls,
+    mapRef: mapInstanceRef,
+    showUserLocation: true,
+    regionFilters: useCornerRegionFilters ? cornerRegionFilters : null,
+    categorySearch:
+      useCornerRegionFilters || (useFullscreenMapOverlayControls && !isMobile)
+        ? cornerCategorySearch
+        : null,
+    floating: false,
+    compactColumn: useFullscreenMapOverlayControls && isMobile,
+  };
 
   const mapViewport = (
     <div className={mapViewportClass}>
       {mapOverlay}
       <MapLibreMap {...mapLibreProps} />
-      {!isMobileFullscreenMap && (mapFooter || showMapTools || hasMobileMapSettings) ? (
-        <MapCornerControls
-          mapStats={mapViewStats}
-          show3D={show3D}
-          mapStyleId={mapStyleId}
-          onMapStyleChange={setMapStyleId}
-          showViewModeToggle={
-            cornerControlsLayout === 'splitBottom'
-              ? Boolean(onMapSelect2D && onMapSelect3D)
-              : showViewModeToggle && !show3DControlled
-          }
-          onSelect2D={handleMapSelect2D}
-          onSelect3D={handleMapSelect3D}
-          showBoundaries={showBoundaries}
-          onShowBoundariesChange={onShowBoundariesChange}
-          layout={cornerControlsLayout}
-          showMapGuide={cornerControlsLayout === 'splitBottom'}
+      {showMapSummaryOverlay ? (
+        <div
+          className={`pointer-events-none absolute end-3 z-[1001] ${
+            isEmbeddedBannerPreview && expandHint ? 'bottom-14 md:bottom-12' : 'bottom-3'
+          }`}
+        >
+          <MapExplorerSummaryTypewriter copy={mapExplorerSummaryCopy} />
+        </div>
+      ) : null}
+      {showMapCornerControls ? (
+        <div className={cornerControlsWrapperClass}>
+          <MapCornerControls {...cornerControlsProps} />
+        </div>
+      ) : null}
+      {isEmbeddedMobileMapPreview && onRequestExpand ? (
+        <HomeMapMobilePreviewOverlay
+          layerToolbar={layerToolbar}
+          sectionControl={sectionControl}
+          neighborhoodControl={neighborhoodControl}
+          onExpand={onRequestExpand}
         />
       ) : null}
       {showWalkExplorer ? (
         <MapPlayerScoreHud expertScore={88} merchantScore={72} memberScore={88} />
       ) : null}
-      {showWalkExplorer || showUserLocation ? (
+      {showWalkExplorer || (showUserLocation && !showMapCornerControls && !hideMapViewportUserLocation) ? (
         cornerControlsLayout === 'splitBottom' ? (
           <div className="pointer-events-none absolute bottom-3 start-3 z-[1002] flex max-w-[calc(100%-5.5rem)] items-center gap-1.5">
             {showWalkExplorer ? (
@@ -1176,53 +1319,51 @@ export default function AhvazAddressPicker({
           serviceSummary
       );
 
-      const isMobileFullscreen = isFullscreenLayout && isMobile;
+      const isMobileFullscreen =
+        isFullscreenLayout && isMobile && !skipMobileFullscreenSheet;
 
       if (isMobileFullscreen) {
+        const mobileFullscreenSearch = mainCategoryControl || mobileFilterCategoryControls;
+        const mobileFullscreenRegion =
+          sectionControl || neighborhoodControl ? (
+            <div className="grid grid-cols-1 gap-2.5">
+              {sectionControl}
+              {neighborhoodControl}
+            </div>
+          ) : null;
+
         return (
-          <div className="flex h-full min-h-0 w-full flex-col">
-            {pinLayerToolbarOnTop ? (
-              <HomeMapMobileTopBar>{layerToolbar}</HomeMapMobileTopBar>
-            ) : null}
-
-            {!skipDesktopFilterBar ? (
-              <HomeMapDesktopFilterBar
-                placeSearchControl={activePlaceSearchControl}
-                layerToolbar={pinLayerToolbarOnTop ? null : layerToolbar}
-                layerControl={layerControl}
-                mainCategoryControl={mainCategoryControl}
-                subCategoryControl={subCategoryControl}
-                sectionControl={sectionControl}
-                neighborhoodControl={neighborhoodControl}
-                serviceControl={headerControls}
-                regionControl={regionControls}
-                summary={serviceSummary}
-                variant={useGoodsRegionToolbar ? 'goodsRegionRow' : 'default'}
-                onCategorySearchFocus={useGoodsRegionToolbar ? focusGoodsCategorySearch : null}
+          <div className="relative flex h-full min-h-0 w-full flex-col">
+            <div className="relative min-h-0 flex-1">
+              {mapViewport}
+              {pinCoordinatesBar}
+              <HomeMapMobileFullscreenSheet
+                summary={sheetSummary}
+                statusCopy={mapExplorerSummaryCopy}
+                mapLayer={mapLayer}
+                layerToolbar={layerToolbar}
+                searchControl={mobileFullscreenSearch}
+                regionControls={mobileFullscreenRegion}
+                show3D={show3D}
+                onSelect2D={handleMapSelect2D}
+                onSelect3D={handleMapSelect3D}
+                showBoundaries={showBoundaries}
+                onShowBoundariesChange={onShowBoundariesChange}
+                onExpandedChange={setMobileSheetExpanded}
               />
-            ) : null}
-
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="relative min-h-0 flex-1">
-                {mapViewport}
-                {pinCoordinatesBar}
-              </div>
-
-              {hasMobileMapSettings || hasFilters ? (
-                <HomeMapMobileBottomBar
-                  filterSummary={sheetSummary}
-                  filterControls={hasFilters ? filterControls : null}
-                  summaryCopy={mapExplorerSummaryCopy}
-                  mapLayer={mapLayer}
-                  showBoundaries={showBoundaries}
-                  onShowBoundariesChange={onShowBoundariesChange}
-                  show3D={show3D}
-                  onSelect2D={handleMapSelect2D}
-                  onSelect3D={handleMapSelect3D}
-                  onFiltersExpandedChange={setMobileSheetExpanded}
-                />
-              ) : resolvedMapFooter ? (
-                <div className="shrink-0">{resolvedMapFooter}</div>
+              {showUserLocation ? (
+                <div className="pointer-events-none absolute bottom-3 start-3 z-[520] pb-[max(0px,env(safe-area-inset-bottom))]">
+                  <MapUserLocationControl
+                    mapRef={mapInstanceRef}
+                    markerEngine="maplibre"
+                    inline
+                    labeled
+                    label="موقعیت من"
+                    appearance="glass"
+                    anchor="start"
+                    className="pointer-events-auto min-w-[8.25rem] shadow-md [&_button]:!h-10 [&_button]:!w-auto [&_button]:px-3"
+                  />
+                </div>
               ) : null}
             </div>
           </div>
@@ -1244,12 +1385,12 @@ export default function AhvazAddressPicker({
               placeSearchControl={activePlaceSearchControl}
               layerToolbar={pinLayerToolbarOnTop ? null : layerToolbar}
               layerControl={layerControl}
-              mainCategoryControl={mainCategoryControl}
+              mainCategoryControl={useCornerRegionFilters ? null : mainCategoryControl}
               subCategoryControl={subCategoryControl}
-              sectionControl={sectionControl}
-              neighborhoodControl={neighborhoodControl}
+              sectionControl={useCornerRegionFilters ? null : sectionControl}
+              neighborhoodControl={useCornerRegionFilters ? null : neighborhoodControl}
               serviceControl={headerControls}
-              regionControl={regionControls}
+              regionControl={useCornerRegionFilters ? null : regionControls}
               summary={serviceSummary}
               variant={useGoodsRegionToolbar ? 'goodsRegionRow' : 'default'}
               onCategorySearchFocus={useGoodsRegionToolbar ? focusGoodsCategorySearch : null}
@@ -1258,7 +1399,7 @@ export default function AhvazAddressPicker({
 
           <div className={isFullscreenLayout ? 'relative min-h-0 flex-1' : 'relative'}>
             {mapBlock}
-            {hasFilters && showMobileFilterSheet ? (
+            {hasFilters && showMobileFilterSheet && !skipMobileFullscreenSheet ? (
               <div className="md:hidden">
                 <HomeMapMobileControlsSheet
                   summary={sheetSummary}

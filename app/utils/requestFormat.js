@@ -100,4 +100,40 @@ export function getExpertDisplayName(expert) {
   return name || 'متخصص';
 }
 
+export function getMerchantDisplayName(merchant) {
+  if (!merchant) return 'فروشگاه';
+  return (
+    merchant.storeName ||
+    merchant.companyName ||
+    getExpertDisplayName(merchant) ||
+    'فروشگاه'
+  );
+}
+
+export function getBidderDisplayName(bid) {
+  if (bid?.merchant) return getMerchantDisplayName(bid.merchant);
+  if (bid?.expert) return getExpertDisplayName(bid.expert);
+  if (bid?.bidderUser) {
+    const name = `${bid.bidderUser.firstName || ''} ${bid.bidderUser.lastName || ''}`.trim();
+    return name || 'خریدار';
+  }
+  return 'پیشنهاددهنده';
+}
+
+export function getBidderUserId(bid) {
+  return bid?.merchant?.user?.id ?? bid?.expert?.user?.id ?? bid?.bidderUser?.id ?? null;
+}
+
+export function isGoodsRequest(request) {
+  return request?.marketplaceType === 'goods';
+}
+
+export function isGoodsSupplyRequest(request) {
+  return isGoodsRequest(request) && request?.requestKind === 'supply';
+}
+
+export function isGoodsNeedRequest(request) {
+  return isGoodsRequest(request) && request?.requestKind !== 'supply';
+}
+
 export const fetchAuth = { credentials: 'include' };

@@ -9,7 +9,11 @@ import { MAP_LAYERS } from '../../utils/requestMapUtils';
 import { MAP_GOODS_LAYERS } from '../../utils/merchantMapUtils';
 
 function isListLayer(layer) {
-  return layer === MAP_LAYERS.requests || layer === MAP_GOODS_LAYERS.needs;
+  return (
+    layer === MAP_LAYERS.requests ||
+    layer === MAP_GOODS_LAYERS.needs ||
+    layer === MAP_GOODS_LAYERS.supplies
+  );
 }
 
 const toneStyles = {
@@ -42,6 +46,7 @@ export default function MapExplorerSummary({
   inline = false,
   bar = false,
   footer = false,
+  overlay = false,
   layer = MAP_LAYERS.experts,
 }) {
   if (!copy?.title) return null;
@@ -56,6 +61,24 @@ export default function MapExplorerSummary({
         </p>
         {copy.detail ? (
           <p className="mt-0.5 truncate text-[11px] leading-tight text-gray-600">{copy.detail}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (overlay) {
+    return (
+      <div
+        className="pointer-events-none max-w-[min(18rem,calc(100%-5.5rem))] rounded-xl border border-white/55 bg-white/92 px-3 py-2 text-right shadow-md backdrop-blur-sm dark:border-sky-700/75 dark:bg-sky-950/88 dark:shadow-black/20"
+        role="status"
+      >
+        <p className="text-xs font-bold leading-snug text-gray-900 dark:text-sky-50 sm:text-[13px]">
+          {copy.title}
+        </p>
+        {copy.detail ? (
+          <p className="mt-0.5 text-[11px] leading-snug text-gray-600 dark:text-sky-300">
+            {copy.detail}
+          </p>
         ) : null}
       </div>
     );

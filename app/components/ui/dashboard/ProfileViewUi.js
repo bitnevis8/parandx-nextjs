@@ -13,7 +13,7 @@ export function ProfilePanel({ children, className = '', flush = false }) {
       className={
         flush
           ? className
-          : `overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm ${className}`
+          : `overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-sky-800 dark:bg-sky-900 dark:shadow-none ${className}`
       }
     >
       {children}
@@ -24,13 +24,13 @@ export function ProfilePanel({ children, className = '', flush = false }) {
 /** گروه فیلدها با عنوان کوچک */
 export function ProfilePanelGroup({ title, children }) {
   return (
-    <section className="border-b border-gray-100 last:border-b-0">
+    <section className="border-b border-gray-100 last:border-b-0 dark:border-sky-800">
       {title ? (
-        <div className="border-b border-gray-50 bg-gray-50/70 px-4 py-2">
-          <h3 className="text-xs font-semibold text-gray-500">{title}</h3>
+        <div className="border-b border-gray-50 bg-gray-50/70 px-4 py-2 dark:border-sky-800 dark:bg-sky-950/60">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-sky-400">{title}</h3>
         </div>
       ) : null}
-      <dl className="divide-y divide-gray-100">{children}</dl>
+      <dl className="divide-y divide-gray-100 dark:divide-sky-800">{children}</dl>
     </section>
   );
 }
@@ -48,19 +48,21 @@ export function ProfilePanelRow({
     value !== null && value !== undefined && String(value).trim() !== '';
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50/60 sm:items-center sm:py-2.5">
+    <div className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50/60 dark:hover:bg-sky-950/50 sm:items-center sm:py-2.5">
       {Icon ? (
-        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700 sm:mt-0">
+        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 sm:mt-0">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
       ) : (
         <span className="hidden h-8 w-8 shrink-0 sm:block" aria-hidden />
       )}
       <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-        <dt className="shrink-0 text-xs font-medium text-gray-500 sm:w-20">{label}</dt>
+        <dt className="shrink-0 text-xs font-medium text-gray-500 dark:text-sky-400 sm:w-20">{label}</dt>
         <dd
           className={`min-w-0 flex-1 break-words text-sm leading-snug ${
-            hasValue ? 'font-medium text-gray-900' : 'text-gray-400'
+            hasValue
+              ? 'font-medium text-gray-900 dark:text-sky-100'
+              : 'text-gray-400 dark:text-sky-500'
           }`}
           dir={dir}
         >

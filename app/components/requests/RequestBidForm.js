@@ -11,7 +11,7 @@ import {
   textareaClass,
 } from '../ui/dashboard/DashboardUi';
 
-export default function RequestBidForm({ requestId, onSubmitted }) {
+export default function RequestBidForm({ requestId, onSubmitted, goodsMode = false, supplyMode = false }) {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -59,18 +59,27 @@ export default function RequestBidForm({ requestId, onSubmitted }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <FormField label="توضیحات پیشنهاد" span="full">
+      <FormField label={supplyMode ? 'جزئیات پیشنهاد خرید' : goodsMode ? 'جزئیات پیشنهاد' : 'توضیحات پیشنهاد'} span="full">
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           className={textareaClass}
-          placeholder="زمان تقریبی انجام کار، جزئیات اجرا، مواد مورد نیاز، شرایط دسترسی..."
+          placeholder={
+            supplyMode
+              ? 'قیمت پیشنهادی، تعداد، زمان تحویل، روش پرداخت...'
+              : goodsMode
+                ? 'قیمت واحد، موجودی، برند، زمان تحویل، گارانتی، هزینه ارسال...'
+                : 'زمان تقریبی انجام کار، جزئیات اجرا، مواد مورد نیاز، شرایط دسترسی...'
+          }
           required
         />
       </FormField>
 
-      <FormField label="قیمت پیشنهادی (اختیاری)" htmlFor="bid-price">
+      <FormField
+        label={goodsMode || supplyMode ? 'قیمت پیشنهادی (تومان)' : 'قیمت پیشنهادی (اختیاری)'}
+        htmlFor="bid-price"
+      >
         <input
           id="bid-price"
           type="text"
@@ -80,7 +89,11 @@ export default function RequestBidForm({ requestId, onSubmitted }) {
           className={inputClass}
           placeholder="مثلاً ۲٬۵۰۰٬۰۰۰"
         />
-        <p className="mt-1.5 text-xs text-gray-500">در صورت تمایل مبلغ را به تومان وارد کنید.</p>
+        <p className="mt-1.5 text-xs text-gray-500">
+          {goodsMode
+            ? 'مبلغ کل یا قیمت واحد را به تومان بنویسید.'
+            : 'در صورت تمایل مبلغ را به تومان وارد کنید.'}
+        </p>
       </FormField>
 
       {error ? (
@@ -96,7 +109,7 @@ export default function RequestBidForm({ requestId, onSubmitted }) {
 
       <button type="submit" disabled={submitting} className={`${primaryBtnClass} w-full sm:w-auto`}>
         <PaperAirplaneIcon className="h-4 w-4" aria-hidden />
-        {submitting ? 'در حال ارسال...' : 'ارسال پیشنهاد'}
+        {submitting ? 'در حال ارسال...' : supplyMode ? 'ارسال پیشنهاد خرید' : goodsMode ? 'ارسال پیشنهاد قیمت' : 'ارسال پیشنهاد'}
       </button>
     </form>
   );

@@ -30,12 +30,12 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           aria-hidden
         />
 
-        <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-sky-900 dark:shadow-black/40">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-sky-50">{title}</h3>
             <button
               type="button"
-              className="rounded-lg p-1 text-gray-400 transition hover:bg-slate-100 hover:text-gray-600"
+              className="rounded-lg p-1 text-gray-400 transition hover:bg-slate-100 hover:text-gray-600 dark:text-sky-400 dark:hover:bg-sky-800 dark:hover:text-sky-200"
               onClick={onClose}
               aria-label="بستن"
             >

@@ -96,10 +96,10 @@ export default function ExpertConnectionButton({ expertId, className = '', compa
   if (loading) {
     return (
       <div
-        className={shellClass(compact, `border-slate-200 bg-slate-50 text-slate-400 ${className}`)}
+        className={shellClass(compact, `border-slate-200 bg-slate-50 text-slate-400 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-500 ${className}`)}
         aria-hidden
       >
-        <span className="h-5 w-28 animate-pulse rounded bg-slate-200" />
+        <span className="h-5 w-28 animate-pulse rounded bg-slate-200 dark:bg-sky-800" />
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function ExpertConnectionButton({ expertId, className = '', compa
   if (status === 'accepted') {
     return (
       <div
-        className={shellClass(compact, `border-teal-200 bg-teal-50 text-teal-900 ${className}`)}
+        className={shellClass(compact, `border-teal-200 bg-teal-50 text-teal-900 dark:border-teal-700 dark:bg-teal-950/50 dark:text-teal-200 ${className}`)}
         title="ارتباط حرفه‌ای تأییدشده"
       >
         <CheckIcon className={`shrink-0 ${compact ? 'h-3.5 w-3.5' : 'h-5 w-5'}`} aria-hidden />
@@ -119,7 +119,7 @@ export default function ExpertConnectionButton({ expertId, className = '', compa
   if (status === 'pending') {
     return (
       <div
-        className={shellClass(compact, `border-slate-200 bg-slate-50 text-slate-600 ${className}`)}
+        className={shellClass(compact, `border-slate-200 bg-slate-50 text-slate-600 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-300 ${className}`)}
         title="در انتظار تأیید متخصص"
       >
         <ClockIcon className={`shrink-0 ${compact ? 'h-3.5 w-3.5' : 'h-5 w-5'}`} aria-hidden />
@@ -135,7 +135,7 @@ export default function ExpertConnectionButton({ expertId, className = '', compa
       disabled={busy}
       className={shellClass(
         compact,
-        `border-teal-500 bg-white text-teal-800 hover:bg-teal-50 ${busy ? 'opacity-70' : ''} ${className}`
+        `border-teal-500 bg-white text-teal-800 hover:bg-teal-50 dark:border-teal-500 dark:bg-sky-900 dark:text-teal-200 dark:hover:bg-sky-800 ${busy ? 'opacity-70' : ''} ${className}`
       )}
     >
       <UserPlusIcon className={`shrink-0 ${compact ? 'h-3.5 w-3.5' : 'h-5 w-5'}`} aria-hidden />

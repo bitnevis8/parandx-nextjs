@@ -7,12 +7,12 @@ import { useIsMobileViewport } from '../../hooks/useIsMobileViewport';
 import HomeMapDesktopFilterBar from './HomeMapDesktopFilterBar';
 
 const BANNER_MAP_HEIGHT =
-  'h-[min(58vw,15.5rem)] sm:h-[17rem] md:h-72 lg:h-80';
+  'h-[min(64vw,18rem)] sm:h-[19rem] md:h-[21rem] lg:h-96';
 
 const GOODS_BANNER_MAP_HEIGHT =
   'h-[min(71vw,19rem)] sm:h-[20.8rem] md:h-[22.1rem] lg:h-[24.5rem]';
 
-const MOBILE_PREVIEW_MAP_HEIGHT = 'h-[14rem]';
+const MOBILE_PREVIEW_MAP_HEIGHT = 'h-[min(88vw,26rem)]';
 
 const GOODS_MOBILE_PREVIEW_MAP_HEIGHT = 'h-[17.2rem]';
 
@@ -53,6 +53,7 @@ export default function HomeCityMap({
   embedded = false,
   headerControls = null,
   mainCategoryControl = null,
+  mapCornerCategoryControl = null,
   subCategoryControl = null,
   mobileCategoryControls = null,
   serviceSummary = null,
@@ -88,6 +89,8 @@ export default function HomeCityMap({
   expandHint = null,
   mapSettingsOverlay = false,
   showWalkExplorer = false,
+  expertMarkerStyleOverride = null,
+  skipMobileFullscreenSheet = false,
 }) {
   const isMobile = useIsMobileViewport();
   const mapInstanceRef = useRef(null);
@@ -100,9 +103,8 @@ export default function HomeCityMap({
   const isMobilePreview = isEmbeddedPreview && isMobile;
   const resolvedControlsLayout = isEmbeddedBanner ? 'banner-header' : controlsLayout;
   const expandOnMapClick =
-    !expandHint &&
-    ((isMobilePreview && Boolean(onRequestExpand)) ||
-      (expandOnInteract && isBanner && !embedded && Boolean(onRequestExpand)));
+    (isMobilePreview && Boolean(onRequestExpand)) ||
+    (expandOnInteract && isBanner && !embedded && Boolean(onRequestExpand));
   const expandOnControlsClick = expandOnInteract && isBanner && !embedded;
   const enableMapGestures = isFullscreen
     ? true
@@ -169,6 +171,7 @@ export default function HomeCityMap({
       selectable={enableMapGestures || isPlacesMode}
       headerControls={resolvedHeaderControls}
       mainCategoryControl={resolvedMainCategory}
+      mapCornerCategoryControl={mapCornerCategoryControl}
       subCategoryControl={resolvedSubCategory}
       mobileCategoryControls={resolvedMobileCategory}
       serviceSummary={resolvedServiceSummary}
@@ -202,6 +205,8 @@ export default function HomeCityMap({
       showMapTools={useMapSettingsOverlay}
       cornerControlsLayout={useMapSettingsOverlay ? 'splitBottom' : 'corner'}
       showWalkExplorer={showWalkExplorer}
+      expertMarkerStyleOverride={expertMarkerStyleOverride}
+      skipMobileFullscreenSheet={skipMobileFullscreenSheet}
     />
   );
 

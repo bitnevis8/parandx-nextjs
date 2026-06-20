@@ -1,4 +1,8 @@
 @import "tailwindcss";
+@import "./dark-theme.css";
+
+/* کلاس .dark روی html — جایگزین darkMode: 'class' در Tailwind v3 */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
   font-family: 'IRANSans';
@@ -30,6 +34,23 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
+}
+
+/* راهنمای اسکرول افقی دسته‌ها — موبایل بخش خدمات */
+@keyframes category-scroll-hint-swipe {
+  0%,
+  100% {
+    transform: translateX(4px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(-4px);
+    opacity: 1;
+  }
+}
+
+.category-scroll-hint-swipe {
+  animation: category-scroll-hint-swipe 1.45s ease-in-out infinite;
 }
 
 /* راهنمای ۴ مسیر صفحهٔ اصلی — هایلایت بخش هدف */
@@ -71,16 +92,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: #ffffff;
-  color: var(--foreground);
   font-family: 'IRANSans', sans-serif;
   direction: rtl;
   color: rgb(var(--foreground-rgb));
@@ -301,10 +313,11 @@ svg.w-8, svg.h-8 {
 }
 
 .boundary-area-label-marker .boundary-area-label {
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(148, 163, 184, 0.65);
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   color: #1e293b;
   direction: rtl;
   display: inline-block;
@@ -322,8 +335,9 @@ svg.w-8, svg.h-8 {
 }
 
 .boundary-area-label-marker .boundary-area-label--selected {
-  background: rgba(13, 148, 136, 0.94);
-  border-color: rgba(15, 118, 110, 0.9);
+  background: rgba(13, 148, 136, 0.4);
+  backdrop-filter: blur(5px);
+  border-color: rgba(15, 118, 110, 0.42);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -336,10 +350,11 @@ svg.w-8, svg.h-8 {
 
 .boundary-area-cluster-marker .boundary-area-cluster {
   align-items: center;
-  background: rgba(255, 255, 255, 0.96);
-  border: 2px solid rgba(8, 145, 178, 0.75);
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(5px);
+  border: 2px solid rgba(8, 145, 178, 0.28);
   border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   color: #0f172a;
   direction: rtl;
   display: flex;
@@ -562,9 +577,10 @@ svg.w-8, svg.h-8 {
 }
 
 .expert-map-marker-name--3d {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   display: inline-block;
   flex-direction: row;
   font-weight: 800;
@@ -707,10 +723,11 @@ svg.w-8, svg.h-8 {
 }
 
 .expert-map-marker-name {
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   color: #111827;
   display: flex;
   flex-direction: column;
@@ -721,7 +738,6 @@ svg.w-8, svg.h-8 {
   line-height: 1.35;
   max-width: 7rem;
   padding: 3px 7px;
-  text-shadow: 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
 .expert-map-marker-name-line {
@@ -1066,10 +1082,11 @@ svg.w-8, svg.h-8 {
 
 .expert-map-cluster {
   align-items: center;
-  background: rgba(13, 148, 136, 0.95);
-  border: 2px solid #fff;
+  background: rgba(13, 148, 136, 0.34);
+  backdrop-filter: blur(5px);
+  border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -1290,10 +1307,11 @@ svg.w-8, svg.h-8 {
 
 .request-map-cluster {
   align-items: center;
-  background: rgba(245, 158, 11, 0.95);
-  border: 2px solid #fff;
+  background: rgba(245, 158, 11, 0.34);
+  backdrop-filter: blur(5px);
+  border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -1377,4 +1395,63 @@ svg.w-8, svg.h-8 {
 
 .map-walk-pointer-lock {
   cursor: none !important;
+}
+
+@keyframes request-step-flow-arrow-motion {
+  0%,
+  100% {
+    transform: translateX(0.15rem);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(-0.45rem);
+    opacity: 1;
+  }
+}
+
+.request-step-flow-arrow {
+  animation: request-step-flow-arrow-motion 1.55s ease-in-out infinite;
+}
+
+.request-desktop-step-line {
+  background: linear-gradient(
+    270deg,
+    rgb(45 212 191 / 0.35) 0%,
+    rgb(20 184 166 / 0.85) 45%,
+    rgb(13 148 136 / 0.95) 55%,
+    rgb(45 212 191 / 0.35) 100%
+  );
+  box-shadow: 0 0 8px rgb(20 184 166 / 0.22);
+}
+
+.dark .request-desktop-step-line {
+  background: linear-gradient(
+    270deg,
+    rgb(56 189 248 / 0.25) 0%,
+    rgb(45 212 191 / 0.75) 45%,
+    rgb(94 234 212 / 0.9) 55%,
+    rgb(56 189 248 / 0.25) 100%
+  );
+  box-shadow: 0 0 10px rgb(45 212 191 / 0.18);
+}
+
+@keyframes request-header-speaker-pulse {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.82;
+  }
+  35% {
+    transform: scale(1.08) rotate(-6deg);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.96) rotate(4deg);
+    opacity: 0.9;
+  }
+}
+
+.request-header-speaker {
+  animation: request-header-speaker-pulse 2.1s ease-in-out infinite;
+  transform-origin: center;
 }

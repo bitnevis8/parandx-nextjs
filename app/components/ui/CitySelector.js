@@ -3,44 +3,30 @@
 import { MapPinIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useCity } from '../../context/CityContext';
 
-export default function CitySelector({ compact = false }) {
-  const { cities, selectedCity, setSelectedCity, loading } = useCity();
+/** انتخاب شهر — فقط دسکتاپ؛ موبایل از سرچ‌باکس هدر */
+export default function CitySelector() {
+  const { selectedCity, setShowPicker, loading, cities } = useCity();
 
-  if (loading || !cities.length) return null;
+  if (loading || !cities.length || !selectedCity) return null;
 
   return (
-    <div className="relative shrink-0">
-      <label htmlFor="city-selector" className="sr-only">انتخاب شهر</label>
-      <div className="relative">
-        <MapPinIcon
-          className={`absolute right-2 top-1/2 -translate-y-1/2 text-teal-600 pointer-events-none ${compact ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5'}`}
-          aria-hidden
-        />
-        <select
-          id="city-selector"
-          value={selectedCity?.id ?? ''}
-          onChange={(e) => {
-            const city = cities.find((c) => String(c.id) === e.target.value);
-            if (city) setSelectedCity(city);
-          }}
-          className={`
-            appearance-none cursor-pointer rounded-lg border border-gray-200 bg-white text-gray-800
-            hover:border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none
-            pr-8 pl-7 font-medium transition-colors
-            ${compact ? 'py-1.5 text-xs min-w-[110px]' : 'py-2 text-xs sm:text-sm min-w-[130px] sm:min-w-[150px]'}
-          `}
-        >
-          {cities.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
-        <ChevronDownIcon
-          className={`absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none ${compact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`}
-          aria-hidden
-        />
-      </div>
+    <div className="hidden md:block shrink-0">
+      <button
+        type="button"
+        onClick={() => setShowPicker(true)}
+        className="
+          inline-flex max-w-[11rem] items-center gap-1.5 rounded-full border border-gray-200
+          bg-gray-50/90 px-3 py-1.5 text-sm font-semibold text-gray-800
+          transition-colors hover:border-teal-200 hover:bg-teal-50/80
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 focus-visible:ring-offset-1
+          dark:border-sky-700 dark:bg-sky-900 dark:text-sky-100 dark:hover:border-teal-600 dark:hover:bg-sky-800 dark:focus-visible:ring-offset-sky-950
+        "
+        aria-label={`شهر فعلی: ${selectedCity.name}. برای تغییر شهر بزنید`}
+      >
+        <MapPinIcon className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
+        <span className="truncate">{selectedCity.name}</span>
+        <ChevronDownIcon className="h-4 w-4 shrink-0 text-gray-400 dark:text-sky-400" aria-hidden />
+      </button>
     </div>
   );
 }

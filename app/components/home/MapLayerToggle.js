@@ -6,9 +6,9 @@ import { MAP_LAYERS } from '../../utils/requestMapUtils';
 const LAYER_OPTIONS = [
   {
     id: MAP_LAYERS.experts,
-    label: 'متخصصین',
+    label: 'متخصص‌ها',
     icon: UserGroupIcon,
-    ariaLabel: 'نمایش متخصصین روی نقشه',
+    ariaLabel: 'نمایش متخصص‌ها روی نقشه',
     idleClass: 'text-gray-600 hover:text-teal-800',
     activeClass:
       'bg-teal-600 text-white shadow-md shadow-teal-600/25 ring-1 ring-teal-700/20',
@@ -30,21 +30,30 @@ export default function MapLayerToggle({
   disabled = false,
   compact = false,
   stretch = false,
+  variant = 'default',
 }) {
+  const isMobileBanner = variant === 'mobileBanner';
+
   const compactShell = stretch
-    ? 'grid h-9 w-full min-w-0 max-w-none grid-cols-2 gap-0.5 rounded-lg border border-gray-200/90 bg-white p-0.5 shadow-sm'
+    ? 'grid h-9 w-full min-w-0 grid-cols-2 gap-0.5 rounded-lg border border-gray-200/90 bg-white p-0.5 shadow-sm dark:border-sky-700/80 dark:bg-sky-950/90'
     : 'grid h-9 min-w-[11rem] max-w-[12.5rem] w-auto grid-cols-2 gap-0.5 rounded-lg border border-gray-200/90 bg-white p-0.5 shadow-sm';
 
+  const shellClass = isMobileBanner
+    ? 'grid h-11 w-full grid-cols-2 gap-1 rounded-xl border border-gray-200/90 bg-white p-1 shadow-sm dark:border-sky-700/80 dark:bg-sky-950/90'
+    : compact
+      ? compactShell
+      : 'grid h-12 w-full grid-cols-2 gap-1 rounded-2xl border border-gray-200/90 bg-white p-1 shadow-sm md:min-w-[22rem] md:max-w-[22rem]';
+
+  const buttonSizeClass = isMobileBanner
+    ? 'gap-2 rounded-lg px-2 text-[13px] leading-none'
+    : compact
+      ? 'gap-1.5 px-2.5 text-xs'
+      : 'gap-2 rounded-xl px-2 text-sm md:px-3 md:text-base';
+
+  const iconSizeClass = isMobileBanner || compact ? 'h-4 w-4 shrink-0' : 'h-5 w-5 shrink-0';
+
   return (
-    <div
-      className={
-        compact
-          ? compactShell
-          : 'grid h-12 w-full grid-cols-2 gap-1 rounded-2xl border border-gray-200/90 bg-white p-1 shadow-sm md:min-w-[22rem] md:max-w-[22rem]'
-      }
-      role="group"
-      aria-label="لایه نقشه"
-    >
+    <div className={shellClass} role="group" aria-label="لایه نقشه">
       {LAYER_OPTIONS.map((option) => {
         const Icon = option.icon;
         const active = value === option.id;
@@ -57,13 +66,11 @@ export default function MapLayerToggle({
             aria-pressed={active}
             aria-label={option.ariaLabel}
             onClick={() => onChange?.(option.id)}
-            className={`inline-flex w-full min-w-0 items-center justify-center whitespace-nowrap rounded-lg font-bold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/35 disabled:cursor-not-allowed disabled:opacity-50 ${
-              compact
-                ? 'gap-1.5 px-2.5 text-xs'
-                : 'gap-2 rounded-xl px-2 text-sm md:px-3 md:text-base'
-            } ${active ? option.activeClass : option.idleClass}`}
+            className={`inline-flex w-full min-w-0 items-center justify-center whitespace-nowrap font-bold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/35 disabled:cursor-not-allowed disabled:opacity-50 ${buttonSizeClass} ${
+              active ? option.activeClass : option.idleClass
+            }`}
           >
-            <Icon className={compact ? 'h-4 w-4 shrink-0' : 'h-5 w-5 shrink-0'} aria-hidden />
+            <Icon className={iconSizeClass} aria-hidden />
             <span>{option.label}</span>
           </button>
         );

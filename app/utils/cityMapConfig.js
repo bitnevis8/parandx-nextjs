@@ -15,19 +15,29 @@ export const DASHBOARD_MAP_VIEW_DEFAULTS = {
 /** پیش‌فرض کامل نمای نقشه — برای fallback کد و راهنمای داشبورد */
 export const CITY_MAP_VIEW_PRESETS = {
   parand: {
-    latitude: 35.4764,
-    longitude: 50.9476,
-    mapZoom: 13,
+    latitude: 35.4754,
+    longitude: 50.9584,
+    mapZoom: 14.2,
+    mapZoomMobile: 14,
     mapShow3D: true,
-    mapPitch: 60,
-    mapBearing: 13,
+    mapPitch: 58,
+    mapBearing: 0,
+    mapUseConfiguredView: true,
+  },
+  ahvaz: {
+    latitude: 31.3119,
+    longitude: 48.6721,
+    mapZoom: 10.7,
+    mapShow3D: true,
+    mapPitch: 52,
+    mapBearing: 0,
     mapUseConfiguredView: true,
   },
 };
 
 const CITY_MAP_FALLBACK = {
   parand: CITY_MAP_VIEW_PRESETS.parand,
-  ahvaz: { latitude: 31.3183, longitude: 48.6842, mapZoom: 12 },
+  ahvaz: CITY_MAP_VIEW_PRESETS.ahvaz,
   bojnord: { latitude: 37.475, longitude: 57.3314, mapZoom: 13 },
   'shahr-228': { latitude: 37.475, longitude: 57.3314, mapZoom: 13 },
   dezful: { latitude: 32.3831, longitude: 48.4019, mapZoom: 13 },
@@ -73,27 +83,52 @@ export function getCityMapViewPreset(city) {
   return CITY_MAP_VIEW_PRESETS[slug] || null;
 }
 
-/** پیش‌فرض کد شهر (مثل پرند) — فقط قبل از اولین ذخیره در دیتابورد */
+/** مقادیر پیشنهادی فرم داشبورد — preset کد یا دیتابیس */
+export function getCityMapFormDefaults(city) {
+  if (!city) return null;
+
+  const useConfigured = readTriStateBool(city?.mapUseConfiguredView, false);
+  const preset = getCityMapViewPreset(city) || getCityFallback(city);
+  const effective = useConfigured ? city : preset ? { ...city, ...preset } : city;
+
+  return {
+    latitude: effective.latitude ?? '',
+    longitude: effective.longitude ?? '',
+    mapZoom: effective.mapZoom ?? 13,
+    mapZoomMobile: effective.mapZoomMobile ?? '',
+    mapShow3D: readTriStateBool(effective.mapShow3D, true),
+    mapPitch: effective.mapPitch ?? 60,
+    mapBearing: effective.mapBearing ?? 0,
+    mapUseConfiguredView: useConfigured,
+  };
+}
+
+/** پیش‌فرض کد شهر — تا ذخیرهٔ «نمای سفارشی» در داشبورد */
 function resolveEffectiveCityMap(city) {
-  const preset = getCityMapViewPreset(city);
-  if (!preset || readTriStateBool(city?.mapUseConfiguredView, false)) {
+  if (!city) return city;
+
+  if (readTriStateBool(city?.mapUseConfiguredView, false)) {
     return city;
   }
+
+  const preset = getCityMapViewPreset(city) || getCityFallback(city);
+  if (!preset) return city;
 
   const hasDbViewConfig =
     city?.mapPitch != null ||
     city?.mapBearing != null ||
     (city?.latitude != null && city?.longitude != null && city?.mapZoom != null);
 
-  if (hasDbViewConfig) return city;
+  if (hasDbViewConfig && !preset.mapUseConfiguredView) return city;
 
   return { ...city, ...preset };
 }
 
-export function resolveCityMapConfig(city) {
+export function resolveCityMapConfig(city, { mobile = false } = {}) {
   if (!city) return null;
 
   const effective = resolveEffectiveCityMap(city);
+  const preset = getCityMapViewPreset(city);
   const fallback = getCityFallback(city);
   const lat =
     parseCoord(effective?.latitude) ??
@@ -103,12 +138,19 @@ export function resolveCityMapConfig(city) {
     parseCoord(effective?.longitude) ??
     fallback?.longitude ??
     null;
-  const zoomRaw = parseCoord(effective?.mapZoom) ?? fallback?.mapZoom ?? 13;
-  const zoom = Math.round(zoomRaw) || 13;
+  const zoomDesktopRaw = parseCoord(effective?.mapZoom) ?? fallback?.mapZoom ?? 13;
+  const zoomDesktop = Number.isFinite(zoomDesktopRaw) ? zoomDesktopRaw : 13;
+  const zoomMobileRaw =
+    parseCoord(effective?.mapZoomMobile) ??
+    preset?.mapZoomMobile ??
+    fallback?.mapZoomMobile ??
+    null;
+  const zoomMobile = Number.isFinite(zoomMobileRaw) ? zoomMobileRaw : zoomDesktop;
+  const zoom = mobile ? zoomMobile : zoomDesktop;
 
   if (lat == null || lng == null) return null;
 
-  return { lat, lng, zoom };
+  return { lat, lng, zoom, zoomDesktop, zoomMobile };
 }
 
 export function resolveCityDefaultRegion(city) {

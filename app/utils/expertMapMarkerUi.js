@@ -105,7 +105,7 @@ function buildExpertMarkerHead(item, style, { elevated3D = false } = {}) {
     : 'expert-map-marker-head';
 
   const headStyle =
-    elevated3D && item.avatarUrl ? EXPERT_MARKER_STYLES.avatar : style;
+    elevated3D && item.avatarUrl && item.name ? EXPERT_MARKER_STYLES.avatar : style;
   appendMarkerHead(headWrap, item, headStyle);
   return headWrap;
 }
@@ -148,8 +148,12 @@ export function buildExpertMarkerElement(
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'expert-map-marker-hit';
-  btn.setAttribute('aria-label', item.name || 'متخصص');
-  btn.title = item.name || '';
+  const markerLabel =
+    String(item.name || '').trim() ||
+    String(item.categoryTitle || '').trim() ||
+    'مارکر';
+  btn.setAttribute('aria-label', markerLabel);
+  btn.title = markerLabel;
 
   if (show3D) {
     const nameLabel = createExpertMarkerName3D(item);
@@ -166,17 +170,21 @@ export function buildExpertMarkerElement(
 }
 
 export function buildExpertMarkerPopupHtml(item) {
-  const name = item.name || 'متخصص';
+  const name = String(item.name || '').trim();
   const href = item.href || '#';
   const categoryLine = item.categoryTitle
     ? `<p class="expert-map-popup-category">${escapeHtml(item.categoryTitle)}</p>`
     : '';
+  const nameLine = name
+    ? `<p class="expert-map-popup-name">${escapeHtml(name)}</p>`
+    : '';
+  const linkLabel = item.popupLinkLabel || 'مشاهده پروفایل';
 
   return `
     <div class="expert-map-popup" dir="rtl">
-      <p class="expert-map-popup-name">${escapeHtml(name)}</p>
+      ${nameLine}
       ${categoryLine}
-      <a href="${escapeHtml(href)}" class="expert-map-popup-link">مشاهده پروفایل</a>
+      <a href="${escapeHtml(href)}" class="expert-map-popup-link">${escapeHtml(linkLabel)}</a>
     </div>
   `;
 }

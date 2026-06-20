@@ -16,10 +16,10 @@ import {
 } from './footerConfig';
 
 const linkClass =
-  'text-[13px] leading-6 text-gray-500 transition-colors duration-150 hover:text-teal-600';
+  'text-[13px] leading-6 text-gray-500 transition-colors duration-150 hover:text-teal-600 dark:text-sky-400 dark:hover:text-teal-300';
 
 const headingClass =
-  'mb-3 text-[13px] font-semibold tracking-tight text-gray-900';
+  'mb-3 text-[13px] font-semibold tracking-tight text-gray-900 dark:text-sky-100';
 
 function FooterNavGroup({ title, links }) {
   return (
@@ -81,7 +81,7 @@ function FooterContact() {
                   : {})}
               >
                 <Icon className="h-4 w-4 shrink-0 text-teal-600/90" strokeWidth={1.75} aria-hidden />
-                <span dir={item.dir} className="font-medium text-gray-600">
+                <span dir={item.dir} className="font-medium text-gray-600 dark:text-sky-300">
                   {item.label}
                 </span>
               </a>
@@ -97,7 +97,7 @@ function PublicFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative z-40 mt-auto w-full border-t border-gray-200/90 bg-white pb-[4.75rem] md:pb-0">
+    <footer className="relative z-40 mt-auto hidden w-full border-t border-gray-200/90 bg-white dark:border-sky-800 dark:bg-sky-950 md:block">
       <div className="container mx-auto max-w-6xl px-4 sm:px-6">
         <div className="py-8 sm:py-10 lg:py-11">
           <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-0">
@@ -123,8 +123,8 @@ function PublicFooter() {
           </div>
         </div>
 
-        <div className="border-t border-gray-100 py-4 sm:py-5">
-          <p className="text-center text-xs text-gray-400">
+        <div className="border-t border-gray-100 py-4 dark:border-sky-800 sm:py-5">
+          <p className="text-center text-xs text-gray-400 dark:text-sky-500">
             &copy; {year} پرندیکس · تمامی حقوق محفوظ است
           </p>
         </div>
@@ -139,9 +139,9 @@ export default function Footer() {
 
   if (isDashboard) {
     return (
-      <footer className="relative z-40 hidden w-full border-t border-gray-100 bg-white md:block">
+      <footer className="relative z-40 hidden w-full border-t border-gray-100 bg-white dark:border-sky-800 dark:bg-sky-950 md:block">
         <div className="container mx-auto max-w-6xl px-4 py-4 sm:px-6">
-          <p className="text-center text-xs text-gray-400">
+          <p className="text-center text-xs text-gray-400 dark:text-sky-500">
             &copy; {new Date().getFullYear()} پرندیکس · تمامی حقوق محفوظ است
           </p>
         </div>

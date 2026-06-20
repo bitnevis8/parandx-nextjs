@@ -25,13 +25,21 @@ export default function GoodsHeroLead() {
       >
         {GOODS_HERO_INTRO.leadMap}
       </button>
-      {' ، یا '}
+      {' ، '}
       <button
         type="button"
         className={PATH_LINK_CLASS}
         onClick={() => focusHomePath(['home-path-need'])}
       >
         {GOODS_HERO_INTRO.leadNeed}
+      </button>
+      {' یا '}
+      <button
+        type="button"
+        className={PATH_LINK_CLASS}
+        onClick={() => focusHomePath(['home-path-supply'])}
+      >
+        {GOODS_HERO_INTRO.leadSupply}
       </button>
       {' '}
       {GOODS_HERO_INTRO.leadSuffix}
