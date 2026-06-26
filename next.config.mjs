@@ -8,7 +8,10 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   async rewrites() {
     const apiOrigin =
-      process.env.API_INTERNAL_URL?.replace(/\/$/, '') || 'http://127.0.0.1:3000';
+      process.env.API_INTERNAL_URL?.replace(/\/$/, '') ||
+      (process.env.NODE_ENV === 'production'
+        ? 'http://127.0.0.1:3007'
+        : 'http://127.0.0.1:3000');
     return [
       {
         source: '/api/:path*',

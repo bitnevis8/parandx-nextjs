@@ -4,18 +4,17 @@
  * dev (SSR): مستقیم به localhost:3000
  */
 export function getApiBaseUrl() {
-  const fromEnv = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-  if (fromEnv) return fromEnv;
-
-  const isDev = process.env.NODE_ENV === 'development';
-
-  if (typeof window !== 'undefined' && isDev) {
+  // مرورگر: همیشه same-origin — بدون CORS (rewrite در next.config)
+  if (typeof window !== 'undefined') {
     return '/api';
   }
 
-  if (isDev) {
-    return process.env.API_INTERNAL_URL?.replace(/\/$/, '') || 'http://127.0.0.1:3000';
-  }
+  const fromEnv =
+    process.env.API_INTERNAL_URL?.replace(/\/$/, '') ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
 
-  return 'https://api.parandx.com';
+  if (fromEnv) return fromEnv;
+
+  const isDev = process.env.NODE_ENV === 'development';
+  return isDev ? 'http://127.0.0.1:3000' : 'http://127.0.0.1:3007';
 }

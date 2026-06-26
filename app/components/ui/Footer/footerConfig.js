@@ -52,13 +52,11 @@ export const FOOTER_TRUST_BADGES = [
     label: 'نماد اعتماد الکترونیکی (اینماد)',
     href: `https://trustseal.enamad.ir/?id=${ENAMAD_ID}`,
     src: '/images/trust/enamad.png',
-    srcWebp: '/images/trust/enamad.webp',
   },
   {
     key: 'samandehi',
     label: 'نماد ساماندهی',
     href: '#',
     src: '/images/trust/samandehi.png',
-    srcWebp: '/images/trust/samandehi.webp',
   },
 ];
