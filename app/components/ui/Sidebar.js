@@ -166,7 +166,7 @@ function SidebarBrand({ collapsed }) {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/images/logo_text.jpg"
+        src="/images/logo_text.webp"
         alt="پرندیکس"
         className={`shrink-0 object-contain ${collapsed ? 'h-8 w-8 rounded-lg' : 'h-8 w-auto max-w-[8.5rem]'}`}
       />

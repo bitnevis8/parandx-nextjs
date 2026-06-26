@@ -111,8 +111,16 @@ export const GOODS_SUPPLY_FORM = {
 /** هدر بلوک فروشگاه‌ها — صفحه بازار کالا */
 export const GOODS_MERCHANT_COMMUNITY_HEADER = {
   title: 'صاحب فروشگاه هستید؟ در شهر دیده شوید',
+  mobileTitleFallback: 'فروشگاه‌های شهر',
+  mobileRibbon: 'رایگان',
   description: 'فروشگاهت را معرفی کن — در جستجو، نقشه و دسته‌های مرتبط دیده می‌شوید',
 };
+
+/** @param {string} cityName */
+export function buildGoodsMerchantCommunityMobileTitle(cityName) {
+  const name = String(cityName || '').trim();
+  return name ? `فروشگاه‌های ${name}` : GOODS_MERCHANT_COMMUNITY_HEADER.mobileTitleFallback;
+}
 
 /** متن کنار مغازه‌ها — فضای خالی سمت چپ */
 export const GOODS_MERCHANT_JOIN_PITCH = {
@@ -130,6 +138,7 @@ export const GOODS_MERCHANT_SIGNUP_CTA = {
   bodyAfterCity:
     ' در جستجو و نقشه دیده می‌شی؛ وقتی نیاز کالا ثبت می‌شه خبردار می‌شی و مشتریان نزدیکت رو پیدا می‌کنی.',
   cta: 'ثبت فروشگاه',
+  ctaAriaLabel: 'ثبت‌نام رایگان به‌عنوان فروشگاه',
   ctaPageLabel: 'لینک اختصاصی فروشگاه',
   ctaPageUrlHost: 'parandx.com',
   ctaPageUrlPath: '/goods/stores/',

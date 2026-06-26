@@ -1,9 +1,12 @@
 'use client';
 
+import { BuildingStorefrontIcon } from '@heroicons/react/24/outline';
+import { GOODS_MERCHANT_COMMUNITY_HEADER } from '../../copy/goodsPageFa';
 import HomeLatestMerchants from './HomeLatestMerchants';
+import LatestGoodsIllustration from './LatestGoodsIllustration';
 import HomeGoodsMerchantSignupCta from './HomeGoodsMerchantSignupCta';
-import HomeGoodsMerchantJoinPitch from './HomeGoodsMerchantJoinPitch';
-import GoodsStonePavement from './GoodsStonePavement';
+import HomeSectionHeader from './HomeSectionHeader';
+import GoodsMerchantCommunityMobileHeader from './GoodsMerchantCommunityMobileHeader';
 import { GOODS_MERCHANT_BLOCK_SHELL } from './homeGoodsTheme';
 
 /** بلوک یکپارچه: آخرین فروشگاه‌ها + دعوت به ثبت‌نام */
@@ -12,24 +15,20 @@ export default function HomeGoodsMerchantCommunityBlock({ city, cityName }) {
 
   return (
     <div id="home-path-merchant" className={GOODS_MERCHANT_BLOCK_SHELL}>
-      <div className="relative group" data-goods-pavement-stage>
-        <div className="relative z-[60] px-4 sm:px-8">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between lg:gap-6 xl:gap-10">
-            <HomeLatestMerchants city={city} embedded pavementStage />
-            <HomeGoodsMerchantJoinPitch />
-          </div>
-        </div>
+      <GoodsMerchantCommunityMobileHeader cityName={cityName || city?.name} />
 
-        <div className="relative z-20 pb-4 sm:pb-5">
-          <div className="relative">
-            <div className="pointer-events-none relative z-[1] h-0">
-              <GoodsStonePavement />
-            </div>
-            <div className="relative z-10">
-              <HomeGoodsMerchantSignupCta cityName={cityName} embedded />
-            </div>
-          </div>
-        </div>
+      <HomeSectionHeader
+        icon={BuildingStorefrontIcon}
+        title={GOODS_MERCHANT_COMMUNITY_HEADER.title}
+        description={GOODS_MERCHANT_COMMUNITY_HEADER.description}
+        iconClassName="bg-amber-50 text-amber-600 ring-amber-200/80 dark:bg-slate-800 dark:text-amber-400 dark:ring-slate-700"
+        className="hidden sm:block"
+      />
+
+      <HomeLatestMerchants city={city} embedded />
+      <div className="relative">
+        <LatestGoodsIllustration />
+        <HomeGoodsMerchantSignupCta cityName={cityName} embedded />
       </div>
     </div>
   );

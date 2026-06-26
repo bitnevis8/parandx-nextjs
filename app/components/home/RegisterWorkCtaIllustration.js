@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PhotoIcon } from '@heroicons/react/24/outline';
+import { useTheme } from '../../context/ThemeContext';
 import { REQUEST_INTRO } from '../../copy/friendlyFa';
 
 /**
@@ -10,8 +11,15 @@ import { REQUEST_INTRO } from '../../copy/friendlyFa';
  * پیشنهاد: PNG/WebP با پس‌زمینه شفاف، حدود ۵۶۰×۴۲۰px
  */
 export default function RegisterWorkCtaIllustration({ className = '' }) {
-  const [src, setSrc] = useState(REQUEST_INTRO.illustrationSrc);
+  const { isDark } = useTheme();
+  const primarySrc = isDark ? REQUEST_INTRO.illustrationSrcDark : REQUEST_INTRO.illustrationSrc;
+  const [src, setSrc] = useState(primarySrc);
   const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    setSrc(primarySrc);
+    setMissing(false);
+  }, [primarySrc]);
 
   if (missing) {
     return (
@@ -39,9 +47,11 @@ export default function RegisterWorkCtaIllustration({ className = '' }) {
       <img
         src={src}
         alt=""
-        className="h-auto max-h-[11.5rem] w-full object-contain object-bottom opacity-95 [mask-image:linear-gradient(to_bottom,black_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_78%,transparent_100%)] dark:brightness-110 dark:opacity-90 dark:saturate-90 sm:max-h-[12.5rem] lg:max-h-[13.5rem]"
+        className="h-auto max-h-[11.5rem] w-full object-contain object-bottom opacity-95 [mask-image:linear-gradient(to_bottom,black_78%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_78%,transparent_100%)] sm:max-h-[12.5rem] lg:max-h-[13.5rem]"
         onError={() => {
-          if (src === REQUEST_INTRO.illustrationSrc) {
+          if (isDark && src === REQUEST_INTRO.illustrationSrcDark) {
+            setSrc(REQUEST_INTRO.illustrationSrc);
+          } else if (src === REQUEST_INTRO.illustrationSrc) {
             setSrc(REQUEST_INTRO.illustrationSrcFallback);
           } else {
             setMissing(true);

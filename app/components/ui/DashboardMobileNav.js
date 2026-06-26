@@ -82,7 +82,7 @@ function MobileMenuPanel({ open, onClose }) {
           <Link href="/dashboard" scroll={false} onClick={onClose} className="min-w-0 flex-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/logo_text.jpg"
+              src="/images/logo_text.webp"
               alt="پرند ایکس"
               className="h-6 w-auto max-w-[6.5rem] object-contain object-right"
             />

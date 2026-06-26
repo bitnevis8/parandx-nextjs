@@ -82,11 +82,12 @@ export const REQUEST_INTRO = {
     'خدمتی که نیاز دارید را به‌همراه محل انجام کار ثبت کنید. متخصص‌های مرتبط از درخواست شما مطلع می‌شوند و قیمت و زمان پیشنهادی خود را ارسال می‌کنند. سپس می‌توانید همه پیشنهادها را یک‌جا مشاهده کنید، با متخصص‌ها گفتگو کنید، نمونه‌کارها و امتیازهایشان را بررسی کنید و در نهایت بهترین گزینه را انتخاب کنید.',
   ariaLabel: 'رفتن به فرم ثبت کار جدید',
   illustrationAlt: 'ثبت کار جدید و دریافت پیشنهاد',
-  speakerIconSrc: '/images/speaker.png',
+  speakerIconSrc: '/images/speaker.webp',
   speakerIconAlt: '',
   /** دسکتاپ — عمودی کنار متن (فعلی) */
   illustrationSrc: '/images/home-register-work.webp',
   illustrationSrcFallback: '/images/home-register-work.png',
+  illustrationSrcDark: '/images/home-register-work-dark-.webp',
   /**
    * موبایل — اختیاری؛ بنر افقی کم‌ارتفاع (نه همان عکس عمودی دسکتاپ).
    * پیشنهاد: 720×240px یا 800×260px — webp با پس‌زمینه شفاف یا سفید.

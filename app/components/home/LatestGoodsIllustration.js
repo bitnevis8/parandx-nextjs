@@ -2,16 +2,11 @@
 
 import { useState } from 'react';
 
-const LATEST_EXPERTS_IMAGE = '/images/latest-experts-illustration.webp';
+const LATEST_GOODS_IMAGE = '/images/latest-goods-illustration.webp';
 
-/** ارتفاع موبایل — ۲۰٪ کوچک‌تر از نسخه قبلی */
 const MOBILE_IMG_H = 'h-[10rem] min-[420px]:h-[11.5rem]';
-/**
- * placement:
- * - mobile-stack — بالای لیست آواتارها (فقط موبایل)
- * - signup — بالای باکس ثبت‌نام (دسکتاپ/تبلت)
- */
-export default function LatestExpertsIllustration({ placement = 'signup' }) {
+
+export default function LatestGoodsIllustration({ placement = 'signup' }) {
   const [hidden, setHidden] = useState(false);
 
   if (hidden) return null;
@@ -21,7 +16,7 @@ export default function LatestExpertsIllustration({ placement = 'signup' }) {
       <div className="relative mx-auto sm:hidden" aria-hidden>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={LATEST_EXPERTS_IMAGE}
+          src={LATEST_GOODS_IMAGE}
           alt=""
           className={`${MOBILE_IMG_H} pointer-events-none w-auto max-w-[min(100%,12.8rem)] object-contain object-bottom [mask-image:linear-gradient(to_bottom,black_72%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_72%,transparent_100%)] min-[420px]:max-w-[14.4rem]`}
           onError={() => setHidden(true)}
@@ -37,7 +32,7 @@ export default function LatestExpertsIllustration({ placement = 'signup' }) {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={LATEST_EXPERTS_IMAGE}
+        src={LATEST_GOODS_IMAGE}
         alt=""
         className="h-full w-full object-contain object-bottom"
         onError={() => setHidden(true)}

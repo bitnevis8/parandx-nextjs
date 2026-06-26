@@ -17,7 +17,7 @@ export default function HeaderMobileSearch() {
 
   return (
     <div
-      className={`md:hidden border-t bg-gray-50 px-2 pb-2 pt-1.5 dark:border-white/10 dark:bg-transparent min-[420px]:px-3 ${
+      className={`md:hidden border-t bg-white px-2 pb-2 pt-1.5 dark:border-white/10 dark:bg-[#020617] min-[420px]:px-3 ${
         marketplaceType === 'goods' ? 'border-amber-100/80 dark:border-amber-900/40' : 'border-gray-200'
       }`}
     >

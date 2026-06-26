@@ -48,7 +48,7 @@ function FooterBrand() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/images/logo_text.jpg"
+          src="/images/logo_text.webp"
           alt="پرندیکس"
           className="h-9 w-auto sm:h-10"
         />

@@ -21,19 +21,12 @@ const BENEFIT_ICONS = {
   jobs: BriefcaseIcon,
 };
 
-const NETWORK_IMAGE_WEBP = '/images/expert-network-banner.webp';
-const NETWORK_IMAGE_PNG = '/images/expert-network-banner.png';
+const SIGNUP_ILLUSTRATION = '/images/latest-experts-illustration.webp';
 
 function ExpertNetworkBackdrop() {
-  const [src, setSrc] = useState(NETWORK_IMAGE_WEBP);
   const [hidden, setHidden] = useState(false);
 
   if (hidden) return null;
-
-  const handleImageError = () => {
-    if (src === NETWORK_IMAGE_WEBP) setSrc(NETWORK_IMAGE_PNG);
-    else setHidden(true);
-  };
 
   return (
     <div
@@ -41,10 +34,10 @@ function ExpertNetworkBackdrop() {
       aria-hidden
     >
       <img
-        src={src}
+        src={SIGNUP_ILLUSTRATION}
         alt=""
         className="absolute max-h-[70%] max-w-[92%] object-contain mix-blend-screen opacity-[0.08] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 dark:opacity-[0.06] max-sm:hidden sm:left-0 sm:top-auto sm:bottom-0 sm:h-full sm:max-h-none sm:w-auto sm:max-w-[min(52%,22rem)] sm:translate-x-0 sm:translate-y-0 sm:object-left-bottom sm:opacity-[0.22] sm:saturate-[0.85] sm:brightness-110 sm:dark:opacity-[0.12] lg:max-w-[min(46%,26rem)] lg:opacity-[0.16] lg:dark:opacity-[0.1]"
-        onError={handleImageError}
+        onError={() => setHidden(true)}
       />
       <div
         className="absolute inset-0 bg-gradient-to-l from-teal-950/80 via-transparent to-transparent dark:from-sky-950/90 sm:from-teal-950/50 sm:dark:from-slate-900/80"
@@ -55,24 +48,18 @@ function ExpertNetworkBackdrop() {
 }
 
 function ExpertSignupMobileImage() {
-  const [src, setSrc] = useState(NETWORK_IMAGE_WEBP);
   const [hidden, setHidden] = useState(false);
 
   if (hidden) return null;
-
-  const handleImageError = () => {
-    if (src === NETWORK_IMAGE_WEBP) setSrc(NETWORK_IMAGE_PNG);
-    else setHidden(true);
-  };
 
   return (
     <div className="pointer-events-none flex justify-center px-2 sm:hidden" aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={SIGNUP_ILLUSTRATION}
         alt=""
         className="h-[7.5rem] w-auto max-w-[min(100%,14rem)] object-contain object-bottom opacity-90 [mask-image:linear-gradient(to_bottom,black_68%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_68%,transparent_100%)] min-[420px]:h-[8.5rem] min-[420px]:max-w-[16rem]"
-        onError={handleImageError}
+        onError={() => setHidden(true)}
       />
     </div>
   );

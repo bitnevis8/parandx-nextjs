@@ -7,6 +7,7 @@ import { clearCityBoundaryCache } from '../../../utils/loadCityBoundary';
 import { getCityMapFormDefaults } from '../../../utils/cityMapConfig';
 import { readTriStateBool } from '../../../utils/mapBuildingExtrusion';
 import CityMapSettingsFields from './CityMapSettingsFields';
+import CityHeroSettingsFields from './CityHeroSettingsFields';
 
 const fetchOpts = { credentials: 'include' };
 
@@ -270,6 +271,12 @@ function LocationsManagementContent() {
             mapBuildingDefaultHeight: city.mapBuildingDefaultHeight ?? 12,
             mapMaxBoundsPaddingKm: city.mapMaxBoundsPaddingKm ?? 0,
             mapExpertMarkerStyle: city.mapExpertMarkerStyle || 'pin',
+            heroImageDay: city.heroImageDay || '',
+            heroImageNight: city.heroImageNight || '',
+            heroFrameMaxWidthRem: city.heroFrameMaxWidthRem ?? '',
+            heroFrameAspectRatio: city.heroFrameAspectRatio ?? '',
+            heroCityPaddingRem: city.heroCityPaddingRem ?? '',
+            heroCityRadiusRem: city.heroCityRadiusRem ?? '',
             hasBoundaryMap: city.hasBoundaryMap,
             geoJsonPath: city.geoJsonPath || `city/geojson/${city.slug}.geojson`,
           };
@@ -295,6 +302,12 @@ function LocationsManagementContent() {
             mapBuildingDefaultHeight: 12,
             mapMaxBoundsPaddingKm: 0,
             mapExpertMarkerStyle: 'pin',
+            heroImageDay: '',
+            heroImageNight: '',
+            heroFrameMaxWidthRem: '',
+            heroFrameAspectRatio: '',
+            heroCityPaddingRem: '',
+            heroCityRadiusRem: '',
             hasBoundaryMap: false,
             geoJsonPath: '',
           },
@@ -349,6 +362,24 @@ function LocationsManagementContent() {
               ? Math.min(50, Math.max(0, parseInt(form.mapMaxBoundsPaddingKm, 10) || 0))
               : 0,
           mapExpertMarkerStyle: form.mapExpertMarkerStyle || 'pin',
+          heroImageDay: form.heroImageDay?.trim() || null,
+          heroImageNight: form.heroImageNight?.trim() || null,
+          heroFrameMaxWidthRem:
+            form.heroFrameMaxWidthRem !== '' && form.heroFrameMaxWidthRem != null
+              ? Number(form.heroFrameMaxWidthRem)
+              : null,
+          heroFrameAspectRatio:
+            form.heroFrameAspectRatio !== '' && form.heroFrameAspectRatio != null
+              ? Number(form.heroFrameAspectRatio)
+              : null,
+          heroCityPaddingRem:
+            form.heroCityPaddingRem !== '' && form.heroCityPaddingRem != null
+              ? Number(form.heroCityPaddingRem)
+              : null,
+          heroCityRadiusRem:
+            form.heroCityRadiusRem !== '' && form.heroCityRadiusRem != null
+              ? Number(form.heroCityRadiusRem)
+              : null,
           isActive: Boolean(form.isActive),
         };
         delete body.hasBoundaryMap;
@@ -742,6 +773,11 @@ function LocationsManagementContent() {
                   updateFormFields={updateFormFields}
                   citySlug={modal.form.slug}
                   hasBoundaryMap={Boolean(modal.form.hasBoundaryMap)}
+                />
+                <CityHeroSettingsFields
+                  form={modal.form}
+                  updateForm={updateForm}
+                  citySlug={modal.form.slug}
                 />
                 <label className="block">
                   <span className="mb-1 block text-sm text-gray-600">ترتیب نمایش</span>

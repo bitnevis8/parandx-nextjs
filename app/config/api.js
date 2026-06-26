@@ -434,6 +434,8 @@ function createApiEndpoints(API_BASE_URL) {
     adminHomeRequestTypewriter: `${API_BASE_URL}/site-setting/admin/home-request-typewriter`,
     nightSkyStars: `${API_BASE_URL}/site-setting/night-sky-stars`,
     adminNightSkyStars: `${API_BASE_URL}/site-setting/admin/night-sky-stars`,
+    heroTypeOverlays: `${API_BASE_URL}/site-setting/hero-type-overlays`,
+    adminHeroTypeOverlays: `${API_BASE_URL}/site-setting/admin/hero-type-overlays`,
     homeRequestFloatingQuotes: `${API_BASE_URL}/site-setting/home-request-floating-quotes`,
     adminHomeRequestFloatingQuotes: `${API_BASE_URL}/site-setting/admin/home-request-floating-quotes`,
   },

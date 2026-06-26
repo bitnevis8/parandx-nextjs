@@ -52,14 +52,14 @@ export const goodsEdgeFadeMaskStyle = goodsStoneEdgeFadeMaskStyle;
 /** پالت بلوک فروشگاه‌ها — هم‌خوان با amber بازار کالا */
 export const GOODS_BLOCK_SHELL = `${HOME_CARD_SHELL} overflow-x-hidden`;
 
-/** بلوک مغازه‌ها + ثبت‌نام — پس‌زمینه شفاف */
-export const GOODS_MERCHANT_BLOCK_SHELL =
-  'relative z-40 scroll-mt-28 mt-10 overflow-x-hidden overflow-y-visible rounded-2xl rounded-tl-none border border-t-0 border-l-0 border-r-0 border-transparent bg-transparent pt-20 sm:mt-12';
+/** بلوک فروشگاه‌ها — هم‌خوان با بلوک متخصصین */
+export const GOODS_MERCHANT_BLOCK_SHELL = `${GOODS_BLOCK_SHELL} scroll-mt-28`;
 
-export const GOODS_BLOCK_TOP = 'relative bg-gray-50';
+export const GOODS_BLOCK_TOP = 'relative bg-gray-50 dark:bg-slate-950';
 
-/** باکس ثبت فروشگاه — سفید مرواریدی */
-export const GOODS_MERCHANT_SIGNUP_SHELL = 'relative text-[#44513E]';
+/** پایین بلوک فروشگاه — طلایی در روشن، slate در تاریک */
+export const GOODS_BLOCK_BOTTOM =
+  'relative border-t border-transparent bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 text-white dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950';
 
-/** @deprecated — از GOODS_MERCHANT_SIGNUP_SHELL استفاده کنید */
-export const GOODS_BLOCK_BOTTOM = GOODS_MERCHANT_SIGNUP_SHELL;
+/** باکس ثبت فروشگاه — embedded */
+export const GOODS_MERCHANT_SIGNUP_SHELL = 'relative text-white';

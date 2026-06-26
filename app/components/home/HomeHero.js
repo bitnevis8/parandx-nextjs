@@ -9,6 +9,7 @@ import ServicesMobileGuideLink from './ServicesMobileGuideLink';
 import HomeHeroSearch from './HomeHeroSearch';
 import HomeExpertCommunityBlock from './HomeExpertCommunityBlock';
 import HomeOrderRequestBlock from './HomeOrderRequestBlock';
+import CityHeroVisual from './CityHeroVisual';
 import { HERO_INTRO } from '../../copy/friendlyFa';
 import {
   HOME_SERVICES_CATEGORY_BAND,
@@ -51,11 +52,10 @@ export default function HomeHero({ city, cityName = 'شما', categories = [] })
 
             <div className="flex flex-col gap-3 md:hidden">
               <div className="flex justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/clent_expert.webp"
+                <CityHeroVisual
+                  city={city}
+                  marketplace="services"
                   alt="کاربر و متخصص در پرندیکس"
-                  className="h-auto w-full max-w-xs object-contain sm:max-w-sm"
                 />
               </div>
               <ServicesMobileRoleCards />
@@ -63,11 +63,10 @@ export default function HomeHero({ city, cityName = 'شما', categories = [] })
           </div>
 
           <div className="hidden w-full items-center justify-center md:flex md:justify-start">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/clent_expert.webp"
+            <CityHeroVisual
+              city={city}
+              marketplace="services"
               alt="کاربر و متخصص در پرندیکس"
-              className="h-auto w-full max-w-xs object-contain sm:max-w-sm md:max-w-[26rem] lg:max-w-[28rem] xl:max-w-[30rem]"
             />
           </div>
         </div>

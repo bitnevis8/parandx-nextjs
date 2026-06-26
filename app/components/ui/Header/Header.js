@@ -95,14 +95,14 @@ export default function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-[100] w-full border-b border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-transparent dark:shadow-none">
+    <header className="sticky top-0 z-[100] w-full border-b border-gray-200 bg-white dark:border-white/10 dark:bg-[#020617]">
       <div className={HEADER_CONTAINER}>
         {/* موبایل: لوگو راست — چپ: چت + آلارم */}
         <div className="flex h-12 min-h-12 items-center justify-between gap-2 md:hidden">
           <Link href="/" scroll={false} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/logo_text.jpg"
+              src="/images/logo_text.webp"
               alt="پرندیکس"
               className="h-7 w-auto max-w-[5.25rem] object-contain object-right min-[420px]:h-8 min-[420px]:max-w-[7rem]"
             />
@@ -123,7 +123,7 @@ export default function Header() {
           <Link href="/" scroll={false} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/logo_text.jpg"
+              src="/images/logo_text.webp"
               alt="پرندیکس"
               className="h-9 w-auto max-w-[9.5rem] object-contain object-right"
             />

@@ -21,6 +21,12 @@ export default function SettingsPage() {
       icon: "💬",
     },
     {
+      title: "لایه‌های هیرو (خدمات / کالا)",
+      description: "تصویر متخصص و فروشگاه روی پس‌زمینه شهر در صفحه اصلی",
+      href: "/dashboard/settings/hero-type-overlays",
+      icon: "🖼️",
+    },
+    {
       title: "ستاره‌های آسمان شب",
       description: "تنظیم ستاره‌های بالای سایت — جدا برای موبایل و دسکتاپ",
       href: "/dashboard/settings/night-sky-stars",

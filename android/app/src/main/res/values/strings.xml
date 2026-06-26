@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">ParandX</string>
-    <string name="title_activity_main">ParandX</string>
-    <string name="package_name">com.parandx.app</string>
-    <string name="custom_url_scheme">com.parandx.app</string>
-</resources>

@@ -5,6 +5,7 @@ import GoodsHeroLead from './GoodsHeroLead';
 import CityWeatherBadge from './CityWeatherBadge';
 import HomeGoodsTradePathsRow from './HomeGoodsTradePathsRow';
 import HomeGoodsMerchantCommunityBlock from './HomeGoodsMerchantCommunityBlock';
+import CityHeroVisual from './CityHeroVisual';
 import { GOODS_HERO_INTRO } from '../../copy/goodsPageFa';
 import {
   HOME_CONTAINER,
@@ -34,22 +35,22 @@ export default function GoodsHero({ city, cityName = 'شما', categories = [] }
 
               <div className="flex flex-col items-center gap-2 md:hidden">
                 <CityWeatherBadge city={city} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/good.png"
+                <CityHeroVisual
+                  city={city}
+                  marketplace="goods"
                   alt="بازار کالا در پرندیکس"
-                  className="h-auto w-full max-w-[15rem] object-contain opacity-90 sm:max-w-[18rem]"
+                  className="opacity-95"
                 />
               </div>
             </div>
 
             <div className="hidden w-full flex-col items-center justify-center gap-2 md:flex md:items-start">
               <CityWeatherBadge city={city} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/good.png"
+              <CityHeroVisual
+                city={city}
+                marketplace="goods"
                 alt="بازار کالا در پرندیکس"
-                className="h-auto w-full max-w-[15rem] object-contain opacity-90 sm:max-w-[18rem] md:max-w-[19.5rem] lg:max-w-[21rem] xl:max-w-[22.5rem]"
+                className="opacity-95"
               />
             </div>
           </div>
